@@ -1,0 +1,6 @@
+{
+  "name": "Ultradian Focus Pulse",
+  "description": "Advanced Ultradian Rhythm Timer with customizable work/break cycles, web notifications, Web Audio ambient generator, weekly insights with interactive analytics, dark mode, and social stats sharing.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
