@@ -255,6 +255,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="space-y-3 pt-3 border-t border-stone-100 dark:border-stone-800 text-xs">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="font-semibold text-stone-600 dark:text-stone-400">
+                Enable Competitive Matchmaking Leagues & Ghost Pacing
+              </span>
+              <input
+                type="checkbox"
+                checked={form.enableCompetitiveLeagues ?? true}
+                onChange={(e) => setForm({ ...form, enableCompetitiveLeagues: e.target.checked })}
+                className="w-4 h-4 accent-stone-900 dark:accent-stone-100 rounded cursor-pointer"
+              />
+            </label>
+
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="font-semibold text-stone-600 dark:text-stone-400">
                 Automatically start Break Wave when Work terminates
               </span>
               <input

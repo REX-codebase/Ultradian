@@ -16,15 +16,18 @@ import {
   doc,
   setDoc,
   collection,
+  collectionGroup,
   query,
   orderBy,
   limit,
   onSnapshot,
   getDocs,
+  getCountFromServer,
+  where,
   getDocFromServer,
 } from 'firebase/firestore';
 import config from '../../firebase-applet-config.json';
-import { SessionRecord, FriendProfile, CategoryTag } from '../types';
+import { SessionRecord, FriendProfile, CategoryTag, LeagueTier, LeagueMember, RivalInfo } from '../types';
 
 // Initialize Firebase
 const app = initializeApp({
@@ -222,76 +225,117 @@ export async function syncUserProfileToCloud(user: FirebaseUser): Promise<void> 
 }
 
 /**
- * Update user's public leaderboard presence based on their completed sessions
+ * Helper to get ISO week string (e.g. "2026-W32")
  */
-export async function updateLeaderboardStats(
-  userId: string,
-  username: string,
-  records: SessionRecord[]
-): Promise<void> {
-  const path = `leaderboard/${userId}`;
+export function getISOWeek(date: Date = new Date()): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Step 2.2: True Global Rank calculation via Firestore Count Aggregation Query
+ */
+export async function fetchGlobalRank(userId: string, currentUserHours: number): Promise<number> {
   try {
-    const now = Date.now();
-    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-
-    // Filter to past 7 days for weekly rankings
-    const past7DaysRecords = records.filter((r) => now - r.timestamp <= SEVEN_DAYS_MS);
-
-    // Calculate metrics
-    let totFocusMins = 0;
-    let completedCycles = 0;
-    let sumRatings = 0;
-    let ratedCount = 0;
-    const categoryMins: Record<string, number> = {};
-
-    records.forEach((r) => {
-      if (r.type === 'work') {
-        completedCycles += 1;
-        if (r.focusRating) {
-          sumRatings += r.focusRating;
-          ratedCount += 1;
-        }
-      }
-    });
-
-    past7DaysRecords.forEach((r) => {
-      if (r.type === 'work') {
-        const mins = Math.round(r.actualSecondsCompleted / 60);
-        totFocusMins += mins;
-        const cat = r.category || 'General';
-        categoryMins[cat] = (categoryMins[cat] || 0) + mins;
-      }
-    });
-
-    const weeklyHours = Math.round((totFocusMins / 60) * 10) / 10;
-    const avgRating = ratedCount > 0 ? sumRatings / ratedCount : 5.0;
-    const focusScore = Math.round(avgRating * 20); // Scale 5.0 rating to 100
-
-    // Find top category
-    let topCategory: CategoryTag = 'General';
-    let maxMins = 0;
-    Object.entries(categoryMins).forEach(([cat, mins]) => {
-      if (mins > maxMins) {
-        maxMins = mins;
-        topCategory = cat as CategoryTag;
-      }
-    });
-
-    // Write to global leaderboard collection
-    const leaderDocRef = doc(db, 'leaderboard', userId);
-    await setDoc(leaderDocRef, {
-      id: userId,
-      name: username,
-      weeklyHours,
-      completedCycles,
-      focusScore,
-      topCategory,
-      isUser: false, // will be overridden dynamically by client
-      lastUpdated: now,
-    });
+    const q = query(
+      collectionGroup(db, 'weeks'),
+      where('weeklyHours', '>', currentUserHours)
+    );
+    const snapshot = await getCountFromServer(q);
+    return snapshot.data().count + 1;
   } catch (err) {
-    handleFirestoreError(err, OperationType.WRITE, path);
+    console.warn('Global rank count aggregation fallback:', err);
+    return 1;
   }
+}
+
+/**
+ * Step 2.3: Subscribe to live League members updates for matchmaking leagues
+ */
+export function subscribeToLeagueMembers(
+  leagueId: LeagueTier,
+  userId: string | undefined,
+  onUpdate: (members: LeagueMember[]) => void
+) {
+  const path = `leagues/${leagueId}/members`;
+  const q = query(collection(db, 'leagues', leagueId, 'members'), orderBy('weeklyHours', 'desc'), limit(50));
+
+  return onSnapshot(q, (snapshot) => {
+    const list: LeagueMember[] = [];
+    let currentRank = 1;
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      const isSelf = userId ? (data.userId === userId || docId === userId) : false;
+
+      list.push({
+        id: data.userId || docId,
+        name: data.name || 'Ultradian Achiever',
+        weeklyHours: data.weeklyHours ?? 0,
+        completedCycles: data.completedCycles ?? 0,
+        focusScore: data.focusScore ?? 90,
+        topCategory: (data.topCategory as CategoryTag) || 'General',
+        leagueId: (data.leagueId as LeagueTier) || leagueId,
+        rank: currentRank++,
+        isUser: isSelf,
+      });
+    });
+
+    onUpdate(list);
+  }, (err) => {
+    handleFirestoreError(err, OperationType.GET, path);
+    onUpdate([]);
+  });
+}
+
+/**
+ * Step 2.1: Calculate Ghost Pacing (Rival Tracking)
+ * Finds the rival immediately preceding the logged-in user in weeklyHours
+ */
+export function calculateGhostRival(
+  currentUserId: string,
+  allPlayers: (LeagueMember | FriendProfile)[]
+): RivalInfo | null {
+  if (!allPlayers || !allPlayers.length) return null;
+
+  const sorted = [...allPlayers].sort((a, b) => b.weeklyHours - a.weeklyHours);
+  const userIdx = sorted.findIndex((p) => p.id === currentUserId || p.isUser);
+
+  if (userIdx === 0) {
+    // User is Rank 1
+    return {
+      rivalName: 'Nobody',
+      rivalHours: sorted[0].weeklyHours,
+      minutesBehind: 0,
+      cyclesToPass: 0,
+      rankAbove: 1,
+      isLeading: true,
+    };
+  }
+
+  if (userIdx > 0) {
+    const rival = sorted[userIdx - 1];
+    const userHours = sorted[userIdx].weeklyHours;
+    const diffHours = Math.max(0, rival.weeklyHours - userHours);
+    const minutesBehind = Math.round(diffHours * 60);
+    const cyclesToPass = Math.ceil(minutesBehind / 90) || 1;
+
+    return {
+      rivalName: rival.name,
+      rivalHours: rival.weeklyHours,
+      minutesBehind,
+      cyclesToPass,
+      rankAbove: userIdx, // 1-indexed rank of rival
+      isLeading: false,
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -302,37 +346,34 @@ export function subscribeToLeaderboard(
   onUpdate: (friends: FriendProfile[]) => void
 ) {
   const path = 'leaderboard';
-  const q = query(collection(db, 'leaderboard'), orderBy('weeklyHours', 'desc'), limit(50));
+  const q = query(collection(db, 'leaderboard'), orderBy('lifetimeHours', 'desc'), limit(50));
 
   return onSnapshot(q, (snapshot) => {
     const list: FriendProfile[] = [];
+    let rank = 1;
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const docId = docSnap.id;
 
-      // Skip legacy mock or seed entries
       if (docId.startsWith('friend_') || docId.startsWith('seed_')) {
         return;
       }
 
-      const isSelf = userId ? (data.id === userId || docId === userId) : false;
-      const weeklyHours = data.weeklyHours ?? 0;
-      const completedCycles = data.completedCycles ?? 0;
-
-      // Hide inactive test profiles with 0 hours and 0 cycles unless it is the logged-in user themselves
-      if (!isSelf && weeklyHours === 0 && completedCycles === 0) {
-        return;
-      }
+      const isSelf = userId ? (data.userId === userId || data.id === userId || docId === userId) : false;
+      const weeklyHours = data.weeklyHours ?? data.lifetimeHours ?? 0;
+      const completedCycles = data.completedCycles ?? data.lifetimeCycles ?? 0;
 
       list.push({
-        id: data.id || docId,
+        id: data.userId || data.id || docId,
         name: data.name || 'Ultradian Achiever',
         weeklyHours,
         completedCycles,
-        focusScore: data.focusScore ?? 0,
+        focusScore: data.focusScore ?? 90,
         topCategory: data.topCategory || 'General',
         isUser: isSelf,
+        leagueId: data.leagueId || 'wood',
+        rank: rank++,
       });
     });
 

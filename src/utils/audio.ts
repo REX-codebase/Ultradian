@@ -351,3 +351,102 @@ export function playThemeTransitionChime(isDarkTarget: boolean): void {
     // Silent fallback
   }
 }
+
+/**
+ * Procedural Web Audio API sound triggered when user passes a rival or gains a rank position
+ */
+export function playRankUpSound(): void {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.3, now);
+    masterGain.connect(ctx.destination);
+
+    // 1. Physical "Whoosh" air pressure sweep
+    const bufferSize = ctx.sampleRate * 0.4;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(200, now);
+    filter.frequency.exponentialRampToValueAtTime(1800, now + 0.35);
+    filter.Q.value = 3;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.01, now);
+    noiseGain.gain.linearRampToValueAtTime(0.25, now + 0.15);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+    noise.start(now);
+
+    // 2. Rising pitch synth sequence (E5 -> G#5 -> B5 -> E6)
+    const pitches = [659.25, 830.61, 987.77, 1318.51];
+    pitches.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const st = now + idx * 0.06;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, st);
+
+      gain.gain.setValueAtTime(0.001, st);
+      gain.gain.linearRampToValueAtTime(0.35, st + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, st + 0.5);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(st);
+      osc.stop(st + 0.55);
+    });
+  } catch (e) {
+    console.warn('Rank up audio error:', e);
+  }
+}
+
+/**
+ * Procedural Web Audio API sound triggered when reaching a major league milestone or top spot
+ */
+export function playMilestoneSound(): void {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.4, now);
+    masterGain.connect(ctx.destination);
+
+    // Celebratory harmonic chord (C5, E5, G5, C6)
+    const freqs = [523.25, 659.25, 783.99, 1046.50];
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const st = now + i * 0.08;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, st);
+
+      gain.gain.setValueAtTime(0.001, st);
+      gain.gain.linearRampToValueAtTime(0.4, st + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, st + 1.2);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(st);
+      osc.stop(st + 1.25);
+    });
+  } catch (e) {
+    console.warn('Milestone audio error:', e);
+  }
+}

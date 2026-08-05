@@ -24,19 +24,48 @@
     },
     "LeaderboardEntry": {
       "title": "LeaderboardEntry",
-      "description": "Public aggregated stats for a user on the global leaderboard.",
+      "description": "Lifetime aggregated stats for a user on the global leaderboard.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "lifetimeHours": { "type": "number" },
+        "lifetimeCycles": { "type": "number" },
+        "currentWeek": { "type": "string" },
+        "leagueId": { "type": "string" },
+        "lastUpdated": { "type": "number" }
+      },
+      "required": ["userId", "name"]
+    },
+    "WeeklyLeaderboardEntry": {
+      "title": "WeeklyLeaderboardEntry",
+      "description": "Time-boxed weekly stats for a user on the leaderboard.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
         "name": { "type": "string" },
         "weeklyHours": { "type": "number" },
         "completedCycles": { "type": "number" },
         "focusScore": { "type": "number" },
         "topCategory": { "type": "string" },
-        "isUser": { "type": "boolean" },
         "lastUpdated": { "type": "number" }
       },
-      "required": ["id", "name", "weeklyHours", "completedCycles", "focusScore", "topCategory"]
+      "required": ["userId", "name", "weeklyHours", "completedCycles", "focusScore"]
+    },
+    "LeagueMember": {
+      "title": "LeagueMember",
+      "description": "A user's ranking inside a specific matchmaking league.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "weeklyHours": { "type": "number" },
+        "completedCycles": { "type": "number" },
+        "focusScore": { "type": "number" },
+        "leagueId": { "type": "string" },
+        "rank": { "type": "number" }
+      },
+      "required": ["userId", "name", "weeklyHours", "leagueId"]
     }
   },
   "firestore": {
@@ -46,7 +75,15 @@
     },
     "/leaderboard/{userId}": {
       "schema": "LeaderboardEntry",
-      "description": "Global leaderboard entries."
+      "description": "Global lifetime leaderboard entries."
+    },
+    "/leaderboard/{userId}/weeks/{weekId}": {
+      "schema": "WeeklyLeaderboardEntry",
+      "description": "Time-boxed weekly stats for zero-reset leaderboards."
+    },
+    "/leagues/{leagueId}/members/{userId}": {
+      "schema": "LeagueMember",
+      "description": "League membership and rankings."
     }
   }
 }

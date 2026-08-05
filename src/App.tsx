@@ -18,6 +18,9 @@ import {
   FriendProfile,
   UltradianPreset,
   AmbientSoundType,
+  LeagueTier,
+  LeagueMember,
+  RivalInfo,
 } from './types';
 
 import {
@@ -35,8 +38,10 @@ import {
   syncSessionToCloud,
   loadCloudSessions,
   syncUserProfileToCloud,
-  updateLeaderboardStats,
   subscribeToLeaderboard,
+  subscribeToLeagueMembers,
+  fetchGlobalRank,
+  calculateGhostRival,
   signOutUser,
   db,
 } from './utils/firebase';
@@ -90,6 +95,13 @@ export default function App() {
     distractionsCount: number;
   } | null>(null);
 
+  // Matchmaking Leagues & Rival Tracking State
+  const [globalRank, setGlobalRank] = useState<number>(1);
+  const [currentLeague, setCurrentLeague] = useState<LeagueTier>('wood');
+  const [selectedLeague, setSelectedLeague] = useState<LeagueTier>('wood');
+  const [leagueMembers, setLeagueMembers] = useState<LeagueMember[]>([]);
+  const [rivalInfo, setRivalInfo] = useState<RivalInfo | null>(null);
+
   // Firebase User & Sync State
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
@@ -117,10 +129,9 @@ export default function App() {
   useEffect(() => {
     if (!fbUser) return;
 
-    // 1. Sync user profile document (uid, displayName, email) to Firestore
+    // 1. Sync user profile document to Firestore
     syncUserProfileToCloud(fbUser);
 
-    // If username is still default placeholder, default to user's real displayName or email handle
     const realDisplayName = fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : '');
     let currentUsername = settings.username;
 
@@ -131,18 +142,14 @@ export default function App() {
       saveSettings(updatedSettings);
     }
 
-    const effectiveName = currentUsername || realDisplayName || 'Ultradian Achiever';
-
-    // 2. Load cloud sessions and perform a high-fidelity merge with local sessions
+    // 2. Load cloud sessions and sync missing local sessions
     loadCloudSessions(fbUser.uid).then((cloudRecords) => {
       const cleanCloud = cloudRecords ? cloudRecords.filter((r) => !r.id.startsWith('seed_')) : [];
       
       setSessionRecords((prev) => {
-        // Base the list on clean cloud sessions (cloud is source of truth)
         const cleanPrev = prev.filter((r) => r && r.id && !r.id.startsWith('seed_'));
         const merged = [...cleanCloud];
 
-        // Add any local real records that don't exist in the cloud yet
         cleanPrev.forEach((localRec) => {
           if (!merged.some((r) => r.id === localRec.id)) {
             merged.push(localRec);
@@ -152,31 +159,47 @@ export default function App() {
 
         const sorted = merged.sort((a, b) => b.timestamp - a.timestamp);
         saveSessionRecords(sorted);
-        
-        // Update leaderboard stats on the cloud with the clean dataset
-        updateLeaderboardStats(fbUser.uid, effectiveName, sorted);
-        
         return sorted;
       });
     });
 
     // 3. Subscribe to real-time Leaderboard updates
-    const unsubscribe = subscribeToLeaderboard(fbUser.uid, (liveLeaderboard) => {
+    const unsubscribeLeaderboard = subscribeToLeaderboard(fbUser.uid, (liveLeaderboard) => {
       setFriends(liveLeaderboard);
     });
 
     return () => {
-      unsubscribe();
+      unsubscribeLeaderboard();
     };
   }, [fbUser]);
 
-  // Sync to Leaderboard when username changes
+  // Subscribe to real-time Matchmaking League members
+  useEffect(() => {
+    if (!fbUser) return;
+
+    const unsubscribeLeague = subscribeToLeagueMembers(selectedLeague, fbUser.uid, (members) => {
+      setLeagueMembers(members);
+      const rival = calculateGhostRival(fbUser.uid, members);
+      setRivalInfo(rival);
+    });
+
+    return () => {
+      unsubscribeLeague();
+    };
+  }, [fbUser, selectedLeague]);
+
+  // Fetch true Global Rank
   useEffect(() => {
     if (fbUser) {
-      const nameToUse = settings.username || fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : 'Ultradian Achiever');
-      updateLeaderboardStats(fbUser.uid, nameToUse, sessionRecords);
+      const totalHours = sessionRecords
+        .filter((r) => r.type === 'work')
+        .reduce((sum, r) => sum + r.actualSecondsCompleted / 3600, 0);
+
+      fetchGlobalRank(fbUser.uid, totalHours).then((rank) => {
+        setGlobalRank(rank);
+      });
     }
-  }, [settings.username, fbUser]);
+  }, [fbUser, sessionRecords]);
 
   // Exact target timestamp ref to eliminate background tab timing drift
   const endTimeRef = useRef<number | null>(null);
@@ -670,6 +693,11 @@ export default function App() {
             <SocialShareModal
               userStats={userStats}
               friends={friends}
+              globalRank={globalRank}
+              rivalInfo={rivalInfo}
+              currentLeague={currentLeague}
+              leagueMembers={leagueMembers}
+              onSelectLeague={setSelectedLeague}
               onAddFriend={handleAddFriend}
               isInline={true}
             />
@@ -723,6 +751,11 @@ export default function App() {
         <SocialShareModal
           userStats={userStats}
           friends={friends}
+          globalRank={globalRank}
+          rivalInfo={rivalInfo}
+          currentLeague={currentLeague}
+          leagueMembers={leagueMembers}
+          onSelectLeague={setSelectedLeague}
           onAddFriend={handleAddFriend}
           onClose={() => setIsShareOpen(false)}
         />

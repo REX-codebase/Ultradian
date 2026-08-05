@@ -61,6 +61,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   dailyGoalCycles: 3,
   darkMode: true,
   username: 'Ultradian Achiever',
+  enableCompetitiveLeagues: true,
 };
 
 export const INITIAL_FRIENDS: FriendProfile[] = [];
