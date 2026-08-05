@@ -143,16 +143,6 @@ Compete if it helps. Ignore the rest.
 
 ---
 
-## Roadmap (rough)
-
-- [ ] Deeper Gemini integration (session insights / weekly coaching)
-- [ ] Mobile PWA polish
-- [ ] Export / import full history
-- [ ] More ambient soundscapes
-- [ ] Public profiles / shareable weekly reports
-
----
-
 Built by [REX](https://github.com/REX-codebase)  
 Ship real tools. Respect the biology.
 
