@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "UserSession": {
+      "title": "UserSession",
+      "description": "An individual Ultradian focus or break session recorded by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "dateString": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "actualSecondsCompleted": { "type": "number" },
+        "type": { "type": "string" },
+        "presetName": { "type": "string" },
+        "category": { "type": "string" },
+        "taskName": { "type": "string" },
+        "focusRating": { "type": "number" },
+        "energyLevelBefore": { "type": "number" },
+        "energyLevelAfter": { "type": "number" },
+        "distractionsCount": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "durationMinutes", "actualSecondsCompleted", "type", "category", "taskName"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public aggregated stats for a user on the global leaderboard.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "weeklyHours": { "type": "number" },
+        "completedCycles": { "type": "number" },
+        "focusScore": { "type": "number" },
+        "topCategory": { "type": "string" },
+        "isUser": { "type": "boolean" },
+        "lastUpdated": { "type": "number" }
+      },
+      "required": ["id", "name", "weeklyHours", "completedCycles", "focusScore", "topCategory"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "UserSession",
+      "description": "User focus sessions subcollection."
+    },
+    "/leaderboard/{userId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Global leaderboard entries."
+    }
+  }
+}

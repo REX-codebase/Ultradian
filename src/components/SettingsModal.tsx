@@ -72,7 +72,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               src={fbUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.uid}`}
               alt={fbUser.displayName || 'User Profile'}
               referrerPolicy="no-referrer"
-              className="w-12 h-12 rounded-full object-cover border border-stone-200 dark:border-stone-850"
+              className="w-12 h-12 rounded-full object-cover border border-stone-200 dark:border-stone-800"
             />
             <div className="flex-1 min-w-0">
               <span className="text-[9px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block">
@@ -240,7 +240,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleTestSound(snd.id)}
-                      className="p-1.5 rounded-sm bg-stone-200/50 dark:bg-stone-850 hover:bg-stone-200 text-stone-700 dark:text-stone-300 transition-colors ml-2"
+                      className="p-1.5 rounded-sm bg-stone-200/50 dark:bg-stone-800 hover:bg-stone-200 text-stone-700 dark:text-stone-300 transition-colors ml-2"
                       title="Preview alarm"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
@@ -287,7 +287,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                 isAuthenticated 
                   ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300 border border-green-200/50 dark:border-green-900/30' 
-                  : 'bg-stone-100 dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-200/60 dark:border-stone-850/60'
+                  : 'bg-stone-100 dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-200/60 dark:border-stone-800/60'
               }`}>
                 {isAuthenticated ? 'Active Profile' : 'Local Guest Sandbox'}
               </span>

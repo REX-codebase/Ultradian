@@ -88,11 +88,11 @@ export const ZenMode: React.FC<ZenModeProps> = ({
       {/* Top Navigation Bar */}
       <div className="relative z-10 w-full max-w-5xl flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-sm bg-stone-900 text-stone-300 flex items-center justify-center border border-stone-850">
+          <div className="w-8 h-8 rounded-sm bg-stone-900 text-stone-300 flex items-center justify-center border border-stone-800">
             <Brain className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="font-serif italic text-sm text-stone-350">
+            <h2 className="font-serif italic text-sm text-stone-300">
               Zen Shield
             </h2>
             <p className="text-[10px] font-bold tracking-wider uppercase text-stone-500">
@@ -133,7 +133,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
           {/* Close / Exit Button */}
           <button
             onClick={onExit}
-            className="flex items-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-sm bg-stone-900 hover:bg-stone-850 text-stone-200 border border-stone-800 text-xs font-semibold transition-all duration-200"
+            className="flex items-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 text-xs font-semibold transition-all duration-200"
           >
             <Minimize2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Exit Zen</span>
@@ -166,7 +166,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
 
         {/* Task Focus Banner */}
         {currentTask && (
-          <div className="mb-8 px-6 py-2.5 rounded-sm bg-stone-900 border border-stone-850 text-stone-300 text-xs font-medium tracking-wide max-w-md">
+          <div className="mb-8 px-6 py-2.5 rounded-sm bg-stone-900 border border-stone-800 text-stone-300 text-xs font-medium tracking-wide max-w-md">
             Focus Wave Goal: <span className="text-white italic font-serif ml-1">{currentTask}</span>
           </div>
         )}
@@ -222,7 +222,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
         {sessionType === 'work' && (
           <button
             onClick={onAddDistraction}
-            className="mt-8 flex items-center space-x-1.5 px-3 py-1.5 rounded-sm bg-stone-900 hover:bg-stone-850 border border-stone-850 text-stone-400 hover:text-stone-200 text-[10px] font-semibold tracking-wider uppercase transition-colors duration-200"
+            className="mt-8 flex items-center space-x-1.5 px-3 py-1.5 rounded-sm bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-400 hover:text-stone-200 text-[10px] font-semibold tracking-wider uppercase transition-colors duration-200"
           >
             <AlertTriangle className="w-3.5 h-3.5 text-stone-500" />
             <span>Logged interruptions: {distractionsCount}</span>
@@ -234,7 +234,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
       <div className="relative z-10 w-full max-w-xs flex items-center justify-between">
         <button
           onClick={onReset}
-          className="p-3.5 rounded-full bg-stone-900 border border-stone-850 text-stone-400 hover:text-stone-100 hover:bg-stone-850 transition-colors duration-200"
+          className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors duration-200"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
@@ -259,7 +259,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
 
         <button
           onClick={onSkip}
-          className="p-3.5 rounded-full bg-stone-900 border border-stone-850 text-stone-400 hover:text-stone-100 hover:bg-stone-850 transition-colors duration-200"
+          className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors duration-200"
         >
           <SkipForward className="w-4 h-4" />
         </button>

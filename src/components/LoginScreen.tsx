@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { Clock, Mail, Lock, User, Sparkles, AlertCircle, ArrowRight, Chrome } from 'lucide-react';
+import { Clock, Mail, Lock, User, Sparkles, AlertCircle, ArrowRight, Chrome, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { signInWithEmail, signUpWithEmail, signInAnonymouslyUser, signInWithGoogle, updateUserProfile } from '../utils/firebase';
+import {
+  signInWithEmail,
+  signUpWithEmail,
+  signInAnonymouslyUser,
+  signInWithGoogle,
+} from '../utils/firebase';
 import { FluidCanvas } from './FluidCanvas';
 
 interface LoginScreenProps {
   onAuthSuccess: (user: any) => void;
-  onBypassAuth: () => void;
+  onBypassAuth?: () => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypassAuth }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess }) => {
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -37,89 +42,34 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
       console.error('Authentication Error:', err);
       const errCode = err?.code || '';
       const errMsg = err?.message || 'An unexpected authentication error occurred.';
-      
+
       let errorTitle = 'Authentication Error';
       let errorDesc = errMsg;
-      let showSimulateButton = true;
-      
-      if (errCode === 'auth/operation-not-allowed' || errMsg.includes('auth/operation-not-allowed')) {
-        errorTitle = 'Firebase: Email/Password Disabled';
-        errorDesc = 'The Email/Password sign-in provider is not enabled in your Firebase project.';
-      } else if (errCode === 'auth/unauthorized-domain' || errMsg.includes('auth/unauthorized-domain')) {
-        errorTitle = 'Firebase: Unauthorized Domain';
-        errorDesc = 'This domain is not on your Firebase project\'s authorized domains list.';
-      } else {
-        if (errMsg.includes('auth/invalid-credential')) {
-          errorDesc = 'Invalid email or password. Please try again.';
-          showSimulateButton = false;
-        } else if (errMsg.includes('auth/email-already-in-use')) {
-          errorDesc = 'This email address is already registered.';
-          showSimulateButton = false;
-        } else if (errMsg.includes('auth/weak-password')) {
-          errorDesc = 'Password must be at least 6 characters.';
-          showSimulateButton = false;
-        } else if (errMsg.includes('auth/invalid-email')) {
-          errorDesc = 'Please enter a valid email address.';
-          showSimulateButton = false;
-        }
+
+      if (errCode === 'auth/operation-not-allowed' || errMsg.includes('operation-not-allowed')) {
+        errorTitle = 'Email/Password Authentication Disabled';
+        errorDesc = 'Email/Password sign-in is not enabled in Firebase Auth settings. You can still sign in as a Guest or with Google.';
+      } else if (errCode === 'auth/unauthorized-domain' || errMsg.includes('unauthorized-domain')) {
+        errorTitle = 'Unauthorized Domain';
+        errorDesc = 'This preview domain is not in the authorized domains list for popups.';
+      } else if (errMsg.includes('auth/invalid-credential') || errMsg.includes('auth/user-not-found') || errMsg.includes('auth/wrong-password')) {
+        errorTitle = 'Sign In Failed';
+        errorDesc = 'Invalid email or password. If you don\'t have an account yet, switch to Register or use Quick Test Account below.';
+      } else if (errMsg.includes('auth/email-already-in-use')) {
+        errorTitle = 'Account Exists';
+        errorDesc = 'This email address is already registered. Switch to Sign In to log in with this email.';
+      } else if (errMsg.includes('auth/weak-password')) {
+        errorTitle = 'Weak Password';
+        errorDesc = 'Password must be at least 6 characters long.';
+      } else if (errMsg.includes('auth/invalid-email')) {
+        errorTitle = 'Invalid Email';
+        errorDesc = 'Please enter a valid email address.';
       }
-      
+
       setError(
-        <div className="space-y-2">
+        <div className="space-y-1.5 text-left">
           <p className="font-bold text-red-800 dark:text-red-400">{errorTitle}</p>
-          <p className="font-normal text-stone-600 dark:text-stone-300 leading-relaxed">{errorDesc}</p>
-          {(errCode === 'auth/unauthorized-domain' || errMsg.includes('auth/unauthorized-domain')) && (
-            <div className="p-2.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-[10px] font-mono select-all space-y-1 text-stone-700 dark:text-stone-300">
-              <div>ais-dev-2qx2u4lpsjsns7tx4n4zgp-77178230387.asia-southeast1.run.app</div>
-              <div>ais-pre-2qx2u4lpsjsns7tx4n4zgp-77178230387.asia-southeast1.run.app</div>
-            </div>
-          )}
-          {showSimulateButton ? (
-            <>
-              <p className="font-normal text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
-                For rapid preview testing without configuring Firebase, click below to sign in with a simulated email profile instantly.
-              </p>
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const simulatedUser = {
-                      uid: 'simulated_email_user',
-                      email: email || 'user@example.com',
-                      displayName: displayName || 'Simulated Email WaveRider',
-                      photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-                      isAnonymous: false,
-                      emailVerified: true
-                    };
-                    onAuthSuccess(simulatedUser as any);
-                  }}
-                  className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-[11px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <span>Simulate Email Sign-In (Bypass)</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  const simulatedUser = {
-                    uid: 'simulated_email_user',
-                    email: email || 'user@example.com',
-                    displayName: displayName || 'Simulated Email WaveRider',
-                    photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-                    isAnonymous: false,
-                    emailVerified: true
-                  };
-                  onAuthSuccess(simulatedUser as any);
-                }}
-                className="w-full py-1.5 px-3 rounded-lg border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 text-[10px] font-semibold hover:bg-stone-100 dark:hover:bg-stone-900 transition-all flex items-center justify-center gap-1"
-              >
-                <span>Bypass & sign in with Simulated Account</span>
-              </button>
-            </div>
-          )}
+          <p className="font-normal text-stone-600 dark:text-stone-300 leading-relaxed text-xs">{errorDesc}</p>
         </div>
       );
     } finally {
@@ -127,33 +77,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
     }
   };
 
-  const handleSimulatedLogin = async (type: 'google' | 'email') => {
-    setError(null);
-    setLoading(true);
-    const simulatedName = type === 'google' ? 'Simulated Google WaveRider' : 'Simulated Email WaveRider';
-    const photoURL = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
-    const simulatedEmail = type === 'google' ? 'google-user@example.com' : 'email-user@example.com';
-    
-    try {
-      // Try to do real anonymous sign-in so they get a real UID and can write to DB!
-      const user = await signInAnonymouslyUser();
-      // Update their profile so it shows their custom simulated name and photo on the leaderboard
-      await updateUserProfile(user, { displayName: simulatedName, photoURL });
-      onAuthSuccess(user);
-    } catch (err) {
-      console.warn('Anonymous sign-in for simulation failed, falling back to local simulation', err);
-      // Fallback to pure offline simulation
-      const simulatedUser = {
-        uid: `simulated_${type}_user`,
-        email: simulatedEmail,
-        displayName: simulatedName,
-        photoURL,
-        isAnonymous: false,
-        emailVerified: true
-      };
-      onAuthSuccess(simulatedUser as any);
-    } finally {
-      setLoading(false);
+  const handleFillTestCredentials = () => {
+    setEmail('tester@ultradian.app');
+    setPassword('test123456');
+    if (isSignUp && !displayName) {
+      setDisplayName('Focus Tester');
     }
   };
 
@@ -163,11 +91,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
     try {
       const user = await signInAnonymouslyUser();
       onAuthSuccess(user);
-      onBypassAuth();
     } catch (err: any) {
-      console.warn('Anonymous login failed, entering local sandbox mode', err);
-      // Fallback: enter offline mode immediately
-      onBypassAuth();
+      console.error('Anonymous login failed:', err);
+      const errMsg = err?.message || '';
+      if (errMsg.includes('operation-not-allowed')) {
+        setError(
+          <div className="space-y-1 text-left text-xs">
+            <p className="font-bold text-amber-800 dark:text-amber-400">Guest Sign-In Notice</p>
+            <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
+              Anonymous sign-in is disabled in Firebase Console. Please register or sign in with Email & Password.
+            </p>
+          </div>
+        );
+      } else {
+        setError('Failed to sign in as guest. Please try email sign in.');
+      }
     } finally {
       setLoading(false);
     }
@@ -182,49 +120,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
     } catch (err: any) {
       console.error('Google Sign-In Error:', err);
       const errCode = err?.code || '';
-      const errMsg = err?.message || 'An unexpected Google login error occurred.';
-      
-      let errorTitle = 'Google Sign-In Error';
+      const errMsg = err?.message || 'Google login error occurred.';
+
+      let errorTitle = 'Google Sign-In Notice';
       let errorDesc = errMsg;
-      let showDetails = false;
-      
-      if (errCode === 'auth/unauthorized-domain' || errMsg.includes('auth/unauthorized-domain')) {
-        errorTitle = 'Firebase: Unauthorized Domain';
-        errorDesc = 'The Google login popup cannot proceed because this preview domain is not on your Firebase project\'s authorized domains list.';
-        showDetails = true;
+
+      if (errCode === 'auth/unauthorized-domain' || errMsg.includes('unauthorized-domain')) {
+        errorTitle = 'Domain Authorization Required';
+        errorDesc = 'Google OAuth popup requires domain authorization. Please use Email/Password Sign-In or Guest Sign-In below for preview testing.';
       } else if (errMsg.includes('auth/popup-blocked')) {
         errorTitle = 'Popup Blocked';
-        errorDesc = 'The sign-in popup was blocked by your browser. Please enable popups or use the simulation bypass below.';
+        errorDesc = 'The sign-in popup was blocked by your browser. Please allow popups or use Email/Password sign-in.';
       } else if (errMsg.includes('auth/popup-closed-by-user')) {
         errorTitle = 'Popup Closed';
-        errorDesc = 'The sign-in popup was closed before completing. You can bypass this using the simulation option below.';
-      } else if (errMsg.includes('auth/cancelled-popup-request')) {
-        errorTitle = 'Popup Cancelled';
-        errorDesc = 'The popup request was cancelled or nested. Try the simulation bypass below.';
+        errorDesc = 'The Google sign-in window was closed before completing.';
       }
-      
+
       setError(
-        <div className="space-y-2 text-left">
+        <div className="space-y-1.5 text-left text-xs">
           <p className="font-bold text-red-800 dark:text-red-400">{errorTitle}</p>
           <p className="font-normal text-stone-600 dark:text-stone-300 leading-relaxed">{errorDesc}</p>
-          {showDetails && (
-            <div className="p-2.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-[10px] font-mono select-all space-y-1 text-stone-700 dark:text-stone-300">
-              <div>ais-dev-2qx2u4lpsjsns7tx4n4zgp-77178230387.asia-southeast1.run.app</div>
-              <div>ais-pre-2qx2u4lpsjsns7tx4n4zgp-77178230387.asia-southeast1.run.app</div>
-            </div>
-          )}
-          <p className="font-normal text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
-            For rapid preview testing without popups or domain constraints, click the button below to sign in with a simulated Google account instantly.
-          </p>
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={() => handleSimulatedLogin('google')}
-              className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-[11px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <span>Simulate Google Sign-In (Bypass)</span>
-            </button>
-          </div>
         </div>
       );
     } finally {
@@ -246,7 +161,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-md bg-stone-50/70 dark:bg-stone-950/75 backdrop-blur-xl border border-stone-200/80 dark:border-stone-900/80 shadow-2xl p-8 sm:p-10 rounded-2xl"
+        className="relative z-10 w-full max-w-md bg-stone-50/80 dark:bg-stone-950/85 backdrop-blur-xl border border-stone-200/80 dark:border-stone-900/80 shadow-2xl p-8 sm:p-10 rounded-2xl"
       >
         {/* Brand Banner */}
         <div className="flex flex-col items-center mb-8">
@@ -261,15 +176,47 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
           </p>
         </div>
 
+        {/* Auth Mode Selector Tabs */}
+        <div className="flex bg-stone-200/60 dark:bg-stone-900/60 p-1 rounded-xl mb-6">
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp(false);
+              setError(null);
+            }}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+              !isSignUp
+                ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+                : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp(true);
+              setError(null);
+            }}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+              isSignUp
+                ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+                : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+            }`}
+          >
+            Register
+          </button>
+        </div>
+
         {/* Error Alert */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-red-50/80 dark:bg-red-950/10 border border-red-200/60 dark:border-red-900/30 flex items-start gap-3"
+            className="mb-6 p-4 rounded-xl bg-red-50/90 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/40 flex items-start gap-3"
           >
             <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-            <div className="text-xs font-semibold text-red-700 dark:text-red-300 leading-normal">
+            <div className="text-xs font-semibold text-red-700 dark:text-red-300 leading-normal grow">
               {error}
             </div>
           </motion.div>
@@ -280,7 +227,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
           {isSignUp && (
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                Leaderboard Handle
+                Leaderboard Handle / Display Name
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
@@ -290,16 +237,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
                   placeholder="e.g. WaveRider"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-100/50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-850/60 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-100/60 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800/80 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
                 />
               </div>
             </div>
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Email Address
-            </label>
+            <div className="flex justify-between items-center">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                Email Address
+              </label>
+              <button
+                type="button"
+                onClick={handleFillTestCredentials}
+                className="text-[10px] text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 font-semibold flex items-center gap-1 transition-colors"
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Fill Test Credentials</span>
+              </button>
+            </div>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
               <input
@@ -308,7 +265,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
                 placeholder="name@domain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-100/50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-850/60 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-100/60 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800/80 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -325,7 +282,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
                 placeholder={isSignUp ? 'At least 6 characters' : '••••••••'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-100/50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-850/60 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-100/60 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800/80 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -339,29 +296,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
               <span className="w-4 h-4 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>{isSignUp ? 'Create Cloud Profile' : 'Authenticate Wave'}</span>
+                <span>{isSignUp ? 'Create Firebase Account' : 'Sign In with Firebase'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        {/* Alternate Action links */}
-        <div className="mt-6 flex flex-col items-center gap-4 border-t border-stone-200/60 dark:border-stone-900/60 pt-6">
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError(null);
-            }}
-            className="text-[11px] text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 font-semibold underline underline-offset-4 transition-colors"
-          >
-            {isSignUp ? 'Already have an account? Sign In' : "Don't have a profile yet? Register"}
-          </button>
-
+        {/* Alternate Firebase Auth Options */}
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-stone-200/60 dark:border-stone-900/60 pt-6">
           <div className="flex items-center gap-2 w-full text-stone-300 dark:text-stone-800">
             <div className="h-[1px] bg-stone-200 dark:bg-stone-900 grow" />
             <span className="text-[9px] uppercase tracking-widest font-extrabold text-stone-400 dark:text-stone-500">
-              or
+              or sign in with
             </span>
             <div className="h-[1px] bg-stone-200 dark:bg-stone-900 grow" />
           </div>
@@ -370,10 +317,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-900 bg-white dark:bg-stone-900 hover:bg-stone-100/50 dark:hover:bg-stone-850/50 text-stone-700 dark:text-stone-300 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs"
+            className="w-full py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-900 bg-white dark:bg-stone-900 hover:bg-stone-100/50 dark:hover:bg-stone-800/50 text-stone-700 dark:text-stone-300 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs"
           >
             <Chrome className="w-3.5 h-3.5 text-stone-500" />
-            <span>Continue with Google</span>
+            <span>Google Sign-In</span>
           </button>
 
           <button
@@ -383,34 +330,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onBypas
             className="w-full py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-900 hover:bg-stone-100/50 dark:hover:bg-stone-900/30 text-stone-600 dark:text-stone-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Enter as Guest / Sandbox</span>
+            <span>Continue as Guest (Firebase Auth)</span>
           </button>
-
-          <div className="w-full flex items-center gap-2 pt-1">
-            <div className="h-[1px] bg-stone-200/50 dark:bg-stone-900/50 grow" />
-            <span className="text-[8px] font-bold tracking-widest text-stone-400 dark:text-stone-500 uppercase">Simulated Bypasses</span>
-            <div className="h-[1px] bg-stone-200/50 dark:bg-stone-900/50 grow" />
-          </div>
-
-          <div className="flex gap-2 w-full mt-1">
-            <button
-              type="button"
-              onClick={() => handleSimulatedLogin('google')}
-              className="flex-1 py-1.5 px-2 rounded-lg border border-dashed border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1"
-            >
-              <Chrome className="w-3 h-3 text-emerald-500" />
-              <span>Simulate Google</span>
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => handleSimulatedLogin('email')}
-              className="flex-1 py-1.5 px-2 rounded-lg border border-dashed border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1"
-            >
-              <Mail className="w-3 h-3 text-emerald-500" />
-              <span>Simulate Email</span>
-            </button>
-          </div>
         </div>
       </motion.div>
     </div>

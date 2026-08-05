@@ -103,12 +103,12 @@ export const TimerRing: React.FC<TimerRingProps> = ({
   return (
     <div className="relative flex flex-col items-center w-full max-w-lg mx-auto p-4 sm:p-8 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs transition-all duration-300">
       {/* Top Phase Indicator */}
-      <div className="flex flex-col items-center mb-8 text-center">
-        <div className={`flex items-center px-3 py-1 rounded-sm border text-[10px] font-bold tracking-widest uppercase mb-2 ${phaseTheme.badgeBg}`}>
+      <div className="flex flex-col items-center mb-6 sm:mb-8 text-center">
+        <div className={`flex items-center px-3.5 py-1 rounded-full border text-[10px] font-mono font-bold tracking-widest uppercase mb-2 ${phaseTheme.badgeBg}`}>
           {phaseTheme.icon}
           <span>{phaseTheme.title}</span>
         </div>
-        <p className="font-serif italic text-sm text-stone-500 dark:text-stone-400 mt-1">
+        <p className="font-serif italic text-sm text-stone-500 dark:text-stone-400 mt-0.5">
           {phaseTheme.subtitle}
         </p>
       </div>
@@ -142,13 +142,18 @@ export const TimerRing: React.FC<TimerRingProps> = ({
             cx="150"
             cy="150"
             r={radius}
-            stroke={phaseTheme.strokeColor === 'currentColor' ? (sessionType === 'work' ? '#1c1917' : '#78716c') : phaseTheme.strokeColor}
             strokeWidth="3.5"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             fill="transparent"
-            className="transition-all duration-500 ease-out dark:stroke-stone-100"
+            className={`transition-all duration-500 ease-out ${
+              sessionType === 'work'
+                ? 'stroke-stone-900 dark:stroke-stone-100'
+                : sessionType === 'shortBreak'
+                ? 'stroke-stone-500 dark:stroke-stone-400'
+                : 'stroke-stone-400 dark:stroke-stone-300'
+            }`}
           />
         </svg>
 
@@ -159,16 +164,16 @@ export const TimerRing: React.FC<TimerRingProps> = ({
             key={secondsLeft}
             initial={{ opacity: 0.85, scale: 0.99 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-5xl sm:text-6xl font-serif tracking-normal text-stone-900 dark:text-stone-55 font-light"
+            className="text-5xl sm:text-6xl font-serif tracking-normal text-stone-900 dark:text-stone-100 font-light"
           >
             {formatTime(secondsLeft)}
           </motion.span>
 
           {/* Minimalist rhythm wave tags */}
-          <div className="flex items-center space-x-1.5 mt-4 px-2 py-0.5 rounded-sm bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-[10px] font-semibold tracking-wider uppercase border border-stone-200/40 dark:border-stone-700/40">
+          <div className="flex items-center space-x-1.5 mt-4 px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[10px] font-mono font-bold tracking-widest uppercase border border-stone-200/60 dark:border-stone-700/60">
             <Flame className="w-3 h-3 text-stone-500" />
             <span>
-              Cycle {completedCyclesCount + 1} / {targetCycles}
+              CYCLE {completedCyclesCount + 1} / {targetCycles}
             </span>
           </div>
 
@@ -190,8 +195,8 @@ export const TimerRing: React.FC<TimerRingProps> = ({
       <div className="w-full mt-8 space-y-4">
         {sessionType === 'work' ? (
           <div>
-            <span className="block text-[11px] font-bold tracking-wider uppercase text-stone-400 dark:text-stone-500 mb-1.5">
-              Current Focus Domain
+            <span className="block text-[10px] font-mono font-bold tracking-widest uppercase text-stone-400 dark:text-stone-500 mb-1.5">
+              CURRENT FOCUS DOMAIN
             </span>
             <input
               type="text"

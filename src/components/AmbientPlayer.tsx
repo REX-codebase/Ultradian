@@ -88,10 +88,10 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
               className={`flex items-start p-4 rounded-md border text-left transition-all duration-200 ${
                 isSelected
                   ? 'bg-stone-100 dark:bg-stone-800 border-stone-900 dark:border-stone-100 ring-1 ring-stone-900 dark:ring-stone-100 shadow-xs'
-                  : 'bg-stone-50/50 dark:bg-stone-900/45 border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-850'
+                  : 'bg-stone-50/50 dark:bg-stone-900/45 border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-800'
               }`}
             >
-              <div className="p-2 rounded-sm bg-stone-200/50 dark:bg-stone-850 mr-3.5 shrink-0">
+              <div className="p-2 rounded-sm bg-stone-200/50 dark:bg-stone-800 mr-3.5 shrink-0">
                 {opt.icon}
               </div>
 

@@ -116,9 +116,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ records 
       };
     });
 
-    const avgScore = ratingCount > 0 ? (totRatings / ratingCount).toFixed(1) : '5.0';
+    const avgScore = ratingCount > 0 ? (totRatings / ratingCount).toFixed(1) : '0.0';
     const hoursTotal = (totMins / 60).toFixed(1);
-    const efficiency = Math.min(100, Math.round((totCycles * 15) + (parseFloat(avgScore) * 10) - (totDistractions * 2)));
+    const rawEfficiency = totCycles > 0 ? Math.round((totCycles * 15) + (parseFloat(avgScore) * 10) - (totDistractions * 2)) : 0;
+    const efficiency = totCycles > 0 ? Math.min(100, Math.max(10, rawEfficiency)) : 0;
 
     return {
       weeklyData: weeklyChart,
@@ -128,7 +129,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ records 
       totalCompletedCycles: totCycles,
       avgFocusScore: avgScore,
       totalDistractions: totDistractions,
-      ultradianEfficiencyScore: Math.max(40, efficiency),
+      ultradianEfficiencyScore: efficiency,
     };
   }, [records]);
 
@@ -140,68 +141,68 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ records 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 pb-12 animate-fade-in">
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Focus Hours */}
-        <div className="p-4 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Focus Hours
+        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              FOCUS HOURS
             </span>
-            <Clock className="w-4 h-4 text-stone-400" />
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
           </div>
-          <p className="text-3xl sm:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
-            {totalFocusHours} <span className="text-[10px] sm:text-xs font-sans font-semibold text-stone-450 uppercase tracking-wider">hrs</span>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+            {totalFocusHours} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">HRS</span>
           </p>
-          <span className="text-[9px] sm:text-[10px] text-stone-500 dark:text-stone-400 flex items-center mt-2.5 font-semibold">
-            <TrendingUp className="w-3.5 h-3.5 mr-1" />
+          <span className="text-[9px] sm:text-[10px] text-stone-500 dark:text-stone-400 flex items-center mt-2 font-semibold tracking-wider uppercase">
+            <TrendingUp className="w-3 h-3 mr-1 text-stone-400 shrink-0" />
             Biological wave depth
           </span>
         </div>
 
         {/* Completed Cycles */}
-        <div className="p-4 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Completed Waves
+        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              COMPLETED WAVES
             </span>
-            <Sparkles className="w-4 h-4 text-stone-400" />
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
           </div>
-          <p className="text-3xl sm:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
-            {totalCompletedCycles} <span className="text-[10px] sm:text-xs font-sans font-semibold text-stone-450 uppercase tracking-wider">cycles</span>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+            {totalCompletedCycles} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">CYCLES</span>
           </p>
-          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2.5 block font-semibold uppercase tracking-wider">
+          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2 block font-semibold uppercase tracking-wider">
             BRAC sessions completed
           </span>
         </div>
 
         {/* Focus Score */}
-        <div className="p-4 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Subjective Clarity
+        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              SUBJECTIVE CLARITY
             </span>
-            <Award className="w-4 h-4 text-stone-400" />
+            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
           </div>
-          <p className="text-3xl sm:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
-            {avgFocusScore} <span className="text-[10px] sm:text-xs font-sans font-semibold text-stone-450 uppercase tracking-wider">/ 5.0</span>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+            {avgFocusScore} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">/ 5.0</span>
           </p>
-          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2.5 block font-semibold uppercase tracking-wider">
+          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2 block font-semibold uppercase tracking-wider">
             Avg self-reported rating
           </span>
         </div>
 
         {/* Efficiency Index */}
-        <div className="p-4 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Efficiency Index
+        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              EFFICIENCY INDEX
             </span>
-            <BarChart3 className="w-4 h-4 text-stone-400" />
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
           </div>
-          <p className="text-3xl sm:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
-            {ultradianEfficiencyScore} <span className="text-[10px] sm:text-xs font-sans font-semibold text-stone-450 uppercase tracking-wider">uei</span>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+            {ultradianEfficiencyScore} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">UEI</span>
           </p>
-          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2.5 block font-semibold uppercase tracking-wider">
+          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2 block font-semibold uppercase tracking-wider">
             Calculated focus rating
           </span>
         </div>

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Flame,
   Volume2,
+  VolumeX,
   Moon,
   Sun,
   Bell,
@@ -12,13 +13,14 @@ import {
   Sparkles,
   BarChart3,
   Clock,
-  ShieldAlert,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { UserSettings } from '../types';
 
 interface NavbarProps {
   settings: UserSettings;
   onUpdateSettings: (newSettings: Partial<UserSettings>) => void;
+  onToggleTheme?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onOpenSettings: () => void;
   onOpenShare: () => void;
   onToggleZen: () => void;
@@ -35,6 +37,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   settings,
   onUpdateSettings,
+  onToggleTheme,
   onOpenSettings,
   onOpenShare,
   onToggleZen,
@@ -47,133 +50,161 @@ export const Navbar: React.FC<NavbarProps> = ({
   completedCyclesToday,
   fbUser,
 }) => {
+  const [showMobileTools, setShowMobileTools] = useState(false);
+
   return (
-    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-stone-50/90 dark:bg-stone-950/90 border-b border-stone-200/60 dark:border-stone-900/60 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-stone-50/95 dark:bg-stone-950/95 border-b border-stone-200/80 dark:border-stone-900/80 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo & Title */}
-        <div className="flex items-center space-x-3.5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-md bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs">
-            <Clock className="w-4 h-4 stroke-[1.5]" />
+        <div className="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs">
+            <Clock className="w-4 h-4 stroke-[1.8]" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="font-serif text-xl tracking-tight font-medium text-stone-900 dark:text-stone-100">
-                Ultradian <span className="italic font-light text-stone-500 dark:text-stone-400">Pulse</span>
-              </h1>
-              <span className="px-2 py-0.5 text-[10px] font-medium tracking-wider uppercase bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-400 rounded-sm border border-stone-200/60 dark:border-stone-800/60">
-                BRAC 90m
-              </span>
-            </div>
+          <div className="flex items-center space-x-2">
+            <h1 className="font-serif text-lg sm:text-xl tracking-tight font-medium text-stone-900 dark:text-stone-100 whitespace-nowrap">
+              Ultradian <span className="italic font-light text-stone-500 dark:text-stone-400">Pulse</span>
+            </h1>
+            <span className="hidden xs:inline-flex px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest uppercase bg-stone-100 dark:bg-stone-900 text-stone-700 dark:text-stone-300 rounded-full border border-stone-200/80 dark:border-stone-800">
+              BRAC 90M
+            </span>
           </div>
         </div>
 
-        {/* Center Tabs Navigation */}
-        <nav className="hidden md:flex items-center space-x-1 p-0.5 bg-stone-200/50 dark:bg-stone-900/50 rounded-lg">
+        {/* Center Tabs Navigation (Desktop) */}
+        <nav className="hidden md:flex items-center space-x-1 p-1 bg-stone-200/60 dark:bg-stone-900/60 rounded-xl border border-stone-200/40 dark:border-stone-800/40">
           <button
             onClick={() => onChangeTab('timer')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
               activeTab === 'timer'
                 ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>Ultradian Timer</span>
+            <span>TIMER</span>
           </button>
 
           <button
             onClick={() => onChangeTab('analytics')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
               activeTab === 'analytics'
                 ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>Weekly Trends</span>
+            <span>ANALYTICS</span>
           </button>
 
           <button
             onClick={() => onChangeTab('friends')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
               activeTab === 'friends'
                 ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Leaderboard</span>
+            <span>LEADERBOARD</span>
           </button>
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center space-x-1">
-          {/* Daily Goal Badge */}
-          <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200/60 dark:border-stone-800/60 text-stone-700 dark:text-stone-300 text-xs font-semibold">
+        <div className="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
+          {/* Daily Goal Badge (Desktop & Tablet) */}
+          <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-mono font-bold uppercase tracking-wider">
             <Flame className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" />
             <span>
-              {completedCyclesToday}/{settings.dailyGoalCycles} Cycles
+              {completedCyclesToday}/{settings.dailyGoalCycles} CYCLES
             </span>
           </div>
 
-          {/* Ambient Noise Generator Toggle */}
-          <button
-            onClick={toggleAmbient}
-            title={isAmbientActive ? 'Ambient Sound Active' : 'Enable Focus Noise'}
-            className={`p-2 rounded-lg transition-all duration-200 ${
-              isAmbientActive
-                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900'
-                : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50'
-            }`}
-          >
-            <Volume2 className="w-4 h-4" />
-          </button>
+          {/* Desktop Tools (Sound, Notification, Zen) */}
+          <div className="hidden sm:flex items-center space-x-1">
+            <button
+              onClick={toggleAmbient}
+              title={isAmbientActive ? 'Ambient Sound Active' : 'Enable Focus Noise'}
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                isAmbientActive
+                  ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900'
+                  : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50'
+              }`}
+            >
+              <Volume2 className="w-4 h-4" />
+            </button>
 
-          {/* Browser Notifications Permission */}
+            <button
+              onClick={onRequestNotifications}
+              title={
+                notificationPermission === 'granted'
+                  ? 'Notifications Enabled'
+                  : 'Enable Browser Notifications'
+              }
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                notificationPermission === 'granted'
+                  ? 'text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50'
+                  : 'text-stone-400 dark:text-stone-500 hover:bg-stone-200/50 dark:hover:bg-stone-900/50'
+              }`}
+            >
+              {notificationPermission === 'granted' ? (
+                <Bell className="w-4 h-4" />
+              ) : (
+                <BellOff className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+              )}
+            </button>
+
+            <button
+              onClick={onToggleZen}
+              title="Enter Zen Shield"
+              className="p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50 transition-all duration-200"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Mobile Quick Tools Toggle Button */}
           <button
-            onClick={onRequestNotifications}
-            title={
-              notificationPermission === 'granted'
-                ? 'Notifications Enabled'
-                : 'Enable Browser Notifications'
-            }
-            className={`p-2 rounded-lg transition-all duration-200 ${
-              notificationPermission === 'granted'
-                ? 'text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50'
-                : 'text-stone-550 dark:text-stone-350 hover:bg-stone-200/50 dark:hover:bg-stone-900/50'
+            onClick={() => setShowMobileTools(!showMobileTools)}
+            title="Toggle Quick Tools"
+            className={`sm:hidden p-2 rounded-lg transition-all duration-200 relative ${
+              showMobileTools || isAmbientActive
+                ? 'bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-stone-100'
+                : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-900/60'
             }`}
           >
-            {notificationPermission === 'granted' ? (
-              <Bell className="w-4 h-4" />
-            ) : (
-              <BellOff className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+            <SlidersHorizontal className="w-4 h-4" />
+            {isAmbientActive && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             )}
           </button>
 
-          {/* Zen Distraction-Free Fullscreen */}
+          {/* Dark Mode Spectacle Toggle */}
           <button
-            onClick={onToggleZen}
-            title="Enter Zen Shield"
-            className="p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50 transition-all duration-200"
+            onClick={(e) => {
+              if (onToggleTheme) {
+                onToggleTheme(e);
+              } else {
+                onUpdateSettings({ darkMode: !settings.darkMode });
+              }
+            }}
+            title={settings.darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-900/60 transition-all duration-300 relative group overflow-hidden active:scale-95"
           >
-            <Maximize2 className="w-4 h-4" />
+            <div className="relative z-10 flex items-center justify-center transition-transform duration-500 group-hover:rotate-45">
+              {settings.darkMode ? (
+                <Sun className="w-4 h-4 text-amber-400 group-hover:text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)] animate-celestial-pulse" />
+              ) : (
+                <Moon className="w-4 h-4 text-stone-700 group-hover:text-stone-900 group-hover:-rotate-12 animate-celestial-pulse" />
+              )}
+            </div>
           </button>
 
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => onUpdateSettings({ darkMode: !settings.darkMode })}
-            title="Toggle Theme"
-            className="p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50 transition-all duration-200"
-          >
-            {settings.darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-700" />}
-          </button>
-
-          {/* Settings / Profile Button */}
+          {/* Profile / Settings Button */}
           {fbUser ? (
             <button
               onClick={onOpenSettings}
               title="View Profile & Settings"
-              className="flex items-center space-x-2 pl-1 pr-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-200/50 dark:hover:bg-stone-850/50 transition-all duration-200"
+              className="flex items-center space-x-1.5 p-1 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-all duration-200"
             >
               <img
                 src={fbUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.uid}`}
@@ -181,9 +212,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 referrerPolicy="no-referrer"
                 className="w-6 h-6 rounded-full object-cover border border-stone-200/60 dark:border-stone-800"
               />
-              <span className="hidden sm:inline text-[11px] font-bold text-stone-700 dark:text-stone-300 truncate max-w-[80px]">
-                {fbUser.displayName?.split(' ')[0] || 'Profile'}
-              </span>
             </button>
           ) : (
             <button
@@ -197,36 +225,91 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Sub-Navigation Bar */}
-      <div className="md:hidden flex items-center justify-around border-t border-stone-200 dark:border-stone-900 bg-stone-50/90 dark:bg-stone-950/90 py-2.5 px-3 text-xs font-semibold">
-        <button
-          onClick={() => onChangeTab('timer')}
-          className={`flex items-center space-x-1.5 px-3 py-1 rounded-md ${
-            activeTab === 'timer' ? 'bg-stone-200 dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-semibold' : 'text-stone-500 dark:text-stone-400'
-          }`}
-        >
-          <Clock className="w-3.5 h-3.5" />
-          <span>Timer</span>
-        </button>
-        <button
-          onClick={() => onChangeTab('analytics')}
-          className={`flex items-center space-x-1.5 px-3 py-1 rounded-md ${
-            activeTab === 'analytics' ? 'bg-stone-200 dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-semibold' : 'text-stone-500 dark:text-stone-400'
-          }`}
-        >
-          <BarChart3 className="w-3.5 h-3.5" />
-          <span>Analytics</span>
-        </button>
-        <button
-          onClick={() => onChangeTab('friends')}
-          className={`flex items-center space-x-1.5 px-3 py-1 rounded-md ${
-            activeTab === 'friends' ? 'bg-stone-200 dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-semibold' : 'text-stone-500 dark:text-stone-400'
-          }`}
-        >
-          <Share2 className="w-3.5 h-3.5" />
-          <span>Social</span>
-        </button>
+      {/* Mobile Expandable Quick Tools Bar */}
+      {showMobileTools && (
+        <div className="sm:hidden px-3 py-2 bg-stone-100/90 dark:bg-stone-900/90 border-t border-stone-200/60 dark:border-stone-800/60 flex items-center justify-around text-xs font-semibold animate-fade-in">
+          <button
+            onClick={toggleAmbient}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border transition-all ${
+              isAmbientActive
+                ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-transparent shadow-xs'
+                : 'bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800'
+            }`}
+          >
+            {isAmbientActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              {isAmbientActive ? 'SOUND: ON' : 'SOUND: OFF'}
+            </span>
+          </button>
+
+          <button
+            onClick={onRequestNotifications}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border transition-all ${
+              notificationPermission === 'granted'
+                ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-transparent shadow-xs'
+                : 'bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800'
+            }`}
+          >
+            {notificationPermission === 'granted' ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              {notificationPermission === 'granted' ? 'ALERTS: ON' : 'ALERTS: OFF'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              setShowMobileTools(false);
+              onToggleZen();
+            }}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">ZEN SHIELD</span>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Upper Sub-Navigation Bar (Segmented Control) */}
+      <div className="md:hidden border-t border-stone-200/80 dark:border-stone-900/80 bg-stone-50/95 dark:bg-stone-950/95 py-1.5 px-3">
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-stone-200/60 dark:bg-stone-900/60 rounded-xl border border-stone-200/40 dark:border-stone-800/40">
+          <button
+            onClick={() => onChangeTab('timer')}
+            className={`flex items-center justify-center space-x-1.5 min-h-[40px] px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
+              activeTab === 'timer'
+                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5 shrink-0" />
+            <span>TIMER</span>
+          </button>
+
+          <button
+            onClick={() => onChangeTab('analytics')}
+            className={`flex items-center justify-center space-x-1.5 min-h-[40px] px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
+              activeTab === 'analytics'
+                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+            <span>ANALYTICS</span>
+          </button>
+
+          <button
+            onClick={() => onChangeTab('friends')}
+            className={`flex items-center justify-center space-x-1.5 min-h-[40px] px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
+              activeTab === 'friends'
+                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+            }`}
+          >
+            <Share2 className="w-3.5 h-3.5 shrink-0" />
+            <span>SOCIAL</span>
+          </button>
+        </div>
       </div>
     </header>
   );
 };
+

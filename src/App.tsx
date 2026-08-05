@@ -8,6 +8,7 @@ import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { PostSessionModal } from './components/PostSessionModal';
 import { SocialShareModal } from './components/SocialShareModal';
 import { SettingsModal } from './components/SettingsModal';
+import { ThemeTransitionSpectacle } from './components/ThemeTransitionSpectacle';
 
 import {
   SessionType,
@@ -33,6 +34,7 @@ import {
   initAuth,
   syncSessionToCloud,
   loadCloudSessions,
+  syncUserProfileToCloud,
   updateLeaderboardStats,
   subscribeToLeaderboard,
   signOutUser,
@@ -91,10 +93,6 @@ export default function App() {
   // Firebase User & Sync State
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
-  const [isGuestBypassed, setIsGuestBypassed] = useState<boolean>(() => {
-    // Check if the user previously selected bypass in session storage
-    return sessionStorage.getItem('ultradian_guest_bypass') === 'true';
-  });
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Initialize Firebase Auth
@@ -119,38 +117,50 @@ export default function App() {
   useEffect(() => {
     if (!fbUser) return;
 
-    // Load cloud sessions and perform a high-fidelity merge with local sessions
+    // 1. Sync user profile document (uid, displayName, email) to Firestore
+    syncUserProfileToCloud(fbUser);
+
+    // If username is still default placeholder, default to user's real displayName or email handle
+    const realDisplayName = fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : '');
+    let currentUsername = settings.username;
+
+    if ((!currentUsername || currentUsername === 'Ultradian Achiever') && realDisplayName) {
+      currentUsername = realDisplayName;
+      const updatedSettings = { ...settings, username: realDisplayName };
+      setSettings(updatedSettings);
+      saveSettings(updatedSettings);
+    }
+
+    const effectiveName = currentUsername || realDisplayName || 'Ultradian Achiever';
+
+    // 2. Load cloud sessions and perform a high-fidelity merge with local sessions
     loadCloudSessions(fbUser.uid).then((cloudRecords) => {
       const cleanCloud = cloudRecords ? cloudRecords.filter((r) => !r.id.startsWith('seed_')) : [];
       
       setSessionRecords((prev) => {
-        // Base the list on cloud sessions first (cloud is the source of truth)
+        // Base the list on clean cloud sessions (cloud is source of truth)
+        const cleanPrev = prev.filter((r) => r && r.id && !r.id.startsWith('seed_'));
         const merged = [...cleanCloud];
-        let changed = false;
 
-        // Add any local records that don't exist in the cloud yet
-        prev.forEach((localRec) => {
+        // Add any local real records that don't exist in the cloud yet
+        cleanPrev.forEach((localRec) => {
           if (!merged.some((r) => r.id === localRec.id)) {
             merged.push(localRec);
-            changed = true;
-            // Sync local real sessions (non-seeds) to the cloud
-            if (!localRec.id.startsWith('seed_')) {
-              syncSessionToCloud(fbUser.uid, localRec);
-            }
+            syncSessionToCloud(fbUser.uid, localRec);
           }
         });
 
         const sorted = merged.sort((a, b) => b.timestamp - a.timestamp);
         saveSessionRecords(sorted);
         
-        // Update leaderboard stats on the cloud with the merged dataset
-        updateLeaderboardStats(fbUser.uid, settings.username || 'Ultradian Achiever', sorted);
+        // Update leaderboard stats on the cloud with the clean dataset
+        updateLeaderboardStats(fbUser.uid, effectiveName, sorted);
         
         return sorted;
       });
     });
 
-    // 2. Subscribe to real-time Leaderboard updates
+    // 3. Subscribe to real-time Leaderboard updates
     const unsubscribe = subscribeToLeaderboard(fbUser.uid, (liveLeaderboard) => {
       setFriends(liveLeaderboard);
     });
@@ -163,12 +173,26 @@ export default function App() {
   // Sync to Leaderboard when username changes
   useEffect(() => {
     if (fbUser) {
-      updateLeaderboardStats(fbUser.uid, settings.username || 'Ultradian Achiever', sessionRecords);
+      const nameToUse = settings.username || fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : 'Ultradian Achiever');
+      updateLeaderboardStats(fbUser.uid, nameToUse, sessionRecords);
     }
   }, [settings.username, fbUser]);
 
   // Exact target timestamp ref to eliminate background tab timing drift
   const endTimeRef = useRef<number | null>(null);
+
+  // Theme Transition Spectacle State
+  const [spectacleState, setSpectacleState] = useState<{
+    isTransitioning: boolean;
+    targetDarkMode: boolean;
+    originX: number;
+    originY: number;
+  }>({
+    isTransitioning: false,
+    targetDarkMode: settings.darkMode,
+    originX: 0,
+    originY: 0,
+  });
 
   // Apply dark mode class to root HTML element
   useEffect(() => {
@@ -178,6 +202,37 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [settings.darkMode]);
+
+  // Trigger smooth spectacle transition when toggling theme
+  const handleToggleTheme = (e?: React.MouseEvent) => {
+    const nextDarkMode = !settings.darkMode;
+    const clickX = e ? e.clientX : window.innerWidth - 120;
+    const clickY = e ? e.clientY : 32;
+
+    const root = document.documentElement;
+    root.style.setProperty('--theme-x', `${clickX}px`);
+    root.style.setProperty('--theme-y', `${clickY}px`);
+    root.classList.add('theme-transition-active');
+
+    setSpectacleState({
+      isTransitioning: true,
+      targetDarkMode: nextDarkMode,
+      originX: clickX,
+      originY: clickY,
+    });
+
+    const applyChange = () => {
+      const updated = { ...settings, darkMode: nextDarkMode };
+      setSettings(updated);
+      saveSettings(updated);
+    };
+
+    applyChange();
+
+    setTimeout(() => {
+      root.classList.remove('theme-transition-active');
+    }, 850);
+  };
 
   // Request browser notification permission
   const handleRequestNotifications = async () => {
@@ -430,30 +485,25 @@ export default function App() {
     try {
       await signOutUser();
       setFbUser(null);
-      setIsGuestBypassed(false);
-      sessionStorage.removeItem('ultradian_guest_bypass');
     } catch (err) {
       console.error('Failed to log out:', err);
     }
   };
 
-  // Add friend/competitor to the live real-time leaderboard
-  const handleAddFriend = async (name: string, weeklyHours: number) => {
-    try {
-      const mockFriendId = `friend_${Date.now()}`;
-      const mockFriendRef = doc(db, 'leaderboard', mockFriendId);
-      await setDoc(mockFriendRef, {
-        id: mockFriendId,
-        name,
-        weeklyHours,
-        completedCycles: Math.round(weeklyHours * 0.7),
-        focusScore: Math.floor(Math.random() * 15) + 82,
-        topCategory: 'Coding',
-        lastUpdated: Date.now(),
-      });
-    } catch (err) {
-      console.error('Failed adding comparison profile to live leaderboard:', err);
-    }
+  // Add friend/competitor locally for comparison without polluting Firebase
+  const handleAddFriend = (name: string, weeklyHours: number) => {
+    const newPeer: FriendProfile = {
+      id: `local_peer_${Date.now()}`,
+      name,
+      weeklyHours,
+      completedCycles: Math.round(weeklyHours * 0.7),
+      focusScore: Math.floor(Math.random() * 15) + 82,
+      topCategory: 'Coding',
+      isUser: false,
+    };
+    const updated = [newPeer, ...friends];
+    setFriends(updated);
+    saveFriends(updated);
   };
 
   // Compute stats for social badge dynamically based on work sessions
@@ -501,9 +551,7 @@ export default function App() {
     );
   }
 
-  const isUserAuthenticated = fbUser && !fbUser.isAnonymous;
-
-  if (!isUserAuthenticated && !isGuestBypassed) {
+  if (!fbUser) {
     return (
       <LoginScreen
         onAuthSuccess={(user) => {
@@ -511,10 +559,6 @@ export default function App() {
           if (user.displayName) {
             handleUpdateSettings({ username: user.displayName });
           }
-        }}
-        onBypassAuth={() => {
-          setIsGuestBypassed(true);
-          sessionStorage.setItem('ultradian_guest_bypass', 'true');
         }}
       />
     );
@@ -526,6 +570,7 @@ export default function App() {
       <Navbar
         settings={settings}
         onUpdateSettings={handleUpdateSettings}
+        onToggleTheme={handleToggleTheme}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
         onToggleZen={() => setIsZenActive(true)}
@@ -539,6 +584,17 @@ export default function App() {
         isAmbientActive={settings.ambientType !== 'none'}
         completedCyclesToday={completedCyclesToday}
         fbUser={fbUser}
+      />
+
+      {/* Visual Theme Transition Spectacle Canvas & Waves */}
+      <ThemeTransitionSpectacle
+        isTransitioning={spectacleState.isTransitioning}
+        targetDarkMode={spectacleState.targetDarkMode}
+        originX={spectacleState.originX}
+        originY={spectacleState.originY}
+        onComplete={() =>
+          setSpectacleState((prev) => ({ ...prev, isTransitioning: false }))
+        }
       />
 
       {/* Firebase Configuration Info Banner if Anonymous Auth is disabled */}
@@ -610,12 +666,12 @@ export default function App() {
         )}
 
         {activeTab === 'friends' && (
-          <div className="max-w-2xl mx-auto animate-fade-in">
+          <div className="max-w-3xl mx-auto animate-fade-in">
             <SocialShareModal
               userStats={userStats}
               friends={friends}
               onAddFriend={handleAddFriend}
-              onClose={() => setActiveTab('timer')}
+              isInline={true}
             />
           </div>
         )}

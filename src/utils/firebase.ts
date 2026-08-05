@@ -38,8 +38,10 @@ const app = initializeApp({
 
 export const auth = getAuth(app);
 
-// Use the specific firestore databaseId from config
-export const db = getFirestore(app, config.firestoreDatabaseId || '(default)');
+// Use the specific firestore databaseId from config if custom
+export const db = (config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)')
+  ? getFirestore(app, config.firestoreDatabaseId)
+  : getFirestore(app);
 
 export enum OperationType {
   CREATE = 'create',
@@ -92,7 +94,7 @@ async function testConnection() {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
+      console.warn("Firestore connection notice: client currently offline.");
     }
   }
 }
@@ -168,10 +170,6 @@ export async function signOutUser(): Promise<void> {
  * Sync a single session record to Firebase Firestore under the user's sessions subcollection
  */
 export async function syncSessionToCloud(userId: string, record: SessionRecord): Promise<void> {
-  if (userId.startsWith('simulated_')) {
-    // Bypass for preview simulation mode
-    return;
-  }
   const path = `users/${userId}/sessions/${record.id}`;
   try {
     const sessionDocRef = doc(db, 'users', userId, 'sessions', record.id);
@@ -185,10 +183,6 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
  * Fetch all sessions from Firestore for the user
  */
 export async function loadCloudSessions(userId: string): Promise<SessionRecord[]> {
-  if (userId.startsWith('simulated_')) {
-    // Bypass for preview simulation mode - fallback entirely to LocalStorage
-    return [];
-  }
   const path = `users/${userId}/sessions`;
   try {
     const q = query(collection(db, 'users', userId, 'sessions'), orderBy('timestamp', 'desc'));
@@ -205,6 +199,29 @@ export async function loadCloudSessions(userId: string): Promise<SessionRecord[]
 }
 
 /**
+ * Sync user profile to Firestore
+ */
+export async function syncUserProfileToCloud(user: FirebaseUser): Promise<void> {
+  const path = `users/${user.uid}`;
+  try {
+    const userDocRef = doc(db, 'users', user.uid);
+    await setDoc(
+      userDocRef,
+      {
+        uid: user.uid,
+        displayName: user.displayName || 'Ultradian Focus User',
+        email: user.email || '',
+        photoURL: user.photoURL || '',
+        lastLoginAt: Date.now(),
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+/**
  * Update user's public leaderboard presence based on their completed sessions
  */
 export async function updateLeaderboardStats(
@@ -212,10 +229,6 @@ export async function updateLeaderboardStats(
   username: string,
   records: SessionRecord[]
 ): Promise<void> {
-  if (userId.startsWith('simulated_')) {
-    // Bypass for preview simulation mode - we will update simulated user details locally
-    return;
-  }
   const path = `leaderboard/${userId}`;
   try {
     const now = Date.now();
@@ -288,181 +301,44 @@ export function subscribeToLeaderboard(
   userId: string | undefined,
   onUpdate: (friends: FriendProfile[]) => void
 ) {
-  // First, compute the user's local stats as a fallback or for simulated injection
-  let weeklyHours = 0.0;
-  let completedCycles = 0;
-  let focusScore = 0;
-  let topCategory: CategoryTag = 'General';
-  const isSimulated = userId ? userId.startsWith('simulated_') : false;
-
-  try {
-    const raw = localStorage.getItem('ultradian_focus_sessions_v1');
-    if (raw) {
-      const records: SessionRecord[] = JSON.parse(raw);
-      const now = Date.now();
-      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-      const past7DaysRecords = records.filter((r) => now - r.timestamp <= SEVEN_DAYS_MS);
-
-      let totFocusMins = 0;
-      let sumRatings = 0;
-      let ratedCount = 0;
-      let cycles = 0;
-      const categoryMins: Record<string, number> = {};
-
-      records.forEach((r) => {
-        if (r.type === 'work') {
-          cycles += 1;
-          if (r.focusRating) {
-            sumRatings += r.focusRating;
-            ratedCount += 1;
-          }
-        }
-      });
-
-      past7DaysRecords.forEach((r) => {
-        if (r.type === 'work') {
-          const mins = Math.round(r.actualSecondsCompleted / 60);
-          totFocusMins += mins;
-          const cat = r.category || 'General';
-          categoryMins[cat] = (categoryMins[cat] || 0) + mins;
-        }
-      });
-
-      weeklyHours = Math.round((totFocusMins / 60) * 10) / 10;
-      completedCycles = cycles;
-      const avgRating = ratedCount > 0 ? sumRatings / ratedCount : 4.5;
-      focusScore = Math.round(avgRating * 20);
-
-      let maxMins = 0;
-      Object.entries(categoryMins).forEach(([cat, mins]) => {
-        if (mins > maxMins) {
-          maxMins = mins;
-          topCategory = cat as CategoryTag;
-        }
-      });
-    }
-  } catch (e) {
-    console.warn('Failed computing local user stats', e);
-  }
-
   const path = 'leaderboard';
   const q = query(collection(db, 'leaderboard'), orderBy('weeklyHours', 'desc'), limit(50));
 
   return onSnapshot(q, (snapshot) => {
     const list: FriendProfile[] = [];
-    let userFound = false;
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const isSelf = userId ? data.id === userId : false;
-      if (isSelf) userFound = true;
+      const docId = docSnap.id;
+
+      // Skip legacy mock or seed entries
+      if (docId.startsWith('friend_') || docId.startsWith('seed_')) {
+        return;
+      }
+
+      const isSelf = userId ? (data.id === userId || docId === userId) : false;
+      const weeklyHours = data.weeklyHours ?? 0;
+      const completedCycles = data.completedCycles ?? 0;
+
+      // Hide inactive test profiles with 0 hours and 0 cycles unless it is the logged-in user themselves
+      if (!isSelf && weeklyHours === 0 && completedCycles === 0) {
+        return;
+      }
 
       list.push({
-        id: data.id,
-        name: data.name || 'Anonymous Achiever',
-        weeklyHours: data.weeklyHours ?? 0,
-        completedCycles: data.completedCycles ?? 0,
+        id: data.id || docId,
+        name: data.name || 'Ultradian Achiever',
+        weeklyHours,
+        completedCycles,
         focusScore: data.focusScore ?? 0,
         topCategory: data.topCategory || 'General',
         isUser: isSelf,
       });
     });
 
-    // If the user is simulated and not in the DB, inject them dynamically
-    if (isSimulated && userId && !userFound) {
-      const name = userId === 'simulated_google_user' ? 'Simulated Google WaveRider' : 'Simulated Email WaveRider';
-      list.push({
-        id: userId,
-        name,
-        weeklyHours,
-        completedCycles,
-        focusScore,
-        topCategory,
-        isUser: true,
-      });
-      list.sort((a, b) => b.weeklyHours - a.weeklyHours);
-    }
-
-    // Fallback: if leaderboard has very few items, let's inject a couple of elegant static presets to keep it populated
-    if (list.length < 3) {
-      const elenaExists = list.some((f) => f.name === 'Elena Rostova');
-      const marcusExists = list.some((f) => f.name === 'Marcus Vance');
-      const aishaExists = list.some((f) => f.name === 'Aisha Chen');
-
-      if (!elenaExists) {
-        list.push({
-          id: 'friend_1',
-          name: 'Elena Rostova',
-          weeklyHours: 21.0,
-          completedCycles: 14,
-          focusScore: 95,
-          topCategory: 'Design',
-        });
-      }
-      if (!marcusExists) {
-        list.push({
-          id: 'friend_2',
-          name: 'Marcus Vance',
-          weeklyHours: 16.2,
-          completedCycles: 10,
-          focusScore: 88,
-          topCategory: 'Research',
-        });
-      }
-      if (!aishaExists) {
-        list.push({
-          id: 'friend_3',
-          name: 'Aisha Chen',
-          weeklyHours: 19.8,
-          completedCycles: 13,
-          focusScore: 91,
-          topCategory: 'Strategy',
-        });
-      }
-      list.sort((a, b) => b.weeklyHours - a.weeklyHours);
-    }
-
     onUpdate(list);
   }, (err) => {
     handleFirestoreError(err, OperationType.GET, path);
-    // If the Firestore query fails (e.g. offline/permission issue), trigger update with mock list so the UI works fine
-    const name = userId === 'simulated_google_user' ? 'Simulated Google WaveRider' : 'Simulated Email WaveRider';
-    const simulatedList: FriendProfile[] = [
-      {
-        id: userId || 'offline_user',
-        name: userId ? name : 'Ultradian Achiever',
-        weeklyHours,
-        completedCycles,
-        focusScore,
-        topCategory,
-        isUser: true,
-      },
-      {
-        id: 'friend_1',
-        name: 'Elena Rostova',
-        weeklyHours: 21.0,
-        completedCycles: 14,
-        focusScore: 95,
-        topCategory: 'Design',
-      },
-      {
-        id: 'friend_2',
-        name: 'Marcus Vance',
-        weeklyHours: 16.2,
-        completedCycles: 10,
-        focusScore: 88,
-        topCategory: 'Research',
-      },
-      {
-        id: 'friend_3',
-        name: 'Aisha Chen',
-        weeklyHours: 19.8,
-        completedCycles: 13,
-        focusScore: 91,
-        topCategory: 'Strategy',
-      },
-    ];
-    simulatedList.sort((a, b) => b.weeklyHours - a.weeklyHours);
-    onUpdate(simulatedList);
+    onUpdate([]);
   });
 }

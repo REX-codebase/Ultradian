@@ -19,8 +19,8 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Flame className="w-4 h-4 text-stone-500" />
-          <h3 className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-            Biological Rhythm Presets
+          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+            BIOLOGICAL RHYTHM PRESETS
           </h3>
         </div>
         <button
@@ -41,7 +41,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
               className={`relative flex flex-col p-4 rounded-md border text-left transition-all duration-200 ${
                 isSelected
                   ? 'bg-stone-100 dark:bg-stone-800 border-stone-900 dark:border-stone-100 ring-1 ring-stone-900 dark:ring-stone-100 shadow-xs'
-                  : 'bg-stone-50/50 dark:bg-stone-900/45 border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-850'
+                  : 'bg-stone-50/50 dark:bg-stone-900/45 border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-800'
               }`}
             >
               <div className="flex items-center justify-between mb-1.5">

@@ -295,3 +295,59 @@ export function setAmbientVolume(volume: number): void {
     activeAmbientNodes.setVolume(volume);
   }
 }
+
+/**
+ * Plays a gentle, organic acoustic chime when switching light/dark theme
+ */
+export function playThemeTransitionChime(isDarkTarget: boolean): void {
+  try {
+    const ctx = getAudioContext();
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.12, ctx.currentTime); // Soft volume
+    masterGain.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+
+    if (isDarkTarget) {
+      // Warm, descending nightfall harmonics (432 Hz -> 216 Hz)
+      [432, 324, 216].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + i * 0.07;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0.001, startTime);
+        gain.gain.linearRampToValueAtTime(0.35, startTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(startTime);
+        osc.stop(startTime + 0.65);
+      });
+    } else {
+      // Bright, ascending dawn harmonics (261 Hz -> 523 Hz -> 784 Hz)
+      [261.63, 523.25, 783.99].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + i * 0.07;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0.001, startTime);
+        gain.gain.linearRampToValueAtTime(0.35, startTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(startTime);
+        osc.stop(startTime + 0.65);
+      });
+    }
+  } catch (err) {
+    // Silent fallback
+  }
+}
