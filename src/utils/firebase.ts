@@ -273,13 +273,30 @@ export function subscribeToLeagueMembers(
       const docId = docSnap.id;
       const isSelf = userId ? (data.userId === userId || docId === userId) : false;
 
+      const focusScore = (data.ratingCount && data.ratingCount > 0)
+        ? Math.round((data.ratingSum / data.ratingCount) * 20)
+        : (data.focusScore ?? 90);
+
+      let topCategory: CategoryTag = 'General';
+      if (data.categoryMins) {
+        let maxM = 0;
+        Object.entries(data.categoryMins).forEach(([cat, mins]) => {
+          if ((mins as number) > maxM) {
+            maxM = mins as number;
+            topCategory = cat as CategoryTag;
+          }
+        });
+      } else if (data.topCategory) {
+        topCategory = data.topCategory as CategoryTag;
+      }
+
       list.push({
         id: data.userId || docId,
         name: data.name || 'Ultradian Achiever',
         weeklyHours: data.weeklyHours ?? 0,
         completedCycles: data.completedCycles ?? 0,
-        focusScore: data.focusScore ?? 90,
-        topCategory: (data.topCategory as CategoryTag) || 'General',
+        focusScore,
+        topCategory,
         leagueId: (data.leagueId as LeagueTier) || leagueId,
         rank: currentRank++,
         isUser: isSelf,
@@ -346,7 +363,12 @@ export function subscribeToLeaderboard(
   onUpdate: (friends: FriendProfile[]) => void
 ) {
   const path = 'leaderboard';
-  const q = query(collection(db, 'leaderboard'), orderBy('lifetimeHours', 'desc'), limit(50));
+  const q = query(
+    collectionGroup(db, 'weeks'),
+    where('weekId', '==', getISOWeek()),
+    orderBy('weeklyHours', 'desc'),
+    limit(50)
+  );
 
   return onSnapshot(q, (snapshot) => {
     const list: FriendProfile[] = [];
@@ -361,16 +383,32 @@ export function subscribeToLeaderboard(
       }
 
       const isSelf = userId ? (data.userId === userId || data.id === userId || docId === userId) : false;
-      const weeklyHours = data.weeklyHours ?? data.lifetimeHours ?? 0;
-      const completedCycles = data.completedCycles ?? data.lifetimeCycles ?? 0;
+      const weeklyHours = data.weeklyHours ?? 0;
+      const completedCycles = data.completedCycles ?? 0;
+      const focusScore = (data.ratingCount && data.ratingCount > 0)
+        ? Math.round((data.ratingSum / data.ratingCount) * 20)
+        : (data.focusScore ?? 90);
+
+      let topCategory: CategoryTag = 'General';
+      if (data.categoryMins) {
+        let maxM = 0;
+        Object.entries(data.categoryMins).forEach(([cat, mins]) => {
+          if ((mins as number) > maxM) {
+            maxM = mins as number;
+            topCategory = cat as CategoryTag;
+          }
+        });
+      } else if (data.topCategory) {
+        topCategory = data.topCategory as CategoryTag;
+      }
 
       list.push({
         id: data.userId || data.id || docId,
         name: data.name || 'Ultradian Achiever',
         weeklyHours,
         completedCycles,
-        focusScore: data.focusScore ?? 90,
-        topCategory: data.topCategory || 'General',
+        focusScore,
+        topCategory,
         isUser: isSelf,
         leagueId: data.leagueId || 'wood',
         rank: rank++,

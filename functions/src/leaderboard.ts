@@ -39,21 +39,23 @@ export const onSessionCompleted = onDocumentCreated(
     const userName = session.userName || userData.displayName || userData.username || "Ultradian Achiever";
     const leagueId = userData.leagueId || "wood";
 
-    // 1. Time-boxed ISO week subcollection document atomic increment
+    // 1. Time-boxed ISO week subcollection document atomic accumulators
     const weekRef = db.collection("leaderboard").doc(userId).collection("weeks").doc(weekId);
-    await weekRef.set({
+    const weekWrite = weekRef.set({
       userId,
       name: userName,
       weeklyHours: FieldValue.increment(hours),
       completedCycles: FieldValue.increment(1),
-      focusScore: FieldValue.increment(session.focusRating || 5),
-      topCategory: session.category || "General",
+      ratingSum: FieldValue.increment(session.focusRating || 5),
+      ratingCount: FieldValue.increment(1),
+      [`categoryMins.${session.category || 'General'}`]: FieldValue.increment(mins),
+      weekId, // enables collectionGroup queries
       lastUpdated: FieldValue.serverTimestamp()
     }, { merge: true });
     
     // 2. Global lifetime stats doc
     const globalRef = db.collection("leaderboard").doc(userId);
-    await globalRef.set({
+    const globalWrite = globalRef.set({
       userId,
       name: userName,
       lifetimeCycles: FieldValue.increment(1),
@@ -65,16 +67,19 @@ export const onSessionCompleted = onDocumentCreated(
 
     // 3. Matchmaking League member document atomic update
     const leagueRef = db.collection("leagues").doc(leagueId).collection("members").doc(userId);
-    await leagueRef.set({
+    const leagueWrite = leagueRef.set({
       userId,
       name: userName,
       weeklyHours: FieldValue.increment(hours),
       completedCycles: FieldValue.increment(1),
-      focusScore: FieldValue.increment(session.focusRating || 5),
-      topCategory: session.category || "General",
+      ratingSum: FieldValue.increment(session.focusRating || 5),
+      ratingCount: FieldValue.increment(1),
+      [`categoryMins.${session.category || 'General'}`]: FieldValue.increment(mins),
       leagueId,
       lastUpdated: FieldValue.serverTimestamp()
     }, { merge: true });
+
+    await Promise.all([weekWrite, globalWrite, leagueWrite]);
   }
 );
 
@@ -85,6 +90,16 @@ export const onSessionCompleted = onDocumentCreated(
 export const weeklyLeagueMatchmaking = onSchedule("59 23 * * 0", async () => {
   const db = getFirestore();
 
+  interface Move {
+    userId: string;
+    memberData: Record<string, any>;
+    from: string;
+    to: string;
+  }
+
+  const moves: Move[] = [];
+
+  // Phase 1 (read-only): Determine promotions and demotions without mutating
   for (const leagueId of LEAGUE_TIERS) {
     const membersSnap = await db
       .collection("leagues")
@@ -96,35 +111,75 @@ export const weeklyLeagueMatchmaking = onSchedule("59 23 * * 0", async () => {
     if (membersSnap.empty) continue;
 
     const members = membersSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    if (members.length < 10) continue; // Skip tiers with < 10 members
+
     const currentTierIndex = LEAGUE_TIERS.indexOf(leagueId);
+    const promoCount = Math.max(1, Math.floor(members.length * 0.2));
+    const releCount = Math.max(1, Math.floor(members.length * 0.2));
 
     for (let i = 0; i < members.length; i++) {
       const member = members[i];
       let targetLeague = leagueId;
 
-      // Top 10 promoted
-      if (i < 10 && currentTierIndex < LEAGUE_TIERS.length - 1) {
+      if (i < promoCount && currentTierIndex < LEAGUE_TIERS.length - 1) {
         targetLeague = LEAGUE_TIERS[currentTierIndex + 1];
-      } else if (i >= members.length - 10 && members.length >= 20 && currentTierIndex > 0) {
-        // Bottom 10 demoted
+      } else if (i >= members.length - releCount && currentTierIndex > 0) {
         targetLeague = LEAGUE_TIERS[currentTierIndex - 1];
       }
 
       if (targetLeague !== leagueId) {
-        // Update user profile with new league ID
-        await db.collection("users").doc(member.id).set({ leagueId: targetLeague }, { merge: true });
-        
-        // Remove from current league
-        await db.collection("leagues").doc(leagueId).collection("members").doc(member.id).delete();
-        
-        // Insert into new league
-        await db.collection("leagues").doc(targetLeague).collection("members").doc(member.id).set({
-          ...member,
-          leagueId: targetLeague,
-          weeklyHours: 0, // reset for the new week
-          completedCycles: 0,
-          lastUpdated: FieldValue.serverTimestamp(),
+        moves.push({
+          userId: member.id,
+          memberData: member,
+          from: leagueId,
+          to: targetLeague,
         });
+      }
+    }
+  }
+
+  // Phase 2 (apply): Execute all moves and reset stats for ALL members across all leagues
+  const movedUserIds = new Set(moves.map((m) => m.userId));
+
+  // Execute moves
+  for (const move of moves) {
+    // 1. Update user profile
+    await db.collection("users").doc(move.userId).set({ leagueId: move.to }, { merge: true });
+
+    // 2. Remove from old league
+    await db.collection("leagues").doc(move.from).collection("members").doc(move.userId).delete();
+
+    // 3. Add to new league with reset weekly stats
+    await db.collection("leagues").doc(move.to).collection("members").doc(move.userId).set({
+      ...move.memberData,
+      leagueId: move.to,
+      weeklyHours: 0,
+      completedCycles: 0,
+      ratingSum: 0,
+      ratingCount: 0,
+      categoryMins: {},
+      lastUpdated: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+
+  // Reset all remaining members in every league
+  for (const leagueId of LEAGUE_TIERS) {
+    const membersSnap = await db
+      .collection("leagues")
+      .doc(leagueId)
+      .collection("members")
+      .get();
+
+    for (const docSnap of membersSnap.docs) {
+      if (!movedUserIds.has(docSnap.id)) {
+        await docSnap.ref.set({
+          weeklyHours: 0,
+          completedCycles: 0,
+          ratingSum: 0,
+          ratingCount: 0,
+          categoryMins: {},
+          lastUpdated: FieldValue.serverTimestamp(),
+        }, { merge: true });
       }
     }
   }

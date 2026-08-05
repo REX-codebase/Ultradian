@@ -57,7 +57,7 @@ import {
   resetTabTitle,
 } from './utils/notifications';
 
-import { playNotificationSound, startAmbientSound, stopAmbientSound, setAmbientVolume } from './utils/audio';
+import { playNotificationSound, startAmbientSound, stopAmbientSound, setAmbientVolume, playRankUpSound } from './utils/audio';
 
 export default function App() {
   // Settings & Theme
@@ -200,6 +200,16 @@ export default function App() {
       });
     }
   }, [fbUser, sessionRecords]);
+
+  // Real rank-up audio effect
+  const prevRankRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (globalRank == null) return;
+    if (prevRankRef.current != null && globalRank < prevRankRef.current) {
+      playRankUpSound();
+    }
+    prevRankRef.current = globalRank;
+  }, [globalRank]);
 
   // Exact target timestamp ref to eliminate background tab timing drift
   const endTimeRef = useRef<number | null>(null);
@@ -484,10 +494,9 @@ export default function App() {
     setSessionRecords(updated);
     setCompletedSessionData(null);
 
-    // Sync to cloud Firestore and refresh public leaderboard presence
+    // Sync to cloud Firestore (Cloud Function updates leaderboard and leagues stats automatically)
     if (fbUser) {
       syncSessionToCloud(fbUser.uid, newRecord);
-      updateLeaderboardStats(fbUser.uid, settings.username || 'Ultradian Achiever', updated);
     }
   };
 
@@ -499,7 +508,7 @@ export default function App() {
     applySessionDuration(sessionType);
 
     if (fbUser && partial.username !== undefined) {
-      updateLeaderboardStats(fbUser.uid, partial.username || 'Ultradian Achiever', sessionRecords);
+      syncUserProfileToCloud(fbUser);
     }
   };
 
@@ -688,7 +697,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'friends' && (
+        {activeTab === 'friends' && settings.enableCompetitiveLeagues && (
           <div className="max-w-3xl mx-auto animate-fade-in">
             <SocialShareModal
               userStats={userStats}

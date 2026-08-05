@@ -96,17 +96,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>ANALYTICS</span>
           </button>
 
-          <button
-            onClick={() => onChangeTab('friends')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-              activeTab === 'friends'
-                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
-            }`}
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>LEADERBOARD</span>
-          </button>
+          {settings.enableCompetitiveLeagues && (
+            <button
+              onClick={() => onChangeTab('friends')}
+              className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                activeTab === 'friends'
+                  ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+              }`}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>LEADERBOARD</span>
+            </button>
+          )}
         </nav>
 
         {/* Right Actions */}
@@ -271,7 +273,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Upper Sub-Navigation Bar (Segmented Control) */}
       <div className="md:hidden border-t border-stone-200/80 dark:border-stone-900/80 bg-stone-50/95 dark:bg-stone-950/95 py-1.5 px-3">
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-stone-200/60 dark:bg-stone-900/60 rounded-xl border border-stone-200/40 dark:border-stone-800/40">
+        <div className={`grid ${settings.enableCompetitiveLeagues ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5 p-1 bg-stone-200/60 dark:bg-stone-900/60 rounded-xl border border-stone-200/40 dark:border-stone-800/40`}>
           <button
             onClick={() => onChangeTab('timer')}
             className={`flex items-center justify-center space-x-1.5 min-h-[40px] px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
@@ -296,17 +298,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>ANALYTICS</span>
           </button>
 
-          <button
-            onClick={() => onChangeTab('friends')}
-            className={`flex items-center justify-center space-x-1.5 min-h-[40px] px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
-              activeTab === 'friends'
-                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
-            }`}
-          >
-            <Share2 className="w-3.5 h-3.5 shrink-0" />
-            <span>SOCIAL</span>
-          </button>
+          {settings.enableCompetitiveLeagues && (
+            <button
+              onClick={() => onChangeTab('friends')}
+              className={`flex items-center justify-center space-x-1.5 min-h-[40px] px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                activeTab === 'friends'
+                  ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+              }`}
+            >
+              <Share2 className="w-3.5 h-3.5 shrink-0" />
+              <span>SOCIAL</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

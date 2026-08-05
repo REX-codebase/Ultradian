@@ -171,12 +171,6 @@ Optimize your bio-rhythms with Ultradian Focus Pulse!`;
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => playRankUpSound()}
-                className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-[10px] font-bold uppercase tracking-wider text-stone-200 border border-stone-700 transition-all self-end sm:self-auto"
-              >
-                Pulse Boost
-              </button>
             </div>
           )}
         </div>

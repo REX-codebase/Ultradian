@@ -1,45 +1,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    match /{document=**} { allow read, write: if false; }
 
-    // Users can read and write their own profile and session subcollections
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-      
       match /sessions/{sessionId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
-    
-    // Global Leaderboard - Read Only for Clients (Admin SDK ONLY for writes)
+
+    // Leaderboard: PUBLIC READ, ADMIN-SDK-ONLY WRITE (zero-trust)
     match /leaderboard/{userId} {
       allow read: if true;
-      allow write: if false; // Admin SDK ONLY
-      
+      allow write: if false;
       match /weeks/{weekId} {
         allow read: if true;
-        allow write: if false; // Admin SDK ONLY
+        allow write: if false;
       }
     }
 
-    // Matchmaking Leagues - Read Only for Clients (Admin SDK ONLY for writes)
+    // Leagues: PUBLIC READ, ADMIN-SDK-ONLY WRITE
     match /leagues/{leagueId} {
       allow read: if true;
-      allow write: if false; // Admin SDK ONLY
-
-      match /members/{userId} {
+      allow write: if false;
+      match /members/{memberId} {
         allow read: if true;
-        allow write: if false; // Admin SDK ONLY
+        allow write: if false;
       }
     }
-    
-    // Connection check test path
-    match /test/{docId} {
-      allow read: if true;
-    }
+
+    match /test/{docId} { allow read: if true; }
   }
 }

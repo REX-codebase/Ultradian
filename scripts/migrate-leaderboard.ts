@@ -1,5 +1,7 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { initializeApp, getApps } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import * as fs from "fs";
+import * as path from "path";
 
 /**
  * Helper to get ISO week string (e.g. "2026-W32")
@@ -13,20 +15,57 @@ function getISOWeek(date: Date): string {
   return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
 }
 
-export async function migrateLeaderboardToTimeboxedSubcollections() {
-  if (!getApps().length) {
-    initializeApp();
+function getFirestoreDb() {
+  let projectId = undefined;
+  let databaseId = undefined;
+
+  try {
+    const configPath = path.resolve(process.cwd(), "firebase-applet-config.json");
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      projectId = config.projectId;
+      if (config.firestoreDatabaseId && config.firestoreDatabaseId !== "(default)") {
+        databaseId = config.firestoreDatabaseId;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not load custom firestore databaseId from config, using default", e);
   }
-  const db = getFirestore();
+
+  if (!getApps().length) {
+    initializeApp(projectId ? { projectId } : undefined);
+  }
+
+  return databaseId ? getFirestore(databaseId) : getFirestore();
+}
+
+export async function migrateLeaderboardToTimeboxedSubcollections() {
+  const db = getFirestoreDb();
   const currentWeekId = getISOWeek(new Date());
 
   console.log(`Starting Leaderboard Migration to ISO Week: ${currentWeekId}...`);
 
-  const leaderboardSnap = await db.collection("leaderboard").get();
+  // Collect user IDs from both users/ and leaderboard/ collections to guarantee no session-having user is skipped
+  const userIds = new Set<string>();
 
-  for (const userDoc of leaderboardSnap.docs) {
-    const userId = userDoc.id;
-    const oldData = userDoc.data();
+  const usersSnap = await db.collection("users").get();
+  usersSnap.docs.forEach((doc) => userIds.add(doc.id));
+
+  const leaderboardSnap = await db.collection("leaderboard").get();
+  leaderboardSnap.docs.forEach((doc) => {
+    if (!doc.id.startsWith("friend_") && !doc.id.startsWith("seed_")) {
+      userIds.add(doc.id);
+    }
+  });
+
+  for (const userId of userIds) {
+    // Fetch user profile doc
+    const userDocSnap = await db.collection("users").doc(userId).get();
+    const userData = userDocSnap.data() || {};
+
+    // Fetch old leaderboard doc if any
+    const oldLeaderboardSnap = await db.collection("leaderboard").doc(userId).get();
+    const oldData = oldLeaderboardSnap.data() || {};
 
     // Fetch user sessions history
     const sessionsSnap = await db.collection("users").doc(userId).collection("sessions").get();
@@ -58,42 +97,43 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
     });
 
     const weeklyHours = Math.round((weeklyMins / 60) * 10) / 10;
-    const avgRating = ratingCount > 0 ? sumRatings / ratingCount : 5.0;
-    const focusScore = Math.round(avgRating * 20);
-
-    let topCategory = "General";
-    let maxMins = 0;
-    Object.entries(categoryMins).forEach(([cat, m]) => {
-      if (m > maxMins) {
-        maxMins = m;
-        topCategory = cat;
-      }
-    });
-
-    const userName = oldData.name || "Ultradian Achiever";
+    const userName = userData.displayName || userData.username || oldData.name || "Ultradian Achiever";
+    const leagueId = userData.leagueId || oldData.leagueId || "wood";
 
     // Write to time-boxed subcollection /leaderboard/{userId}/weeks/{weekId}
     const weekRef = db.collection("leaderboard").doc(userId).collection("weeks").doc(currentWeekId);
     await weekRef.set({
       userId,
       name: userName,
-      weeklyHours: weeklyHours > 0 ? weeklyHours : (oldData.weeklyHours || 0),
-      completedCycles: completedCycles > 0 ? completedCycles : (oldData.completedCycles || 0),
-      focusScore: focusScore > 0 ? focusScore : (oldData.focusScore || 90),
-      topCategory,
+      weeklyHours,
+      completedCycles,
+      ratingSum: sumRatings,
+      ratingCount,
+      categoryMins,
+      weekId: currentWeekId,
       lastUpdated: FieldValue.serverTimestamp(),
     }, { merge: true });
 
-    // Update league document
-    const leagueId = oldData.leagueId || "wood";
+    // Update top-level leaderboard doc
+    const globalRef = db.collection("leaderboard").doc(userId);
+    await globalRef.set({
+      userId,
+      name: userName,
+      currentWeek: currentWeekId,
+      leagueId,
+      lastUpdated: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    // Update league member document
     const leagueRef = db.collection("leagues").doc(leagueId).collection("members").doc(userId);
     await leagueRef.set({
       userId,
       name: userName,
-      weeklyHours: weeklyHours > 0 ? weeklyHours : (oldData.weeklyHours || 0),
-      completedCycles: completedCycles > 0 ? completedCycles : (oldData.completedCycles || 0),
-      focusScore: focusScore > 0 ? focusScore : (oldData.focusScore || 90),
-      topCategory,
+      weeklyHours,
+      completedCycles,
+      ratingSum: sumRatings,
+      ratingCount,
+      categoryMins,
       leagueId,
       lastUpdated: FieldValue.serverTimestamp(),
     }, { merge: true });
