@@ -8,22 +8,31 @@ const STORAGE_KEYS = {
 
 export const DEFAULT_PRESETS: UltradianPreset[] = [
   {
-    id: 'classic_ultradian',
-    name: 'Classic Ultradian (90/20)',
-    description: 'Based on Kleitman BRAC science. 90 mins deep flow + 20 mins recovery.',
+    id: 'level_1_apprentice',
+    name: 'Level 1: Apprentice (45/10)',
+    description: 'Build your mental stamina gently. 45 min focus + 10 min break.',
+    workMinutes: 45,
+    shortBreakMinutes: 10,
+    longBreakMinutes: 20,
+    cyclesBeforeLongBreak: 2,
+  },
+  {
+    id: 'level_2_adept',
+    name: 'Level 2: Adept (60/15)',
+    description: 'Elevate cognitive endurance. 60 min focus + 15 min break.',
+    workMinutes: 60,
+    shortBreakMinutes: 15,
+    longBreakMinutes: 25,
+    cyclesBeforeLongBreak: 2,
+  },
+  {
+    id: 'level_3_master',
+    name: 'Level 3: Ultradian Master (90/20)',
+    description: 'Peak Kleitman BRAC science. 90 min deep flow + 20 min recovery.',
     workMinutes: 90,
     shortBreakMinutes: 20,
     longBreakMinutes: 30,
     cyclesBeforeLongBreak: 2,
-  },
-  {
-    id: 'high_intensity',
-    name: 'High Intensity Flow (60/15)',
-    description: 'Shorter 60 min intense burst + 15 min rest. Great for dense cognitive tasks.',
-    workMinutes: 60,
-    shortBreakMinutes: 15,
-    longBreakMinutes: 25,
-    cyclesBeforeLongBreak: 3,
   },
   {
     id: 'deep_sprint',
@@ -34,23 +43,14 @@ export const DEFAULT_PRESETS: UltradianPreset[] = [
     longBreakMinutes: 35,
     cyclesBeforeLongBreak: 2,
   },
-  {
-    id: 'micro_burst',
-    name: 'Sprint Burst (50/10)',
-    description: 'Quick 50 min focused sprint + 10 min break. Higher cycle frequency.',
-    workMinutes: 50,
-    shortBreakMinutes: 10,
-    longBreakMinutes: 20,
-    cyclesBeforeLongBreak: 3,
-  },
 ];
 
 export const DEFAULT_SETTINGS: UserSettings = {
-  workMinutes: 90,
-  shortBreakMinutes: 20,
-  longBreakMinutes: 30,
+  workMinutes: 45,
+  shortBreakMinutes: 10,
+  longBreakMinutes: 20,
   cyclesBeforeLongBreak: 2,
-  activePresetId: 'classic_ultradian',
+  activePresetId: 'level_1_apprentice',
   soundEffect: 'tibetan_bowl',
   soundVolume: 0.8,
   ambientType: 'none',
@@ -62,6 +62,11 @@ export const DEFAULT_SETTINGS: UserSettings = {
   darkMode: true,
   username: 'Ultradian Achiever',
   enableCompetitiveLeagues: true,
+  staminaLevel: 1,
+  level1SessionsCompleted: 0,
+  level2SessionsCompleted: 0,
+  level3SessionsCompleted: 0,
+  tribeId: 'react_devs',
 };
 
 export const INITIAL_FRIENDS: FriendProfile[] = [];

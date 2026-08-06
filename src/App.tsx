@@ -9,6 +9,11 @@ import { PostSessionModal } from './components/PostSessionModal';
 import { SocialShareModal } from './components/SocialShareModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ThemeTransitionSpectacle } from './components/ThemeTransitionSpectacle';
+import { ProgressiveOverloadBanner, LEVEL_INFO } from './components/ProgressiveOverloadBanner';
+import { LevelUnlockModal } from './components/LevelUnlockModal';
+import { TribalLeaderboardCard } from './components/TribalLeaderboardCard';
+import { FlexCardModal } from './components/FlexCardModal';
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 
 import {
   SessionType,
@@ -31,6 +36,7 @@ import {
   addSessionRecord,
   loadFriends,
   saveFriends,
+  DEFAULT_PRESETS,
 } from './utils/storage';
 
 import {
@@ -58,6 +64,7 @@ import {
 } from './utils/notifications';
 
 import { playNotificationSound, startAmbientSound, stopAmbientSound, setAmbientVolume, playRankUpSound } from './utils/audio';
+import { Share2, Sparkles, Trophy } from 'lucide-react';
 
 export default function App() {
   // Settings & Theme
@@ -87,6 +94,9 @@ export default function App() {
   const [isZenActive, setIsZenActive] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isShareOpen, setIsShareOpen] = useState<boolean>(false);
+  const [showFlexModal, setShowFlexModal] = useState<boolean>(false);
+  const [unlockedLevelModal, setUnlockedLevelModal] = useState<2 | 3 | null>(null);
+
   const [completedSessionData, setCompletedSessionData] = useState<{
     durationMinutes: number;
     actualSecondsCompleted: number;
@@ -130,7 +140,11 @@ export default function App() {
     if (!fbUser) return;
 
     // 1. Sync user profile document to Firestore
-    syncUserProfileToCloud(fbUser);
+    syncUserProfileToCloud(fbUser, {
+      current_level: settings.staminaLevel,
+      session_count: sessionRecords.length,
+      tribe_id: settings.tribeId,
+    });
 
     const realDisplayName = fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : '');
     let currentUsername = settings.username;
@@ -145,7 +159,7 @@ export default function App() {
     // 2. Load cloud sessions and sync missing local sessions
     loadCloudSessions(fbUser.uid).then((cloudRecords) => {
       const cleanCloud = cloudRecords ? cloudRecords.filter((r) => !r.id.startsWith('seed_')) : [];
-      
+
       setSessionRecords((prev) => {
         const cleanPrev = prev.filter((r) => r && r.id && !r.id.startsWith('seed_'));
         const merged = [...cleanCloud];
@@ -450,6 +464,26 @@ export default function App() {
     setSecondsLeft(sec);
   };
 
+  // Select Level Preset for Progressive Overload
+  const handleSelectLevelPreset = (level: 1 | 2 | 3) => {
+    const lvlData = LEVEL_INFO[level];
+    const newSettings: UserSettings = {
+      ...settings,
+      workMinutes: lvlData.workMins,
+      shortBreakMinutes: lvlData.breakMins,
+      staminaLevel: level,
+      activePresetId: level === 1 ? 'level_1_apprentice' : level === 2 ? 'level_2_adept' : 'level_3_master',
+    };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+
+    setIsRunning(false);
+    setSessionType('work');
+    const sec = lvlData.workMins * 60;
+    setTotalSeconds(sec);
+    setSecondsLeft(sec);
+  };
+
   // Ambient sound selection & volume
   const handleSelectAmbient = (type: AmbientSoundType) => {
     const updated = { ...settings, ambientType: type };
@@ -470,7 +504,7 @@ export default function App() {
     setAmbientVolume(vol);
   };
 
-  // Save Post-Session Reflection Record
+  // Save Post-Session Reflection Record & Handle Progressive Overload Level Unlocks
   const handleSaveSessionReflection = (reflection: Partial<SessionRecord>) => {
     if (!completedSessionData) return;
 
@@ -494,10 +528,53 @@ export default function App() {
     setSessionRecords(updated);
     setCompletedSessionData(null);
 
-    // Sync to cloud Firestore (Cloud Function updates leaderboard and leagues stats automatically)
+    // Progressive Overload Level Advancement Check
+    let nextStaminaLevel = settings.staminaLevel;
+    let lvl1Count = settings.level1SessionsCompleted;
+    let lvl2Count = settings.level2SessionsCompleted;
+    let lvl3Count = settings.level3SessionsCompleted;
+
+    if (settings.staminaLevel === 1) {
+      lvl1Count += 1;
+      if (lvl1Count >= 5) {
+        setUnlockedLevelModal(2);
+      }
+    } else if (settings.staminaLevel === 2) {
+      lvl2Count += 1;
+      if (lvl2Count >= 5) {
+        setUnlockedLevelModal(3);
+      }
+    } else {
+      lvl3Count += 1;
+    }
+
+    const updatedSettings: UserSettings = {
+      ...settings,
+      level1SessionsCompleted: lvl1Count,
+      level2SessionsCompleted: lvl2Count,
+      level3SessionsCompleted: lvl3Count,
+    };
+
+    setSettings(updatedSettings);
+    saveSettings(updatedSettings);
+
+    // Sync to cloud Firestore
     if (fbUser) {
       syncSessionToCloud(fbUser.uid, newRecord);
+      syncUserProfileToCloud(fbUser, {
+        current_level: updatedSettings.staminaLevel,
+        session_count: updated.length,
+        tribe_id: settings.tribeId,
+      });
     }
+  };
+
+  // Claim Level Up Modal Action
+  const handleClaimLevelUp = () => {
+    if (!unlockedLevelModal) return;
+    const targetLvl = unlockedLevelModal;
+    setUnlockedLevelModal(null);
+    handleSelectLevelPreset(targetLvl);
   };
 
   // Update Settings
@@ -507,9 +584,18 @@ export default function App() {
     saveSettings(updated);
     applySessionDuration(sessionType);
 
-    if (fbUser && partial.username !== undefined) {
-      syncUserProfileToCloud(fbUser);
+    if (fbUser) {
+      syncUserProfileToCloud(fbUser, {
+        current_level: updated.staminaLevel,
+        session_count: sessionRecords.length,
+        tribe_id: updated.tribeId,
+      });
     }
+  };
+
+  // Select Tribe
+  const handleSelectTribe = (tribeId: string) => {
+    handleUpdateSettings({ tribeId });
   };
 
   // Disconnect / Log Out handler
@@ -596,6 +682,23 @@ export default function App() {
     );
   }
 
+  // Latest session for flex card
+  const latestSession = sessionRecords[0] || {
+    id: 'demo_1',
+    timestamp: Date.now(),
+    dateString: new Date().toISOString().split('T')[0],
+    durationMinutes: settings.workMinutes,
+    actualSecondsCompleted: settings.workMinutes * 60,
+    type: 'work',
+    presetName: settings.activePresetId,
+    category: 'Coding',
+    taskName: currentTask,
+    focusRating: 5,
+    energyLevelAfter: 5,
+    distractionsCount: 0,
+    notes: 'High flow state session.',
+  };
+
   return (
     <div className="min-h-screen bg-stone-50/40 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans selection:bg-stone-900 selection:text-stone-100 dark:selection:bg-stone-100 dark:selection:text-stone-900 transition-colors duration-300">
       {/* Top Header */}
@@ -639,7 +742,7 @@ export default function App() {
                 <strong>Firebase Anonymous Sign-In is disabled:</strong> Go to the Firebase Console &rarr; Authentication &rarr; Sign-in method, and enable <strong>Anonymous</strong>. Meanwhile, your Ultradian waves and stats are safely saved locally!
               </span>
             </div>
-            <button 
+            <button
               onClick={() => setAuthError(null)}
               className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 px-2 py-1 rounded transition-colors"
             >
@@ -651,8 +754,20 @@ export default function App() {
 
       {/* Main Content Body */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Task 1.2 PWA Native App Prompt Banner */}
+        <PwaInstallPrompt />
+
         {activeTab === 'timer' && (
           <div className="space-y-8 animate-fade-in">
+            {/* Task 1.1 Progressive Overload Stamina Banner */}
+            <ProgressiveOverloadBanner
+              staminaLevel={settings.staminaLevel}
+              level1SessionsCompleted={settings.level1SessionsCompleted}
+              level2SessionsCompleted={settings.level2SessionsCompleted}
+              level3SessionsCompleted={settings.level3SessionsCompleted}
+              onSelectLevelPreset={handleSelectLevelPreset}
+            />
+
             {/* Primary Timer Component */}
             <TimerRing
               secondsLeft={secondsLeft}
@@ -672,6 +787,28 @@ export default function App() {
               completedCyclesCount={completedCyclesToday}
               targetCycles={settings.dailyGoalCycles}
             />
+
+            {/* Flex Card Share Asset Trigger Banner */}
+            <div className="p-4 rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
+              <div className="flex items-center space-x-2.5">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+                <div>
+                  <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                    Phase 3: Shareable "Flex" Cards
+                  </h4>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                    Generate Instagram-Story PNG cards of your focus streaks & stamina level.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFlexModal(true)}
+                className="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 shadow-xs"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Export Flex PNG</span>
+              </button>
+            </div>
 
             {/* Ultradian Presets Selection */}
             <PresetSelector
@@ -698,7 +835,14 @@ export default function App() {
         )}
 
         {activeTab === 'friends' && settings.enableCompetitiveLeagues && (
-          <div className="max-w-3xl mx-auto animate-fade-in">
+          <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+            {/* Task 3.2 Tribal Leaderboard Card */}
+            <TribalLeaderboardCard
+              userTribeId={settings.tribeId}
+              onSelectTribe={handleSelectTribe}
+              userWeeklyHours={userStats.weeklyHours}
+            />
+
             <SocialShareModal
               userStats={userStats}
               friends={friends}
@@ -734,12 +878,29 @@ export default function App() {
         />
       )}
 
-      {/* Post Session Reflection Modal */}
+      {/* Post Session Reflection Modal (Phase 2 AI Journal) */}
       {completedSessionData && (
         <PostSessionModal
           completedSession={completedSessionData}
           onSave={handleSaveSessionReflection}
           onClose={() => setCompletedSessionData(null)}
+        />
+      )}
+
+      {/* Task 1.1 Progressive Overload Level Unlock Modal */}
+      {unlockedLevelModal && (
+        <LevelUnlockModal
+          unlockedLevel={unlockedLevelModal}
+          onClaimLevel={handleClaimLevelUp}
+        />
+      )}
+
+      {/* Task 3.1 Flex Card PNG Export Modal */}
+      {showFlexModal && (
+        <FlexCardModal
+          session={latestSession}
+          settings={settings}
+          onClose={() => setShowFlexModal(false)}
         />
       )}
 

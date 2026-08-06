@@ -53,6 +53,22 @@ export interface UserSettings {
   darkMode: boolean;
   username?: string;
   enableCompetitiveLeagues: boolean;
+  staminaLevel: 1 | 2 | 3;
+  level1SessionsCompleted: number;
+  level2SessionsCompleted: number;
+  level3SessionsCompleted: number;
+  tribeId: string;
+}
+
+export interface TribeLeaderboard {
+  id: string;
+  name: string;
+  description: string;
+  weeklyHours: number;
+  memberCount: number;
+  topCategory: CategoryTag;
+  icon: string;
+  isUserTribe?: boolean;
 }
 
 export interface FriendProfile {

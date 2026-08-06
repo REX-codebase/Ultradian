@@ -52,6 +52,35 @@
       },
       "required": ["userId", "name", "weeklyHours", "completedCycles", "focusScore"]
     },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile state including progressive overload stamina level, session counts, and tribe affiliation.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "current_level": { "type": "number" },
+        "session_count": { "type": "number" },
+        "tribe_id": { "type": "string" },
+        "lastLoginAt": { "type": "number" }
+      },
+      "required": ["uid"]
+    },
+    "Tribe": {
+      "title": "Tribe",
+      "description": "Tribal community statistics and leaderboards.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "weeklyHours": { "type": "number" },
+        "memberCount": { "type": "number" },
+        "topCategory": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
     "LeagueMember": {
       "title": "LeagueMember",
       "description": "A user's ranking inside a specific matchmaking league.",
