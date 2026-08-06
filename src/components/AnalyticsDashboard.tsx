@@ -23,12 +23,27 @@ import {
   AlertTriangle,
   Calendar,
   Filter,
+  SlidersHorizontal,
+  Info,
+  ShieldCheck,
 } from 'lucide-react';
-import { SessionRecord } from '../types';
+import { SessionRecord, UserSettings, CategoryTag } from '../types';
+import {
+  generateTransparentRecommendation,
+  generateInsightCards,
+  calculateSQI,
+  NON_BIOLOGICAL_DISCLAIMER,
+} from '../utils/rhythmEngine';
+import { TransparentRecommendationCard } from './TransparentRecommendationCard';
+import { WeeklyRhythmNarrative } from './WeeklyRhythmNarrative';
+import { InsightCardsGrid } from './InsightCardsGrid';
+import { SqiModelInspectorModal } from './SqiModelInspectorModal';
 
 interface AnalyticsDashboardProps {
   records: SessionRecord[];
   dailyGoalCycles: number;
+  settings: UserSettings;
+  onApplyRecommendation: (workMins: number, breakMins: number, ambient: any) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -41,8 +56,22 @@ const CATEGORY_COLORS: Record<string, string> = {
   General: '#e7e5e4', // stone-200
 };
 
-export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ records }) => {
+export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
+  records,
+  settings,
+  onApplyRecommendation,
+}) => {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('All');
+  const [recommendationCategory, setRecommendationCategory] = useState<CategoryTag>('Coding');
+  const [showSqiInspector, setShowSqiInspector] = useState(false);
+
+  const recommendation = useMemo(() => {
+    return generateTransparentRecommendation(records, recommendationCategory);
+  }, [records, recommendationCategory]);
+
+  const insightCards = useMemo(() => {
+    return generateInsightCards(records);
+  }, [records]);
 
   const {
     weeklyData,
@@ -140,6 +169,35 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ records 
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 pb-12 animate-fade-in">
+      {/* 1. Transparent Recommendation Engine */}
+      <TransparentRecommendationCard
+        recommendation={recommendation}
+        onApply={onApplyRecommendation}
+        selectedCategory={recommendationCategory}
+        onCategoryChange={setRecommendationCategory}
+      />
+
+      {/* 2. Weekly "Your rhythm this week" Narrative & Proposed Experiment */}
+      <WeeklyRhythmNarrative
+        records={records}
+        settings={settings}
+        onAcceptExperiment={onApplyRecommendation}
+      />
+
+      {/* 3. Interactive Self-Reported Insight Cards */}
+      <InsightCardsGrid
+        cards={insightCards}
+        onApplyAction={(payload) => {
+          if (payload) {
+            onApplyRecommendation(
+              payload.workMinutes || settings.workMinutes,
+              payload.shortBreakMinutes || settings.shortBreakMinutes,
+              payload.ambientType || settings.ambientType
+            );
+          }
+        }}
+      />
+
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Focus Hours */}
@@ -191,22 +249,36 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ records 
           </span>
         </div>
 
-        {/* Efficiency Index */}
-        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+        {/* Session Quality Index (SQI) Card & Model Inspector Button */}
+        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs relative">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-              EFFICIENCY INDEX
+              SQI MODEL INDEX
             </span>
-            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
+            <button
+              onClick={() => setShowSqiInspector(true)}
+              title="Inspect SQI Formula & Model Parameters"
+              className="p-1 rounded bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 text-stone-600 dark:text-stone-300 transition-colors"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+            </button>
           </div>
           <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
-            {ultradianEfficiencyScore} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">UEI</span>
+            {ultradianEfficiencyScore} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">SQI</span>
           </p>
-          <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2 block font-semibold uppercase tracking-wider">
-            Calculated focus rating
-          </span>
+          <button
+            onClick={() => setShowSqiInspector(true)}
+            className="text-[9px] sm:text-[10px] text-amber-600 dark:text-amber-400 hover:underline mt-2 block font-semibold uppercase tracking-wider text-left"
+          >
+            Inspect 0-100 formula &rarr;
+          </button>
         </div>
       </div>
+
+      {/* SQI Model Transparency Inspector Modal */}
+      {showSqiInspector && (
+        <SqiModelInspectorModal onClose={() => setShowSqiInspector(false)} />
+      )}
 
       {/* Main Weekly Line / Area Chart */}
       <div className="p-4 sm:p-8 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">

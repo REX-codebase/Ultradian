@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
 import { TimerRing } from './components/TimerRing';
+import { PersistentTaskDisplay } from './components/PersistentTaskDisplay';
+import { CompactTimerBar } from './components/CompactTimerBar';
+import { SoftSessionTransition } from './components/SoftSessionTransition';
 import { PresetSelector } from './components/PresetSelector';
 import { AmbientPlayer } from './components/AmbientPlayer';
 import { ZenMode } from './components/ZenMode';
@@ -14,6 +17,8 @@ import { LevelUnlockModal } from './components/LevelUnlockModal';
 import { TribalLeaderboardCard } from './components/TribalLeaderboardCard';
 import { FlexCardModal } from './components/FlexCardModal';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { RecoveryPromptBanner } from './components/RecoveryPromptBanner';
+import { evaluateRecoveryPrompts } from './utils/rhythmEngine';
 
 import {
   SessionType,
@@ -63,7 +68,7 @@ import {
   resetTabTitle,
 } from './utils/notifications';
 
-import { playNotificationSound, startAmbientSound, stopAmbientSound, setAmbientVolume, playRankUpSound } from './utils/audio';
+import { playNotificationSound, startAmbientSound, stopAmbientSound, setAmbientVolume, playRankUpSound, playPhaseTransitionSound } from './utils/audio';
 import { Share2, Sparkles, Trophy } from 'lucide-react';
 
 export default function App() {
@@ -92,6 +97,8 @@ export default function App() {
 
   // Modals & Overlays
   const [isZenActive, setIsZenActive] = useState<boolean>(false);
+  const [isCompactTimer, setIsCompactTimer] = useState<boolean>(false);
+  const [softTransition, setSoftTransition] = useState<{ isVisible: boolean; toType: SessionType; durationMins: number } | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isShareOpen, setIsShareOpen] = useState<boolean>(false);
   const [showFlexModal, setShowFlexModal] = useState<boolean>(false);
@@ -329,8 +336,15 @@ export default function App() {
       // Switch to next break type
       const isLong = newCycles % settings.cyclesBeforeLongBreak === 0;
       const nextType: SessionType = isLong ? 'longBreak' : 'shortBreak';
+      playPhaseTransitionSound(nextType);
       setSessionType(nextType);
       applySessionDuration(nextType);
+
+      setSoftTransition({
+        isVisible: true,
+        toType: nextType,
+        durationMins: isLong ? settings.longBreakMinutes : settings.shortBreakMinutes,
+      });
 
       if (settings.autoStartBreaks) {
         setTimeout(() => handleStart(), 1500);
@@ -342,9 +356,16 @@ export default function App() {
         'Your brain is refreshed and ready for another high-performance Ultradian wave.'
       );
 
+      playPhaseTransitionSound('work');
       setSessionType('work');
       applySessionDuration('work');
       setDistractionsCount(0);
+
+      setSoftTransition({
+        isVisible: true,
+        toType: 'work',
+        durationMins: settings.workMinutes,
+      });
 
       if (settings.autoStartWork) {
         setTimeout(() => handleStart(), 1500);
@@ -483,6 +504,40 @@ export default function App() {
     setTotalSeconds(sec);
     setSecondsLeft(sec);
   };
+
+  // Apply Transparent Recommendation or Experiment Config
+  const handleApplyRecommendation = (workMins: number, breakMins: number, ambient?: AmbientSoundType) => {
+    const newSettings: UserSettings = {
+      ...settings,
+      workMinutes: workMins,
+      shortBreakMinutes: breakMins,
+      ambientType: ambient || settings.ambientType,
+    };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+
+    setIsRunning(false);
+    setSessionType('work');
+    const sec = workMins * 60;
+    setTotalSeconds(sec);
+    setSecondsLeft(sec);
+
+    if (ambient && ambient !== 'none') {
+      handleSelectAmbient(ambient);
+    }
+  };
+
+  // Dynamic Recovery Prompts derived from session history
+  const activeRecoveryPrompts = useMemo(() => {
+    const lastSession = sessionRecords[0];
+    return evaluateRecoveryPrompts(sessionRecords, lastSession ? {
+      durationMinutes: lastSession.durationMinutes,
+      focusRating: lastSession.focusRating,
+      energyLevelBefore: lastSession.energyLevelBefore,
+      energyLevelAfter: lastSession.energyLevelAfter,
+      distractionsCount: lastSession.distractionsCount,
+    } : undefined);
+  }, [sessionRecords]);
 
   // Ambient sound selection & volume
   const handleSelectAmbient = (type: AmbientSoundType) => {
@@ -759,6 +814,14 @@ export default function App() {
 
         {activeTab === 'timer' && (
           <div className="space-y-8 animate-fade-in">
+            {/* Contextual Recovery & Micro-Habit Prompts */}
+            <RecoveryPromptBanner
+              prompts={activeRecoveryPrompts}
+              onStartMicroHabit={(habit) => {
+                if (habit === 'theta_soundscape') handleSelectAmbient('theta_binaural');
+              }}
+            />
+
             {/* Task 1.1 Progressive Overload Stamina Banner */}
             <ProgressiveOverloadBanner
               staminaLevel={settings.staminaLevel}
@@ -768,47 +831,61 @@ export default function App() {
               onSelectLevelPreset={handleSelectLevelPreset}
             />
 
-            {/* Primary Timer Component */}
-            <TimerRing
-              secondsLeft={secondsLeft}
-              totalSeconds={totalSeconds}
-              isRunning={isRunning}
-              sessionType={sessionType}
+            {/* Persistent Goal Anchor & Intention Checklist */}
+            <PersistentTaskDisplay
               currentTask={currentTask}
               onTaskChange={setCurrentTask}
               category={category}
               onCategoryChange={setCategory}
+              secondsLeft={secondsLeft}
+              isRunning={isRunning}
               distractionsCount={distractionsCount}
               onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
-              onStart={handleStart}
-              onPause={handlePause}
-              onReset={handleReset}
-              onSkip={handleSkip}
-              completedCyclesCount={completedCyclesToday}
-              targetCycles={settings.dailyGoalCycles}
             />
 
-            {/* Flex Card Share Asset Trigger Banner */}
-            <div className="p-4 rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
-              <div className="flex items-center space-x-2.5">
-                <Sparkles className="w-5 h-5 text-amber-500" />
-                <div>
-                  <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100">
-                    Phase 3: Shareable "Flex" Cards
-                  </h4>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400">
-                    Generate Instagram-Story PNG cards of your focus streaks & stamina level.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowFlexModal(true)}
-                className="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 shadow-xs"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>Export Flex PNG</span>
-              </button>
-            </div>
+            {/* Primary Timer Component (Living Instrument / Compact Toggle) */}
+            {isCompactTimer ? (
+              <CompactTimerBar
+                secondsLeft={secondsLeft}
+                totalSeconds={totalSeconds}
+                isRunning={isRunning}
+                sessionType={sessionType}
+                currentTask={currentTask}
+                category={category}
+                completedCyclesCount={completedCyclesToday}
+                targetCycles={settings.dailyGoalCycles}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                onSkip={handleSkip}
+                onExpand={() => setIsCompactTimer(false)}
+                activeAmbient={settings.ambientType}
+                onToggleAmbient={() =>
+                  handleSelectAmbient(settings.ambientType === 'alpha_binaural' ? 'none' : 'alpha_binaural')
+                }
+              />
+            ) : (
+              <TimerRing
+                secondsLeft={secondsLeft}
+                totalSeconds={totalSeconds}
+                isRunning={isRunning}
+                sessionType={sessionType}
+                currentTask={currentTask}
+                distractionsCount={distractionsCount}
+                onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                onSkip={handleSkip}
+                completedCyclesCount={completedCyclesToday}
+                targetCycles={settings.dailyGoalCycles}
+                onToggleCompact={() => setIsCompactTimer(true)}
+                activeAmbient={settings.ambientType}
+                onToggleAmbient={() =>
+                  handleSelectAmbient(settings.ambientType === 'alpha_binaural' ? 'none' : 'alpha_binaural')
+                }
+              />
+            )}
 
             {/* Ultradian Presets Selection */}
             <PresetSelector
@@ -817,7 +894,7 @@ export default function App() {
               onOpenCustomSettings={() => setIsSettingsOpen(true)}
             />
 
-            {/* Procedural Ambient Sound Generator */}
+            {/* Procedural Ambient Sound Generator & Soundscape Presets */}
             <AmbientPlayer
               activeAmbient={settings.ambientType}
               ambientVolume={settings.ambientVolume}
@@ -831,6 +908,8 @@ export default function App() {
           <AnalyticsDashboard
             records={sessionRecords}
             dailyGoalCycles={settings.dailyGoalCycles}
+            settings={settings}
+            onApplyRecommendation={handleApplyRecommendation}
           />
         )}
 
@@ -884,6 +963,16 @@ export default function App() {
           completedSession={completedSessionData}
           onSave={handleSaveSessionReflection}
           onClose={() => setCompletedSessionData(null)}
+        />
+      )}
+
+      {/* Soft Session Phase Transition Overlay */}
+      {softTransition && (
+        <SoftSessionTransition
+          isVisible={softTransition.isVisible}
+          toType={softTransition.toType}
+          durationMins={softTransition.durationMins}
+          onContinue={() => setSoftTransition(null)}
         />
       )}
 

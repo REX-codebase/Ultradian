@@ -1,4 +1,4 @@
-import { SoundEffectType, AmbientSoundType } from '../types';
+import { SoundEffectType, AmbientSoundType, SessionType } from '../types';
 
 let audioCtx: AudioContext | null = null;
 
@@ -192,12 +192,69 @@ export function startAmbientSound(type: AmbientSoundType, volume: number = 0.5):
         oscL.disconnect();
         oscR.disconnect();
       });
-    } else if (type === 'brown_noise' || type === 'white_noise') {
+    } else if (type === 'theta_binaural') {
+      // 6 Hz Binaural Theta beat for creative flow (Left 142 Hz, Right 136 Hz)
+      const merger = ctx.createChannelMerger(2);
+
+      const oscL = ctx.createOscillator();
+      oscL.type = 'sine';
+      oscL.frequency.value = 142;
+
+      const oscR = ctx.createOscillator();
+      oscR.type = 'sine';
+      oscR.frequency.value = 136;
+
+      oscL.connect(merger, 0, 0);
+      oscR.connect(merger, 0, 1);
+
+      merger.connect(masterGain);
+      oscL.start();
+      oscR.start();
+
+      cleanupFns.push(() => {
+        oscL.stop();
+        oscR.stop();
+        oscL.disconnect();
+        oscR.disconnect();
+      });
+    } else if (type === 'deep_space') {
+      // Warm cosmic sub-synth drone (55Hz A1 + 110Hz A2)
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+
+      osc1.type = 'sine';
+      osc1.frequency.value = 55;
+      osc2.type = 'triangle';
+      osc2.frequency.value = 110.5;
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 180;
+
+      const subGain = ctx.createGain();
+      subGain.gain.value = 0.3;
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(subGain);
+      subGain.connect(masterGain);
+
+      osc1.start();
+      osc2.start();
+
+      cleanupFns.push(() => {
+        osc1.stop();
+        osc2.stop();
+        osc1.disconnect();
+        osc2.disconnect();
+      });
+    } else if (type === 'brown_noise' || type === 'white_noise' || type === 'pink_noise') {
       // Buffer for noise synthesis
       const bufferSize = ctx.sampleRate * 2;
       const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const output = noiseBuffer.getChannelData(0);
 
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
       let lastOut = 0.0;
       for (let i = 0; i < bufferSize; i++) {
         const white = Math.random() * 2 - 1;
@@ -206,6 +263,17 @@ export function startAmbientSound(type: AmbientSoundType, volume: number = 0.5):
           output[i] = (lastOut + 0.02 * white) / 1.02;
           lastOut = output[i];
           output[i] *= 3.5; // Gain boost
+        } else if (type === 'pink_noise') {
+          // Paul Kellet's Pink Noise algorithm
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+          output[i] *= 0.11;
+          b6 = white * 0.115926;
         } else {
           output[i] = white * 0.15;
         }
@@ -218,7 +286,7 @@ export function startAmbientSound(type: AmbientSoundType, volume: number = 0.5):
       // Add soft lowpass filtering for comfortable focus
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.value = type === 'brown_noise' ? 400 : 1200;
+      filter.frequency.value = type === 'brown_noise' ? 400 : type === 'pink_noise' ? 800 : 1200;
 
       whiteNoise.connect(filter);
       filter.connect(masterGain);
@@ -412,6 +480,63 @@ export function playRankUpSound(): void {
     });
   } catch (e) {
     console.warn('Rank up audio error:', e);
+  }
+}
+
+/**
+ * Soft acoustic chime for session phase transitions (Work -> Break or Break -> Work)
+ */
+export function playPhaseTransitionSound(toType: SessionType): void {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.25, now);
+    masterGain.connect(ctx.destination);
+
+    if (toType === 'work') {
+      // Energetic ascending interval (G4 -> C5 -> E5)
+      const notes = [392.00, 523.25, 659.25];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const st = now + idx * 0.12;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, st);
+
+        gain.gain.setValueAtTime(0.001, st);
+        gain.gain.linearRampToValueAtTime(0.3, st + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, st + 0.8);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(st);
+        osc.stop(st + 0.85);
+      });
+    } else {
+      // Gentle calming descending/warm bowl resonance (A4 -> E4 -> C4)
+      const notes = [440.00, 329.63, 261.63];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const st = now + idx * 0.15;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, st);
+
+        gain.gain.setValueAtTime(0.001, st);
+        gain.gain.linearRampToValueAtTime(0.25, st + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, st + 1.2);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(st);
+        osc.stop(st + 1.25);
+      });
+    }
+  } catch (e) {
+    console.warn('Phase transition audio error:', e);
   }
 }
 

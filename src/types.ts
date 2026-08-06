@@ -32,7 +32,21 @@ export interface SessionRecord {
 
 export type SoundEffectType = 'tibetan_bowl' | 'digital_chime' | 'marimba' | 'synth_rise' | 'gentle_bell';
 
-export type AmbientSoundType = 'none' | 'alpha_binaural' | 'brown_noise' | 'rain_waves' | 'white_noise';
+export type AmbientSoundType =
+  | 'none'
+  | 'alpha_binaural'
+  | 'theta_binaural'
+  | 'brown_noise'
+  | 'rain_waves'
+  | 'white_noise'
+  | 'pink_noise'
+  | 'deep_space';
+
+export interface SubTask {
+  id: string;
+  text: string;
+  completed: boolean;
+}
 
 export type LeagueTier = 'wood' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'ultradian_master';
 

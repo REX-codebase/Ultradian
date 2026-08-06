@@ -204,7 +204,7 @@ export async function loadCloudSessions(userId: string): Promise<SessionRecord[]
 /**
  * Sync user profile to Firestore
  */
-export async function syncUserProfileToCloud(user: FirebaseUser): Promise<void> {
+export async function syncUserProfileToCloud(user: FirebaseUser, extraFields?: Record<string, any>): Promise<void> {
   const path = `users/${user.uid}`;
   try {
     const userDocRef = doc(db, 'users', user.uid);
@@ -216,6 +216,7 @@ export async function syncUserProfileToCloud(user: FirebaseUser): Promise<void> 
         email: user.email || '',
         photoURL: user.photoURL || '',
         lastLoginAt: Date.now(),
+        ...(extraFields || {}),
       },
       { merge: true }
     );
