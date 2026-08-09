@@ -1,4 +1,7 @@
-import { FocusArchetype, ProfessionItem, AmbientSoundType, CategoryTag } from '../types';
+import { FocusArchetype, AmbientSoundType, CategoryTag } from '../types';
+import { PROFESSIONS_DATABASE } from './professions-data';
+
+export { PROFESSIONS_DATABASE };
 
 export interface ArchetypeMeta {
   id: FocusArchetype;
@@ -94,136 +97,6 @@ export const ARCHETYPES: Record<FocusArchetype, ArchetypeMeta> = {
   },
 };
 
-export const PROFESSIONS_DATABASE: ProfessionItem[] = [
-  // --- BUILDER (30 professions) ---
-  { id: 'swe_frontend', title: 'Frontend Developer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_backend', title: 'Backend Software Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_fullstack', title: 'Full-Stack Architect', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_mobile', title: 'Mobile App Developer (iOS/Android)', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_devops', title: 'DevOps & Site Reliability Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_systems', title: 'Systems Programmer (Rust/C++)', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_cloud', title: 'Cloud Solutions Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'swe_embedded', title: 'Embedded Firmware Specialist', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Hardware' },
-  { id: 'hardware_engineer', title: 'Hardware & Circuit Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Hardware' },
-  { id: 'robotics_eng', title: 'Robotics Control Systems Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Robotics' },
-  { id: 'blockchain_dev', title: 'Web3 Protocol Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Crypto' },
-  { id: 'game_developer', title: 'Game Engine Developer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Gaming' },
-  { id: 'cybersecurity', title: 'Cybersecurity & Ethical Hacker', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Security' },
-  { id: 'data_engineer', title: 'Data Pipeline Engineer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Data' },
-  { id: 'mlops_eng', title: 'MLOps Infrastructure Specialist', archetype: 'Builder', defaultCategory: 'Coding', tag: 'AI' },
-  { id: 'microelectronics', title: 'Silicon Microchip Designer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Hardware' },
-  { id: 'spatial_computing', title: 'AR/VR Spatial Developer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'XR' },
-  { id: 'architect_physical', title: 'Architectural Designer', archetype: 'Builder', defaultCategory: 'Design', tag: 'Architecture' },
-  { id: 'civil_engineer', title: 'Structural Civil Engineer', archetype: 'Builder', defaultCategory: 'Research', tag: 'Engineering' },
-  { id: 'mechanical_eng', title: 'Mechanical Systems Engineer', archetype: 'Builder', defaultCategory: 'Research', tag: 'Engineering' },
-  { id: 'sound_engineer', title: 'Audio & Acoustics Specialist', archetype: 'Builder', defaultCategory: 'Design', tag: 'Audio' },
-  { id: 'luthier', title: 'Custom Instrument Craftsman', archetype: 'Builder', defaultCategory: 'General', tag: 'Craft' },
-  { id: 'industrial_maker', title: 'Prototyper & Fabrication Lead', archetype: 'Builder', defaultCategory: 'Design', tag: 'Hardware' },
-  { id: 'network_architect', title: 'Infrastructure & Fiber Architect', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Telecom' },
-  { id: 'db_administrator', title: 'High-Scale Database Architect', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Data' },
-  { id: 'qa_automation', title: 'Software Quality Architect', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'aerospace_craft', title: 'Avionics Hardware Specialist', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Aerospace' },
-  { id: 'energy_eng', title: 'Renewable Grid Engineer', archetype: 'Builder', defaultCategory: 'Research', tag: 'Energy' },
-  { id: 'prompt_engineer', title: 'AI Systems Integration Architect', archetype: 'Builder', defaultCategory: 'Coding', tag: 'AI' },
-  { id: 'kernel_dev', title: 'OS Kernel & Driver Developer', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Systems' },
-
-  // --- CREATOR (30 professions) ---
-  { id: 'writer_novelist', title: 'Fiction Writer & Novelist', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Literature' },
-  { id: 'writer_screenwriter', title: 'Screenwriter & Playwright', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Film' },
-  { id: 'ui_ux_designer', title: 'Product UI/UX Designer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Design' },
-  { id: 'brand_designer', title: 'Brand Identity Director', archetype: 'Creator', defaultCategory: 'Design', tag: 'Branding' },
-  { id: '3d_artist', title: '3D Modeler & Visual Artist', archetype: 'Creator', defaultCategory: 'Design', tag: 'Art' },
-  { id: 'illustrator', title: 'Digital Illustrator & Concept Artist', archetype: 'Creator', defaultCategory: 'Design', tag: 'Art' },
-  { id: 'music_producer', title: 'Music Producer & Composer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Music' },
-  { id: 'film_director', title: 'Film Director & Cinematographer', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Film' },
-  { id: 'video_editor', title: 'Motion Graphics & Video Editor', archetype: 'Creator', defaultCategory: 'Design', tag: 'Video' },
-  { id: 'copywriter', title: 'Creative Copywriter & Essayist', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Writing' },
-  { id: 'journalism_investigative', title: 'Investigative Journalist', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Journalism' },
-  { id: 'content_creator', title: 'Digital Content Creator', archetype: 'Creator', defaultCategory: 'Design', tag: 'Media' },
-  { id: 'game_narrative', title: 'Game Narrative Designer', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Gaming' },
-  { id: 'sound_designer_media', title: 'Foley & Sound Designer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Audio' },
-  { id: 'fashion_designer', title: 'Fashion & Textile Designer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Fashion' },
-  { id: 'typographer', title: 'Typeface & Lettering Designer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Typography' },
-  { id: 'creative_technologist', title: 'Interactive Creative Technologist', archetype: 'Creator', defaultCategory: 'Coding', tag: 'Tech-Art' },
-  { id: 'podcaster_host', title: 'Audio Storyteller & Podcaster', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Media' },
-  { id: 'vfx_artist', title: 'VFX & CGI Supervisor', archetype: 'Creator', defaultCategory: 'Design', tag: 'VFX' },
-  { id: 'poet_author', title: 'Poet & Literary Essayist', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Literature' },
-  { id: 'architectural_visualizer', title: 'Architectural Rendering Artist', archetype: 'Creator', defaultCategory: 'Design', tag: '3D' },
-  { id: 'curator_art', title: 'Museum & Art Gallery Curator', archetype: 'Creator', defaultCategory: 'Design', tag: 'Arts' },
-  { id: 'animator_2d', title: '2D/3D Character Animator', archetype: 'Creator', defaultCategory: 'Design', tag: 'Animation' },
-  { id: 'ghostwriter', title: 'Memoir & Executive Ghostwriter', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Publishing' },
-  { id: 'photographer_documentary', title: 'Documentary Photographer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Photography' },
-  { id: 'game_level_designer', title: 'Game Level & Environment Designer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Gaming' },
-  { id: 'substack_writer', title: 'Independent Newsletter Author', archetype: 'Creator', defaultCategory: 'Writing', tag: 'Writing' },
-  { id: 'creative_director', title: 'Executive Creative Director', archetype: 'Creator', defaultCategory: 'Design', tag: 'Leadership' },
-  { id: 'industrial_designer', title: 'Physical Product Designer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Products' },
-  { id: 'technical_illustrator', title: 'Medical & Technical Diagrammer', archetype: 'Creator', defaultCategory: 'Design', tag: 'Illustration' },
-
-  // --- SCIENTIST (28 professions) ---
-  { id: 'general_student', title: 'University Student & Scholar', archetype: 'Scientist', defaultCategory: 'Study', tag: 'Academia' },
-  { id: 'highschool_student', title: 'High School & College Student', archetype: 'Scientist', defaultCategory: 'Study', tag: 'Academia' },
-  { id: 'cs_student', title: 'Computer Science & STEM Student', archetype: 'Builder', defaultCategory: 'Coding', tag: 'Engineering' },
-  { id: 'art_student', title: 'Design & Fine Arts Student', archetype: 'Creator', defaultCategory: 'Design', tag: 'Art' },
-  { id: 'business_student', title: 'MBA & Business Student', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Business' },
-  { id: 'law_student', title: 'Law Student & Legal Scholar', archetype: 'Strategist', defaultCategory: 'Research', tag: 'Law' },
-  { id: 'ai_researcher', title: 'AI & Deep Learning Researcher', archetype: 'Scientist', defaultCategory: 'Research', tag: 'AI' },
-  { id: 'data_scientist', title: 'Principal Data Scientist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Data' },
-  { id: 'astrophysicist', title: 'Astrophysicist & Cosmologist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Physics' },
-  { id: 'bioinformatician', title: 'Genomics Bioinformatician', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Bio' },
-  { id: 'neuroscientist', title: 'Cognitive Neuroscientist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Brain' },
-  { id: 'quantum_physicist', title: 'Quantum Computing Scientist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Quantum' },
-  { id: 'clinical_researcher', title: 'Clinical Trial Lead', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Medicine' },
-  { id: 'mathematician', title: 'Pure Mathematics Scholar', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Math' },
-  { id: 'chemist_materials', title: 'Materials Science Chemist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Chemistry' },
-  { id: 'biochemist', title: 'Molecular Biochemist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Biology' },
-  { id: 'economist_academic', title: 'Behavioral Economist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Economics' },
-  { id: 'epidemiologist', title: 'Public Health Epidemiologist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Health' },
-  { id: 'environmental_sci', title: 'Climate & Ecological Scientist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Earth' },
-  { id: 'cryptographer_sci', title: 'Cryptographic Theorist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Math' },
-  { id: 'philosopher_ethics', title: 'AI Ethics & Philosophy Scholar', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Philosophy' },
-  { id: 'medical_student', title: 'Medical Scholar & Physician Researcher', archetype: 'Scientist', defaultCategory: 'Study', tag: 'Medicine' },
-  { id: 'linguist_computational', title: 'Computational Linguist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'NLP' },
-  { id: 'geophysicist', title: 'Seismologist & Geophysicist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Earth' },
-  { id: 'psychologist_research', title: 'Experimental Psychologist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Psychology' },
-  { id: 'nanotech_eng', title: 'Nanotechnology Researcher', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Nano' },
-  { id: 'phd_candidate', title: 'PhD Doctoral Fellow', archetype: 'Scientist', defaultCategory: 'Study', tag: 'Academia' },
-  { id: 'marine_biologist', title: 'Oceanic Marine Scientist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Biology' },
-  { id: 'astrobiologist', title: 'Exoplanet Astrobiologist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Space' },
-  { id: 'quantitative_researcher', title: 'Quant Finance Researcher', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Finance' },
-  { id: 'statistician', title: 'Bayesian Data Statistician', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Stats' },
-  { id: 'academic_professor', title: 'University Research Chair', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Academia' },
-  { id: 'patent_examiner', title: 'Deep Tech Patent Examiner', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Law' },
-  { id: 'genetics_crispr', title: 'Gene Editing & CRISPR Scientist', archetype: 'Scientist', defaultCategory: 'Research', tag: 'Genetics' },
-
-  // --- STRATEGIST (26 professions) ---
-  { id: 'founder_startup', title: 'Tech Startup Founder', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Startup' },
-  { id: 'product_manager', title: 'Group Product Manager (GPM)', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Product' },
-  { id: 'venture_capitalist', title: 'Venture Capital Partner', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Venture' },
-  { id: 'quant_trader', title: 'Algorithmic High-Frequency Trader', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Finance' },
-  { id: 'management_consultant', title: 'McKinsey/Bain Strategy Director', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Consulting' },
-  { id: 'corporate_attorney', title: 'M&A & Corporate Partner', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Law' },
-  { id: 'executive_ceo', title: 'Chief Executive Officer (CEO)', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Executive' },
-  { id: 'chief_technology_officer', title: 'Chief Technology Officer (CTO)', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Executive' },
-  { id: 'growth_lead', title: 'Head of Growth & Retention', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Marketing' },
-  { id: 'product_architect', title: 'Chief Product Officer (CPO)', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Product' },
-  { id: 'private_equity', title: 'Private Equity Investment Lead', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Finance' },
-  { id: 'risk_analyst', title: 'Global Macro Risk Strategist', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Finance' },
-  { id: 'operations_director', title: 'Director of Global Operations', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Ops' },
-  { id: 'brand_strategist', title: 'Global Brand Strategist', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Marketing' },
-  { id: 'policy_advisor', title: 'Tech Policy & Geopolitical Advisor', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Policy' },
-  { id: 'executive_coach', title: 'Leadership & Peak Performance Coach', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Coaching' },
-  { id: 'angel_investor', title: 'Angel Syndicate Lead', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Venture' },
-  { id: 'investment_banker', title: 'Investment Banking VP', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Finance' },
-  { id: 'solo_creator_biz', title: 'Solopreneur & Micro-SaaS Owner', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Business' },
-  { id: 'fractional_exec', title: 'Fractional C-Suite Advisor', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Advisory' },
-  { id: 'urban_planner', title: 'Smart City & Urban Planner', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Urban' },
-  { id: 'supply_chain_lead', title: 'Global Logistics Strategist', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Ops' },
-  { id: 'community_director', title: 'Head of Community & Ecosystem', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Community' },
-  { id: 'chief_of_staff', title: 'Executive Chief of Staff', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Executive' },
-  { id: 'regulatory_specialist', title: 'FDA / Regulatory Compliance Strategist', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Compliance' },
-  { id: 'sustainability_director', title: 'ESG & Clean Energy Strategist', archetype: 'Strategist', defaultCategory: 'Strategy', tag: 'Energy' },
-];
-
 /**
  * Generate a poetic focus ritual name given archetype, profession title, and peak hour
  */
@@ -234,7 +107,6 @@ export function generatePoeticRitualName(
 ): string {
   const meta = ARCHETYPES[archetype];
   
-  // Time descriptor
   let timePrefix = 'Dawn';
   if (peakHour >= 0 && peakHour < 5) timePrefix = 'Nocturnal';
   else if (peakHour >= 5 && peakHour < 8) timePrefix = 'Aurora';
@@ -246,7 +118,6 @@ export function generatePoeticRitualName(
   const randomAdj = meta.poeticAdjectives[Math.floor(Math.random() * meta.poeticAdjectives.length)];
   const randomNoun = meta.poeticNouns[Math.floor(Math.random() * meta.poeticNouns.length)];
 
-  // Clean up profession title for prefix (e.g. "Frontend Developer" -> "Frontend")
   let cleanProf = professionTitle ? professionTitle.split(' ')[0] : archetype;
   if (cleanProf.length < 3) cleanProf = archetype;
 

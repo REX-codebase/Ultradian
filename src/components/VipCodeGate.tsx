@@ -1,8 +1,38 @@
-import React, { useState } from 'react';
-import { KeyRound, Lock, ShieldAlert, CheckCircle2, ArrowRight, UserCheck, AlertTriangle } from 'lucide-react';
-import { getVipState, attemptVipCode, VipState } from '../utils/vipAccess';
+/**
+ * VIP Code Gate Component
+ * 
+ * Provides a secure interface for VIP code validation with dual unlock options:
+ * 1. Standard authentication (email/Google)
+ * 2. Creator VIP passcode (5-digit numeric)
+ * 
+ * Features:
+ * - Server-side validation endpoint
+ * - Rate limiting (2 attempts max client-side, 5 attempts/hr server-side)
+ * - Lockout after max failed attempts
+ * - Visual feedback for all states
+ * - Inline or modal display options
+ * 
+ * @example
+ * ```tsx
+ * // Inline usage
+ * <VipCodeGate 
+ *   featureName="AI Recommendations"
+ *   onUnlocked={() => console.log('Unlocked!')}
+ * />
+ * 
+ * // Modal usage
+ * <VipCodeGate
+ *   isInline={false}
+ *   onCloseModal={() => setShowGate(false)}
+ * />
+ * ```
+ */
 
-interface VipCodeGateProps {
+import React, { useState } from 'react';
+import { KeyRound, Lock, ShieldAlert, CheckCircle2, ArrowRight, UserCheck, AlertTriangle, Loader2 } from 'lucide-react';
+import { getVipState, validateVipCode, VipState } from '../utils/vipAccess';
+
+export interface VipCodeGateProps {
   featureName?: string;
   featureDescription?: string;
   onUnlocked?: () => void;
@@ -21,18 +51,23 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
 }) => {
   const [vipState, setVipState] = useState<VipState>(() => getVipState());
   const [codeInput, setCodeInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success' | 'warning'; text: string } | null>(null);
 
-  const handleCodeSubmit = (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!codeInput.trim()) return;
+    if (!codeInput.trim() || isVerifying) return;
 
-    const result = attemptVipCode(codeInput);
+    setIsVerifying(true);
+    setFeedback(null);
+
+    const result = await validateVipCode(codeInput);
     const updatedState = getVipState();
     setVipState(updatedState);
+    setIsVerifying(false);
 
     if (result.success) {
-      setFeedback({ type: 'success', text: result.message });
+      setFeedback({ type: 'success', text: result.message || 'VIP Access Unlocked!' });
       setCodeInput('');
       if (onUnlocked) {
         onUnlocked();
@@ -40,7 +75,7 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
     } else {
       setFeedback({
         type: result.isLockedOut ? 'error' : 'warning',
-        text: result.message,
+        text: result.message || result.error || 'Validation failed',
       });
     }
   };
@@ -108,7 +143,7 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
               <span>Option 2: Enter Creator VIP Passcode</span>
             </div>
             <p className="text-[11px] text-amber-900/80 dark:text-amber-300/80 font-medium leading-snug">
-              System Requirement: Enter the 5-word numeric passcode (5 numeric digits, e.g. 12345). Entry will be permanently stopped after 2 failed tries.
+              System Requirement: Enter the numeric passcode (5 numeric digits, e.g. 12345). Entry will be permanently stopped after 2 failed tries.
             </p>
           </div>
 
@@ -116,7 +151,7 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
             <div className="relative">
               <input
                 type="text"
-                disabled={vipState.isLockedOut || vipState.isUnlocked}
+                disabled={vipState.isLockedOut || vipState.isUnlocked || isVerifying}
                 placeholder={vipState.isLockedOut ? 'Entry stopped (2/2 failed tries)' : 'Enter 5-digit numeric code (e.g. 12345)...'}
                 value={codeInput}
                 onChange={(e) => setCodeInput(e.target.value)}
@@ -126,11 +161,21 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
 
             <button
               type="submit"
-              disabled={vipState.isLockedOut || vipState.isUnlocked || !codeInput.trim()}
+              disabled={vipState.isLockedOut || vipState.isUnlocked || !codeInput.trim() || isVerifying}
               className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-stone-950 text-xs font-bold uppercase tracking-wider transition-all shadow-xs flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer"
             >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>{vipState.isLockedOut ? 'Entry Stopped (Locked Out)' : 'Verify VIP Code'}</span>
+              {isVerifying ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <KeyRound className="w-3.5 h-3.5" />
+              )}
+              <span>
+                {isVerifying
+                  ? 'Verifying with Server...'
+                  : vipState.isLockedOut
+                  ? 'Entry Stopped (Locked Out)'
+                  : 'Verify VIP Code'}
+              </span>
             </button>
           </form>
         </div>

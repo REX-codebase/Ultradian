@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Navbar } from './components/Navbar';
 import { HomeCommandCenter } from './components/HomeCommandCenter';
 import { TimerRing } from './components/TimerRing';
@@ -8,19 +8,25 @@ import { SoftSessionTransition } from './components/SoftSessionTransition';
 import { PresetSelector } from './components/PresetSelector';
 import { AmbientPlayer } from './components/AmbientPlayer';
 import { ZenMode } from './components/ZenMode';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { PostSessionModal } from './components/PostSessionModal';
-import { SocialShareModal } from './components/SocialShareModal';
-import { SettingsModal } from './components/SettingsModal';
 import { ThemeTransitionSpectacle } from './components/ThemeTransitionSpectacle';
 import { ProgressiveOverloadBanner, LEVEL_INFO } from './components/ProgressiveOverloadBanner';
-import { LevelUnlockModal } from './components/LevelUnlockModal';
 import { TribalLeaderboardCard } from './components/TribalLeaderboardCard';
-import { FlexCardModal } from './components/FlexCardModal';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { RecoveryPromptBanner } from './components/RecoveryPromptBanner';
-import { RitualOnboardingModal } from './components/RitualOnboardingModal';
+import { LoginScreen } from './components/LoginScreen';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { LoadingFallback } from './components/LoadingStates';
 import { evaluateRecoveryPrompts } from './utils/rhythmEngine';
+
+// Lazy load heavy components for performance optimization
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
+const PostSessionModal = lazy(() => import('./components/PostSessionModal').then(m => ({ default: m.PostSessionModal })));
+const SocialShareModal = lazy(() => import('./components/SocialShareModal').then(m => ({ default: m.SocialShareModal })));
+const SettingsModal = lazy(() => import('./components/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const LevelUnlockModal = lazy(() => import('./components/LevelUnlockModal').then(m => ({ default: m.LevelUnlockModal })));
+const FlexCardModal = lazy(() => import('./components/FlexCardModal').then(m => ({ default: m.FlexCardModal })));
+const RitualOnboardingModal = lazy(() => import('./components/RitualOnboardingModal').then(m => ({ default: m.RitualOnboardingModal })));
+const VipCodeGate = lazy(() => import('./components/VipCodeGate').then(m => ({ default: m.VipCodeGate })));
 
 import {
   SessionType,
@@ -60,7 +66,6 @@ import {
 } from './utils/firebase';
 import { isSampleSession } from './utils/sampleRhythm';
 import { LoginScreen } from './components/LoginScreen';
-import { VipCodeGate } from './components/VipCodeGate';
 import { getVipState } from './utils/vipAccess';
 import { User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -882,15 +887,19 @@ export default function App() {
         )}
 
         {activeTab === 'analytics' && (
-          <AnalyticsDashboard
-            records={sessionRecords}
-            dailyGoalCycles={settings.dailyGoalCycles}
-            settings={settings}
-            onApplyRecommendation={handleApplyRecommendation}
-            isAuthorizedForAi={isAuthorizedForAi}
-            onOpenAuth={() => setIsAuthModalOpen(true)}
-            onUnlockVip={handleUnlockVip}
-          />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingFallback label="Loading Analytics Dashboard..." />}>
+              <AnalyticsDashboard
+                records={sessionRecords}
+                dailyGoalCycles={settings.dailyGoalCycles}
+                settings={settings}
+                onApplyRecommendation={handleApplyRecommendation}
+                isAuthorizedForAi={isAuthorizedForAi}
+                onOpenAuth={() => setIsAuthModalOpen(true)}
+                onUnlockVip={handleUnlockVip}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {activeTab === 'friends' && settings.enableCompetitiveLeagues && (
@@ -902,17 +911,21 @@ export default function App() {
               userWeeklyHours={userStats.weeklyHours}
             />
 
-            <SocialShareModal
-              userStats={userStats}
-              friends={friends}
-              globalRank={globalRank}
-              rivalInfo={rivalInfo}
-              currentLeague={currentLeague}
-              leagueMembers={leagueMembers}
-              onSelectLeague={setSelectedLeague}
-              onAddFriend={handleAddFriend}
-              isInline={true}
-            />
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback label="Loading Social Leaderboard..." />}>
+                <SocialShareModal
+                  userStats={userStats}
+                  friends={friends}
+                  globalRank={globalRank}
+                  rivalInfo={rivalInfo}
+                  currentLeague={currentLeague}
+                  leagueMembers={leagueMembers}
+                  onSelectLeague={setSelectedLeague}
+                  onAddFriend={handleAddFriend}
+                  isInline={true}
+                />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         )}
       </main>
@@ -939,11 +952,15 @@ export default function App() {
 
       {/* Post Session Reflection Modal (Phase 2 AI Journal) */}
       {completedSessionData && (
-        <PostSessionModal
-          completedSession={completedSessionData}
-          onSave={handleSaveSessionReflection}
-          onClose={() => setCompletedSessionData(null)}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingFallback label="Loading Journal Modal..." />}>
+            <PostSessionModal
+              completedSession={completedSessionData}
+              onSave={handleSaveSessionReflection}
+              onClose={() => setCompletedSessionData(null)}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       {/* Soft Session Phase Transition Overlay */}
@@ -958,47 +975,63 @@ export default function App() {
 
       {/* Task 1.1 Progressive Overload Level Unlock Modal */}
       {unlockedLevelModal && (
-        <LevelUnlockModal
-          unlockedLevel={unlockedLevelModal}
-          onClaimLevel={handleClaimLevelUp}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingFallback label="Loading Level Unlock..." />}>
+            <LevelUnlockModal
+              unlockedLevel={unlockedLevelModal}
+              onClaimLevel={handleClaimLevelUp}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       {/* Task 3.1 Flex Card PNG Export Modal */}
       {showFlexModal && (
-        <FlexCardModal
-          session={latestSession}
-          settings={settings}
-          onClose={() => setShowFlexModal(false)}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingFallback label="Loading Flex Card..." />}>
+            <FlexCardModal
+              session={latestSession}
+              settings={settings}
+              onClose={() => setShowFlexModal(false)}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       {/* Settings Modal */}
       {isSettingsOpen && (
-        <SettingsModal
-          settings={settings}
-          onSaveSettings={handleUpdateSettings}
-          onClose={() => setIsSettingsOpen(false)}
-          onLogout={handleLogout}
-          onOpenAuth={() => setIsAuthModalOpen(true)}
-          onOpenRitualOnboarding={() => setIsOnboardingOpen(true)}
-          isAuthenticated={!!fbUser}
-          fbUser={fbUser}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingFallback label="Loading Settings..." />}>
+            <SettingsModal
+              settings={settings}
+              onSaveSettings={handleUpdateSettings}
+              onClose={() => setIsSettingsOpen(false)}
+              onLogout={handleLogout}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onOpenRitualOnboarding={() => setIsOnboardingOpen(true)}
+              isAuthenticated={!!fbUser}
+              fbUser={fbUser}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       {/* Ritual Onboarding Modal (3 steps, < 60s, Archetype & 114+ Professions) */}
-      <RitualOnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        settings={settings}
-        onCompleteOnboarding={(updatedSettings) => {
-          handleUpdateSettings(updatedSettings);
-          if (updatedSettings.ambientType && updatedSettings.ambientType !== 'none') {
-            handleSelectAmbient(updatedSettings.ambientType);
-          }
-        }}
-      />
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback label="Loading Onboarding..." />}>
+          <RitualOnboardingModal
+            isOpen={isOnboardingOpen}
+            onClose={() => setIsOnboardingOpen(false)}
+            settings={settings}
+            onCompleteOnboarding={(updatedSettings) => {
+              handleUpdateSettings(updatedSettings);
+              if (updatedSettings.ambientType && updatedSettings.ambientType !== 'none') {
+                handleSelectAmbient(updatedSettings.ambientType);
+              }
+            }}
+          />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Cloud Sync / Sign In Modal */}
       {isAuthModalOpen && (
@@ -1017,35 +1050,43 @@ export default function App() {
 
       {/* Creator VIP Access Code Modal */}
       {isVipModalOpen && (
-        <VipCodeGate
-          isInline={false}
-          featureName="Creator VIP Code Verification"
-          featureDescription="Enter your secret Creator VIP Code to unlock all current and future features across Ultradian Pulse without signing in. Maximum 2 attempts allowed."
-          onCloseModal={() => setIsVipModalOpen(false)}
-          onUnlocked={() => {
-            handleUnlockVip();
-            setIsVipModalOpen(false);
-          }}
-          onOpenAuth={() => {
-            setIsVipModalOpen(false);
-            setIsAuthModalOpen(true);
-          }}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingFallback label="Loading VIP Gate..." />}>
+            <VipCodeGate
+              isInline={false}
+              featureName="Creator VIP Code Verification"
+              featureDescription="Enter your secret Creator VIP Code to unlock all current and future features across Ultradian Pulse without signing in. Maximum 2 attempts allowed."
+              onCloseModal={() => setIsVipModalOpen(false)}
+              onUnlocked={() => {
+                handleUnlockVip();
+                setIsVipModalOpen(false);
+              }}
+              onOpenAuth={() => {
+                setIsVipModalOpen(false);
+                setIsAuthModalOpen(true);
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       {/* Social Share Badge Modal */}
       {isShareOpen && activeTab !== 'friends' && (
-        <SocialShareModal
-          userStats={userStats}
-          friends={friends}
-          globalRank={globalRank}
-          rivalInfo={rivalInfo}
-          currentLeague={currentLeague}
-          leagueMembers={leagueMembers}
-          onSelectLeague={setSelectedLeague}
-          onAddFriend={handleAddFriend}
-          onClose={() => setIsShareOpen(false)}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingFallback label="Loading Share Modal..." />}>
+            <SocialShareModal
+              userStats={userStats}
+              friends={friends}
+              globalRank={globalRank}
+              rivalInfo={rivalInfo}
+              currentLeague={currentLeague}
+              leagueMembers={leagueMembers}
+              onSelectLeague={setSelectedLeague}
+              onAddFriend={handleAddFriend}
+              onClose={() => setIsShareOpen(false)}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
     </div>
   );
