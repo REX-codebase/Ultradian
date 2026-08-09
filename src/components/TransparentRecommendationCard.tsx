@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { Sparkles, Info, CheckCircle2, ChevronDown, ChevronUp, Cpu, ArrowRight, Zap, Target } from 'lucide-react';
 import { Recommendation, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
 import { UserSettings, CategoryTag } from '../types';
+import { VipCodeGate } from './VipCodeGate';
 
 interface TransparentRecommendationCardProps {
   recommendation: Recommendation;
   onApply: (workMins: number, breakMins: number, ambient: any) => void;
   selectedCategory: CategoryTag;
   onCategoryChange: (cat: CategoryTag) => void;
+  isAuthorizedForAi?: boolean;
+  onOpenAuth?: () => void;
+  onUnlockVip?: () => void;
 }
 
 export const TransparentRecommendationCard: React.FC<TransparentRecommendationCardProps> = ({
@@ -15,9 +19,23 @@ export const TransparentRecommendationCard: React.FC<TransparentRecommendationCa
   onApply,
   selectedCategory,
   onCategoryChange,
+  isAuthorizedForAi = true,
+  onOpenAuth,
+  onUnlockVip,
 }) => {
   const [showFormula, setShowFormula] = useState(false);
   const [applied, setApplied] = useState(false);
+
+  if (!isAuthorizedForAi) {
+    return (
+      <VipCodeGate
+        featureName="Special AI Recommendation Engine"
+        featureDescription="Transparent ultradian wave recommendation algorithms tailored to your cognitive domains are available exclusively to signed-in users or Creator VIP Code."
+        onOpenAuth={onOpenAuth}
+        onUnlocked={onUnlockVip}
+      />
+    );
+  }
 
   const categories: CategoryTag[] = ['Coding', 'Writing', 'Design', 'Research', 'Strategy', 'Study'];
 

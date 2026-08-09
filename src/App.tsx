@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
+import { HomeCommandCenter } from './components/HomeCommandCenter';
 import { TimerRing } from './components/TimerRing';
 import { PersistentTaskDisplay } from './components/PersistentTaskDisplay';
 import { CompactTimerBar } from './components/CompactTimerBar';
@@ -18,6 +19,7 @@ import { TribalLeaderboardCard } from './components/TribalLeaderboardCard';
 import { FlexCardModal } from './components/FlexCardModal';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { RecoveryPromptBanner } from './components/RecoveryPromptBanner';
+import { RitualOnboardingModal } from './components/RitualOnboardingModal';
 import { evaluateRecoveryPrompts } from './utils/rhythmEngine';
 
 import {
@@ -56,7 +58,10 @@ import {
   signOutUser,
   db,
 } from './utils/firebase';
+import { isSampleSession } from './utils/sampleRhythm';
 import { LoginScreen } from './components/LoginScreen';
+import { VipCodeGate } from './components/VipCodeGate';
+import { getVipState } from './utils/vipAccess';
 import { User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
@@ -81,7 +86,7 @@ export default function App() {
   const [sessionType, setSessionType] = useState<SessionType>('work');
   const [secondsLeft, setSecondsLeft] = useState<number>(settings.workMinutes * 60);
   const [totalSeconds, setTotalSeconds] = useState<number>(settings.workMinutes * 60);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<boolean>(true);
 
   // Active Task & Category
   const [currentTask, setCurrentTask] = useState<string>('Refactoring Architecture & Flow Wave');
@@ -96,10 +101,14 @@ export default function App() {
   );
 
   // Modals & Overlays
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(
+    () => !settings.hasCompletedOnboarding
+  );
   const [isZenActive, setIsZenActive] = useState<boolean>(false);
   const [isCompactTimer, setIsCompactTimer] = useState<boolean>(false);
   const [softTransition, setSoftTransition] = useState<{ isVisible: boolean; toType: SessionType; durationMins: number } | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isShareOpen, setIsShareOpen] = useState<boolean>(false);
   const [showFlexModal, setShowFlexModal] = useState<boolean>(false);
   const [unlockedLevelModal, setUnlockedLevelModal] = useState<2 | 3 | null>(null);
@@ -123,6 +132,17 @@ export default function App() {
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Creator VIP Access Code State
+  const [isVipUnlocked, setIsVipUnlocked] = useState<boolean>(() => getVipState().isUnlocked);
+  const [isVipModalOpen, setIsVipModalOpen] = useState<boolean>(false);
+
+  // Authorization flag for Special AI Features (Signed in OR VIP Unlocked)
+  const isAuthorizedForAi = !!fbUser || isVipUnlocked;
+
+  const handleUnlockVip = () => {
+    setIsVipUnlocked(true);
+  };
 
   // Initialize Firebase Auth
   useEffect(() => {
@@ -149,7 +169,7 @@ export default function App() {
     // 1. Sync user profile document to Firestore
     syncUserProfileToCloud(fbUser, {
       current_level: settings.staminaLevel,
-      session_count: sessionRecords.length,
+      session_count: sessionRecords.filter((r) => !isSampleSession(r)).length,
       tribe_id: settings.tribeId,
     });
 
@@ -165,14 +185,14 @@ export default function App() {
 
     // 2. Load cloud sessions and sync missing local sessions
     loadCloudSessions(fbUser.uid).then((cloudRecords) => {
-      const cleanCloud = cloudRecords ? cloudRecords.filter((r) => !r.id.startsWith('seed_')) : [];
+      const cleanCloud = cloudRecords ? cloudRecords.filter((r) => !isSampleSession(r)) : [];
 
       setSessionRecords((prev) => {
-        const cleanPrev = prev.filter((r) => r && r.id && !r.id.startsWith('seed_'));
+        const cleanPrev = prev.filter((r) => r && r.id && !isSampleSession(r));
         const merged = [...cleanCloud];
 
         cleanPrev.forEach((localRec) => {
-          if (!merged.some((r) => r.id === localRec.id)) {
+          if (!isSampleSession(localRec) && !merged.some((r) => r.id === localRec.id)) {
             merged.push(localRec);
             syncSessionToCloud(fbUser.uid, localRec);
           }
@@ -213,7 +233,7 @@ export default function App() {
   useEffect(() => {
     if (fbUser) {
       const totalHours = sessionRecords
-        .filter((r) => r.type === 'work')
+        .filter((r) => !isSampleSession(r) && r.type === 'work')
         .reduce((sum, r) => sum + r.actualSecondsCompleted / 3600, 0);
 
       fetchGlobalRank(fbUser.uid, totalHours).then((rank) => {
@@ -679,41 +699,37 @@ export default function App() {
     saveFriends(updated);
   };
 
-  // Compute stats for social badge dynamically based on work sessions
-  const userStats = {
-    weeklyHours: (() => {
-      const now = Date.now();
-      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-      const past7Days = sessionRecords.filter((r) => now - r.timestamp <= SEVEN_DAYS_MS && r.type === 'work');
-      const totFocusMins = past7Days.reduce((acc, r) => acc + Math.round(r.actualSecondsCompleted / 60), 0);
-      return Math.round((totFocusMins / 60) * 10) / 10;
-    })(),
-    completedCycles: sessionRecords.filter((r) => r.type === 'work').length,
-    focusScore: (() => {
-      const rated = sessionRecords.filter((r) => r.type === 'work' && r.focusRating);
-      if (rated.length === 0) return 0;
-      const sum = rated.reduce((acc, r) => acc + (r.focusRating || 5), 0);
-      return Math.round((sum / rated.length) * 20);
-    })(),
-    topCategory: (() => {
-      const minsByCat: Record<string, number> = {};
-      sessionRecords.forEach((r) => {
-        if (r.type === 'work') {
-          const m = Math.round(r.actualSecondsCompleted / 60);
-          minsByCat[r.category] = (minsByCat[r.category] || 0) + m;
-        }
-      });
-      let topCat: CategoryTag = 'General';
-      let maxM = 0;
-      Object.entries(minsByCat).forEach(([cat, m]) => {
-        if (m > maxM) {
-          maxM = m;
-          topCat = cat as CategoryTag;
-        }
-      });
-      return topCat;
-    })(),
-  };
+  // Compute stats for social badge dynamically based on real work sessions
+  const userStats = (() => {
+    const realSessions = sessionRecords.filter((r) => !isSampleSession(r));
+    const now = Date.now();
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const past7Days = realSessions.filter((r) => now - r.timestamp <= SEVEN_DAYS_MS && r.type === 'work');
+    const totFocusMins = past7Days.reduce((acc, r) => acc + Math.round(r.actualSecondsCompleted / 60), 0);
+    const weeklyHours = Math.round((totFocusMins / 60) * 10) / 10;
+    const completedCycles = realSessions.filter((r) => r.type === 'work').length;
+
+    const rated = realSessions.filter((r) => r.type === 'work' && r.focusRating);
+    const focusScore = rated.length === 0 ? 0 : Math.round((rated.reduce((acc, r) => acc + (r.focusRating || 5), 0) / rated.length) * 20);
+
+    const minsByCat: Record<string, number> = {};
+    realSessions.forEach((r) => {
+      if (r.type === 'work') {
+        const m = Math.round(r.actualSecondsCompleted / 60);
+        minsByCat[r.category] = (minsByCat[r.category] || 0) + m;
+      }
+    });
+    let topCat: CategoryTag = 'General';
+    let maxM = 0;
+    Object.entries(minsByCat).forEach(([cat, m]) => {
+      if (m > maxM) {
+        maxM = m;
+        topCat = cat as CategoryTag;
+      }
+    });
+
+    return { weeklyHours, completedCycles, focusScore, topCategory: topCat };
+  })();
 
   if (isAuthLoading) {
     return (
@@ -721,19 +737,6 @@ export default function App() {
         <div className="w-8 h-8 border-2 border-stone-400 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-xs tracking-wider uppercase font-semibold">Tuning Brainwaves...</p>
       </div>
-    );
-  }
-
-  if (!fbUser) {
-    return (
-      <LoginScreen
-        onAuthSuccess={(user) => {
-          setFbUser(user);
-          if (user.displayName) {
-            handleUpdateSettings({ username: user.displayName });
-          }
-        }}
-      />
     );
   }
 
@@ -764,6 +767,8 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
         onToggleZen={() => setIsZenActive(true)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenRitualOnboarding={() => setIsOnboardingOpen(true)}
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         notificationPermission={notificationPermission}
@@ -774,6 +779,8 @@ export default function App() {
         isAmbientActive={settings.ambientType !== 'none'}
         completedCyclesToday={completedCyclesToday}
         fbUser={fbUser}
+        isVipUnlocked={isVipUnlocked}
+        onOpenVipGate={() => setIsVipModalOpen(true)}
       />
 
       {/* Visual Theme Transition Spectacle Canvas & Waves */}
@@ -814,6 +821,39 @@ export default function App() {
 
         {activeTab === 'timer' && (
           <div className="space-y-8 animate-fade-in">
+            {/* Primary Single Home Experience: Command Center Dashboard */}
+            <HomeCommandCenter
+              currentTask={currentTask}
+              onTaskChange={setCurrentTask}
+              category={category}
+              onCategoryChange={setCategory}
+              secondsLeft={secondsLeft}
+              totalSeconds={totalSeconds}
+              isRunning={isRunning}
+              sessionType={sessionType}
+              onStart={handleStart}
+              onPause={handlePause}
+              onReset={handleReset}
+              onSkip={handleSkip}
+              distractionsCount={distractionsCount}
+              onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
+              completedCyclesToday={completedCyclesToday}
+              targetCycles={settings.dailyGoalCycles}
+              settings={settings}
+              onSelectPreset={handleSelectPreset}
+              onApplyRecommendation={handleApplyRecommendation}
+              sessionRecords={sessionRecords}
+              activeAmbient={settings.ambientType}
+              onToggleAmbient={() =>
+                handleSelectAmbient(settings.ambientType === 'none' ? 'alpha_binaural' : 'none')
+              }
+              onToggleZen={() => setIsZenActive(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              isAuthorizedForAi={isAuthorizedForAi}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onUnlockVip={handleUnlockVip}
+            />
+
             {/* Contextual Recovery & Micro-Habit Prompts */}
             <RecoveryPromptBanner
               prompts={activeRecoveryPrompts}
@@ -829,69 +869,6 @@ export default function App() {
               level2SessionsCompleted={settings.level2SessionsCompleted}
               level3SessionsCompleted={settings.level3SessionsCompleted}
               onSelectLevelPreset={handleSelectLevelPreset}
-            />
-
-            {/* Persistent Goal Anchor & Intention Checklist */}
-            <PersistentTaskDisplay
-              currentTask={currentTask}
-              onTaskChange={setCurrentTask}
-              category={category}
-              onCategoryChange={setCategory}
-              secondsLeft={secondsLeft}
-              isRunning={isRunning}
-              distractionsCount={distractionsCount}
-              onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
-            />
-
-            {/* Primary Timer Component (Living Instrument / Compact Toggle) */}
-            {isCompactTimer ? (
-              <CompactTimerBar
-                secondsLeft={secondsLeft}
-                totalSeconds={totalSeconds}
-                isRunning={isRunning}
-                sessionType={sessionType}
-                currentTask={currentTask}
-                category={category}
-                completedCyclesCount={completedCyclesToday}
-                targetCycles={settings.dailyGoalCycles}
-                onStart={handleStart}
-                onPause={handlePause}
-                onReset={handleReset}
-                onSkip={handleSkip}
-                onExpand={() => setIsCompactTimer(false)}
-                activeAmbient={settings.ambientType}
-                onToggleAmbient={() =>
-                  handleSelectAmbient(settings.ambientType === 'alpha_binaural' ? 'none' : 'alpha_binaural')
-                }
-              />
-            ) : (
-              <TimerRing
-                secondsLeft={secondsLeft}
-                totalSeconds={totalSeconds}
-                isRunning={isRunning}
-                sessionType={sessionType}
-                currentTask={currentTask}
-                distractionsCount={distractionsCount}
-                onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
-                onStart={handleStart}
-                onPause={handlePause}
-                onReset={handleReset}
-                onSkip={handleSkip}
-                completedCyclesCount={completedCyclesToday}
-                targetCycles={settings.dailyGoalCycles}
-                onToggleCompact={() => setIsCompactTimer(true)}
-                activeAmbient={settings.ambientType}
-                onToggleAmbient={() =>
-                  handleSelectAmbient(settings.ambientType === 'alpha_binaural' ? 'none' : 'alpha_binaural')
-                }
-              />
-            )}
-
-            {/* Ultradian Presets Selection */}
-            <PresetSelector
-              activePresetId={settings.activePresetId}
-              onSelectPreset={handleSelectPreset}
-              onOpenCustomSettings={() => setIsSettingsOpen(true)}
             />
 
             {/* Procedural Ambient Sound Generator & Soundscape Presets */}
@@ -910,6 +887,9 @@ export default function App() {
             dailyGoalCycles={settings.dailyGoalCycles}
             settings={settings}
             onApplyRecommendation={handleApplyRecommendation}
+            isAuthorizedForAi={isAuthorizedForAi}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            onUnlockVip={handleUnlockVip}
           />
         )}
 
@@ -1000,8 +980,56 @@ export default function App() {
           onSaveSettings={handleUpdateSettings}
           onClose={() => setIsSettingsOpen(false)}
           onLogout={handleLogout}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onOpenRitualOnboarding={() => setIsOnboardingOpen(true)}
           isAuthenticated={!!fbUser}
           fbUser={fbUser}
+        />
+      )}
+
+      {/* Ritual Onboarding Modal (3 steps, < 60s, Archetype & 114+ Professions) */}
+      <RitualOnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        settings={settings}
+        onCompleteOnboarding={(updatedSettings) => {
+          handleUpdateSettings(updatedSettings);
+          if (updatedSettings.ambientType && updatedSettings.ambientType !== 'none') {
+            handleSelectAmbient(updatedSettings.ambientType);
+          }
+        }}
+      />
+
+      {/* Cloud Sync / Sign In Modal */}
+      {isAuthModalOpen && (
+        <LoginScreen
+          isModal
+          onClose={() => setIsAuthModalOpen(false)}
+          onAuthSuccess={(user) => {
+            setFbUser(user);
+            setIsAuthModalOpen(false);
+            if (user.displayName) {
+              handleUpdateSettings({ username: user.displayName });
+            }
+          }}
+        />
+      )}
+
+      {/* Creator VIP Access Code Modal */}
+      {isVipModalOpen && (
+        <VipCodeGate
+          isInline={false}
+          featureName="Creator VIP Code Verification"
+          featureDescription="Enter your secret Creator VIP Code to unlock all current and future features across Ultradian Pulse without signing in. Maximum 2 attempts allowed."
+          onCloseModal={() => setIsVipModalOpen(false)}
+          onUnlocked={() => {
+            handleUnlockVip();
+            setIsVipModalOpen(false);
+          }}
+          onOpenAuth={() => {
+            setIsVipModalOpen(false);
+            setIsAuthModalOpen(true);
+          }}
         />
       )}
 

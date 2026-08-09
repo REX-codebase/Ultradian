@@ -2,21 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Sparkles, Zap, CheckCircle2, Loader2, ArrowRight, Info, ShieldCheck } from 'lucide-react';
 import { SessionRecord, UserSettings } from '../types';
 import { generateWeeklyRhythmReportFallback, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
+import { VipCodeGate } from './VipCodeGate';
 
 interface WeeklyRhythmNarrativeProps {
   records: SessionRecord[];
   settings: UserSettings;
   onAcceptExperiment: (workMins: number, breakMins: number, ambient: any) => void;
+  isAuthorizedForAi?: boolean;
+  onOpenAuth?: () => void;
+  onUnlockVip?: () => void;
 }
 
 export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
   records,
   settings,
   onAcceptExperiment,
+  isAuthorizedForAi = true,
+  onOpenAuth,
+  onUnlockVip,
 }) => {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<any>(null);
   const [accepted, setAccepted] = useState(false);
+
+  if (!isAuthorizedForAi) {
+    return (
+      <VipCodeGate
+        featureName="Weekly Cognitive Synthesis & AI Experiment"
+        featureDescription="AI-driven weekly cognitive rhythm analysis and tailored experiment proposals are reserved for signed-in users or Creator VIP Code."
+        onOpenAuth={onOpenAuth}
+        onUnlocked={onUnlockVip}
+      />
+    );
+  }
 
   useEffect(() => {
     let isMounted = true;

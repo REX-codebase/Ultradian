@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Volume2, Play, X, Clock, LogOut, Cloud } from 'lucide-react';
+import { Settings, Volume2, Play, X, Clock, LogOut, Cloud, Sparkles } from 'lucide-react';
 import { UserSettings, SoundEffectType } from '../types';
 import { playNotificationSound } from '../utils/audio';
 
@@ -8,6 +8,8 @@ interface SettingsModalProps {
   onSaveSettings: (newSettings: UserSettings) => void;
   onClose: () => void;
   onLogout?: () => void;
+  onOpenAuth?: () => void;
+  onOpenRitualOnboarding?: () => void;
   isAuthenticated: boolean;
   fbUser?: any;
 }
@@ -25,6 +27,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onSaveSettings,
   onClose,
   onLogout,
+  onOpenAuth,
+  onOpenRitualOnboarding,
   isAuthenticated,
   fbUser,
 }) => {
@@ -107,6 +111,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <p className="text-[10px] text-stone-400 dark:text-stone-500 leading-normal">
               Your focus metrics and wave history are published to the real-time global leaderboard under this identifier.
             </p>
+
+            {onOpenRitualOnboarding && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenRitualOnboarding();
+                  }}
+                  className="w-full py-2 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Re-run Ritual Onboarding (Archetype & 114+ Professions)</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Section: Durations */}
@@ -323,9 +343,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  if (onLogout) {
+                  onClose();
+                  if (onOpenAuth) {
+                    onOpenAuth();
+                  } else if (onLogout) {
                     onLogout();
-                    onClose();
                   }
                 }}
                 className="w-full py-2.5 px-4 rounded-xl border border-stone-300 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-900 text-stone-700 dark:text-stone-300 font-semibold text-xs tracking-wider uppercase transition-all duration-250 flex items-center justify-center gap-2"

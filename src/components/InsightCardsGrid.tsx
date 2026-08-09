@@ -2,18 +2,36 @@ import React, { useState } from 'react';
 import { Lightbulb, Target, Clock, ShieldAlert, Volume2, ArrowRight, CheckCircle2, Filter } from 'lucide-react';
 import { InsightCard } from '../utils/rhythmEngine';
 import { CategoryTag } from '../types';
+import { VipCodeGate } from './VipCodeGate';
 
 interface InsightCardsGridProps {
   cards: InsightCard[];
   onApplyAction?: (payload: InsightCard['actionPayload']) => void;
+  isAuthorizedForAi?: boolean;
+  onOpenAuth?: () => void;
+  onUnlockVip?: () => void;
 }
 
 export const InsightCardsGrid: React.FC<InsightCardsGridProps> = ({
   cards,
   onApplyAction,
+  isAuthorizedForAi = true,
+  onOpenAuth,
+  onUnlockVip,
 }) => {
   const [selectedDomain, setSelectedDomain] = useState<string>('All');
   const [appliedCardIds, setAppliedCardIds] = useState<Record<string, boolean>>({});
+
+  if (!isAuthorizedForAi) {
+    return (
+      <VipCodeGate
+        featureName="AI Pattern Insights & Sweet Spot Analysis"
+        featureDescription="Cognitive domain insights, distraction risk profiling, and sweet spot duration analysis are available exclusively to signed-in users or Creator VIP Code."
+        onOpenAuth={onOpenAuth}
+        onUnlocked={onUnlockVip}
+      />
+    );
+  }
 
   const domainOptions = ['All', 'Coding', 'Writing', 'Design', 'Research', 'Strategy', 'Study'];
 

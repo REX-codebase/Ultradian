@@ -28,6 +28,7 @@ export interface SessionRecord {
   energyLevelAfter?: number; // 1-5
   distractionsCount: number;
   notes?: string;
+  isSample?: boolean;
 }
 
 export type SoundEffectType = 'tibetan_bowl' | 'digital_chime' | 'marimba' | 'synth_rise' | 'gentle_bell';
@@ -46,6 +47,17 @@ export interface SubTask {
   id: string;
   text: string;
   completed: boolean;
+}
+
+export type FocusArchetype = 'Builder' | 'Creator' | 'Scientist' | 'Strategist';
+
+export interface ProfessionItem {
+  id: string;
+  title: string;
+  archetype: FocusArchetype;
+  defaultCategory: CategoryTag;
+  tag: string;
+  poeticSuffix?: string;
 }
 
 export type LeagueTier = 'wood' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'ultradian_master';
@@ -72,6 +84,11 @@ export interface UserSettings {
   level2SessionsCompleted: number;
   level3SessionsCompleted: number;
   tribeId: string;
+  archetype?: FocusArchetype;
+  profession?: string;
+  peakHour?: number; // 0-23 (hour of day)
+  focusRitualName?: string;
+  hasCompletedOnboarding?: boolean;
 }
 
 export interface TribeLeaderboard {

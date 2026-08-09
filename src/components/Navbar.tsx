@@ -14,6 +14,8 @@ import {
   BarChart3,
   Clock,
   SlidersHorizontal,
+  Cloud,
+  KeyRound,
 } from 'lucide-react';
 import { UserSettings } from '../types';
 
@@ -24,6 +26,8 @@ interface NavbarProps {
   onOpenSettings: () => void;
   onOpenShare: () => void;
   onToggleZen: () => void;
+  onOpenAuth?: () => void;
+  onOpenRitualOnboarding?: () => void;
   activeTab: 'timer' | 'analytics' | 'friends';
   onChangeTab: (tab: 'timer' | 'analytics' | 'friends') => void;
   notificationPermission: NotificationPermission;
@@ -32,6 +36,8 @@ interface NavbarProps {
   isAmbientActive: boolean;
   completedCyclesToday: number;
   fbUser?: any | null;
+  isVipUnlocked?: boolean;
+  onOpenVipGate?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -41,6 +47,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
   onOpenShare,
   onToggleZen,
+  onOpenAuth,
+  onOpenRitualOnboarding,
   activeTab,
   onChangeTab,
   notificationPermission,
@@ -49,6 +57,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   isAmbientActive,
   completedCyclesToday,
   fbUser,
+  isVipUnlocked = false,
+  onOpenVipGate,
 }) => {
   const [showMobileTools, setShowMobileTools] = useState(false);
 
@@ -113,6 +123,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Actions */}
         <div className="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
+          {/* Focus Ritual Badge */}
+          {onOpenRitualOnboarding && (
+            <button
+              onClick={onOpenRitualOnboarding}
+              title="Customize Focus Ritual & Archetype"
+              className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all text-[11px] font-mono font-bold uppercase tracking-wider shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="hidden lg:inline truncate max-w-[120px]">
+                {settings.focusRitualName || settings.archetype || 'RITUAL'}
+              </span>
+              <span className="lg:hidden text-[10px]">RITUAL</span>
+            </button>
+          )}
+
           {/* Daily Goal Badge (Desktop & Tablet) */}
           <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-mono font-bold uppercase tracking-wider">
             <Flame className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" />
@@ -201,7 +226,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </button>
 
-          {/* Profile / Settings Button */}
+          {/* Creator VIP Code Button / Badge */}
+          {onOpenVipGate && (
+            <button
+              onClick={onOpenVipGate}
+              title={isVipUnlocked ? 'Creator VIP Code Active' : 'Enter Creator VIP Code'}
+              className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold tracking-wider uppercase transition-all shadow-xs active:scale-95 cursor-pointer ${
+                isVipUnlocked
+                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                  : 'bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-200 dark:hover:bg-stone-800'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="hidden sm:inline">
+                {isVipUnlocked ? 'VIP Active' : 'VIP Code'}
+              </span>
+            </button>
+          )}
+
+          {/* Profile / Settings / Cloud Sync Buttons */}
+          {!fbUser && onOpenAuth && (
+            <button
+              onClick={onOpenAuth}
+              title="Sync to Cloud Account"
+              className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 hover:opacity-90 transition-all text-[11px] font-bold tracking-wider uppercase shadow-xs active:scale-95"
+            >
+              <Cloud className="w-3.5 h-3.5 text-stone-300 dark:text-stone-700" />
+              <span className="hidden sm:inline">Cloud Sync</span>
+            </button>
+          )}
+
           {fbUser ? (
             <button
               onClick={onOpenSettings}
