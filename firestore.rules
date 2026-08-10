@@ -1,63 +1,49 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} { allow read, write: if false; }
-
+    
+    // Helper functions
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidString(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength;
+    }
+    
+    // User Profiles
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.uid == resource.data.uid;
+      
+      // Sessions (Subcollection)
       match /sessions/{sessionId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update, delete: if isOwner(userId);
       }
     }
-
-    // VIP users collection
-    match /vip_users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId 
-        && request.auth.token.vip_status == true;
-    }
     
-    // VIP sessions collection
-    match /vip_sessions/{sessionId} {
-      allow read: if request.auth != null 
-        && resource.data.userId == request.auth.uid;
-      allow write: if request.auth != null 
-        && request.resource.data.userId == request.auth.uid
-        && request.auth.token.vip_status == true;
-    }
-    
-    // Rate limiting collection
-    match /rate_limits/{ipAddress} {
-      allow read: if false; // Internal only
-      allow write: if false; // Server-side only
-    }
-
-    // Leaderboard: PUBLIC READ, ADMIN-SDK-ONLY WRITE (zero-trust)
+    // Global Leaderboard (Zero client writes, public read)
     match /leaderboard/{userId} {
       allow read: if true;
-      allow write: if false;
-      match /weeks/{weekId} {
-        allow read: if true;
-        allow write: if false;
-      }
+      allow write: if false; // Only Admin SDK via Cloud Functions
     }
-
-    // Leagues: PUBLIC READ, ADMIN-SDK-ONLY WRITE
+    
+    // Leagues (Zero client writes, public read)
     match /leagues/{leagueId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if false; 
       match /members/{memberId} {
         allow read: if true;
         allow write: if false;
       }
     }
-
-    // Tribes: PUBLIC READ, AUTHENTICATED WRITE
+    
+    // Tribes (Public read, Authenticated create/update if member)
     match /tribes/{tribeId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if isSignedIn() && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.creatorId == request.auth.uid;
     }
-
-    match /test/{docId} { allow read: if true; }
   }
 }

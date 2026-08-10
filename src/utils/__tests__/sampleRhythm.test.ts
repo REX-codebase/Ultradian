@@ -12,8 +12,13 @@ describe('Sample Rhythm Utilities', () => {
         durationMinutes: 45,
         actualSecondsCompleted: 2700,
         type: 'work',
+        presetName: 'Deep Focus',
         category: 'Coding',
         taskName: 'Test Task',
+        focusRating: 4,
+        energyLevelBefore: 3,
+        energyLevelAfter: 4,
+        distractionsCount: 0,
         isSample: true,
       };
 
@@ -28,8 +33,13 @@ describe('Sample Rhythm Utilities', () => {
         durationMinutes: 45,
         actualSecondsCompleted: 2700,
         type: 'work',
+        presetName: 'Deep Focus',
         category: 'Coding',
         taskName: 'Demo Task',
+        focusRating: 4,
+        energyLevelBefore: 3,
+        energyLevelAfter: 4,
+        distractionsCount: 0,
       };
 
       const seedRecord: SessionRecord = {
@@ -39,8 +49,13 @@ describe('Sample Rhythm Utilities', () => {
         durationMinutes: 45,
         actualSecondsCompleted: 2700,
         type: 'work',
+        presetName: 'Deep Focus',
         category: 'Research',
         taskName: 'Seed Task',
+        focusRating: 4,
+        energyLevelBefore: 3,
+        energyLevelAfter: 4,
+        distractionsCount: 0,
       };
 
       expect(isSampleSession(sampleRecord)).toBe(true);
@@ -55,8 +70,13 @@ describe('Sample Rhythm Utilities', () => {
         durationMinutes: 60,
         actualSecondsCompleted: 3600,
         type: 'work',
+        presetName: 'Deep Focus',
         category: 'Coding',
         taskName: 'Real User Task',
+        focusRating: 5,
+        energyLevelBefore: 4,
+        energyLevelAfter: 4,
+        distractionsCount: 0,
         isSample: false,
       };
 

@@ -65,7 +65,6 @@ import {
   db,
 } from './utils/firebase';
 import { isSampleSession } from './utils/sampleRhythm';
-import { LoginScreen } from './components/LoginScreen';
 import { getVipState } from './utils/vipAccess';
 import { User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';

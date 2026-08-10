@@ -10,26 +10,27 @@ interface State {
   error?: Error;
 }
 
-/**
- * ErrorBoundary Component
- * 
- * Catches JavaScript errors anywhere in their child component tree,
- * logs those errors, and displays a fallback UI instead of crashing the app.
- */
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-  };
+  declare props: Readonly<Props>;
+  declare state: Readonly<State>;
+  declare setState: Component<Props, State>['setState'];
 
-  public static getDerivedStateFromError(error: Error): State {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+    };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Uncaught error in component:', error, errorInfo);
   }
 
-  public render(): ReactNode {
+  render(): ReactNode {
     if (this.state.hasError) {
       return (
         this.props.fallback || (

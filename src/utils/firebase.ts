@@ -1,6 +1,4 @@
-import { initializeApp } from 'firebase/app';
 import {
-  getAuth,
   signInAnonymously,
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -12,7 +10,6 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import {
-  getFirestore,
   doc,
   setDoc,
   collection,
@@ -26,25 +23,9 @@ import {
   where,
   getDocFromServer,
 } from 'firebase/firestore';
-import config from '../../firebase-applet-config.json';
+import { auth, db } from '../lib/firebase';
+export { auth, db };
 import { SessionRecord, FriendProfile, CategoryTag, LeagueTier, LeagueMember, RivalInfo } from '../types';
-
-// Initialize Firebase
-const app = initializeApp({
-  apiKey: config.apiKey,
-  authDomain: config.authDomain,
-  projectId: config.projectId,
-  storageBucket: config.storageBucket,
-  messagingSenderId: config.messagingSenderId,
-  appId: config.appId,
-});
-
-export const auth = getAuth(app);
-
-// Use the specific firestore databaseId from config if custom
-export const db = (config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)')
-  ? getFirestore(app, config.firestoreDatabaseId)
-  : getFirestore(app);
 
 export enum OperationType {
   CREATE = 'create',
