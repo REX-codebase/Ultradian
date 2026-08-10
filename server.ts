@@ -17,7 +17,7 @@ function checkVipRateLimit(ip: string, maxAttempts = 5, windowMs = 3600 * 1000) 
   const now = Date.now();
   const info = vipRateLimits.get(ip);
 
-  if (!info || (now - info.firstAttemptTime > windowMs)) {
+  if (!info || now - info.firstAttemptTime > windowMs) {
     vipRateLimits.set(ip, { attempts: 1, firstAttemptTime: now });
     return { exceeded: false, remaining: maxAttempts - 1, retryAfter: 0 };
   }
@@ -59,7 +59,7 @@ async function startServer() {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
-  // 1.1 Server-Side VIP Validation System
+  // 1.1 Server-Side VIP Validation System (local dev mirror of Cloud Function)
   app.post('/api/vip/validate', (req, res) => {
     const { code } = req.body || {};
     const clientIP = (req.ip || req.socket?.remoteAddress || '127.0.0.1').toString();
@@ -75,14 +75,23 @@ async function startServer() {
     }
 
     const sanitized = String(code || '').trim().toLowerCase().replace(/\s+/g, '');
-    const validEnvCode = String(process.env.VIP_CODE || '12345').trim().toLowerCase().replace(/\s+/g, '');
-    const allowedCodes = [validEnvCode, '12345', 'akamsirji1234'];
 
-    const isValid = allowedCodes.includes(sanitized);
+    // Fail closed — only accept the environment secret. No hardcoded fallbacks.
+    const envCodeRaw = process.env.VIP_CODE;
+    if (!envCodeRaw || typeof envCodeRaw !== 'string' || envCodeRaw.trim().length < 6) {
+      res.status(503).json({
+        success: false,
+        error: 'VIP validation is not configured (VIP_CODE missing or too short).',
+      });
+      return;
+    }
+
+    const validEnvCode = envCodeRaw.trim().toLowerCase().replace(/\s+/g, '');
+    const isValid = sanitized.length > 0 && sanitized === validEnvCode;
 
     if (isValid) {
       const sessionToken = crypto.randomBytes(32).toString('hex');
-      const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
       res.json({
         success: true,

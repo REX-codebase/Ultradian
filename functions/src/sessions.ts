@@ -2,9 +2,17 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getISOWeekString } from './shared/utils';
 
+/** Maximum realistic focus session length (minutes). Anything above is treated as spoof. */
+const MAX_SESSION_MINUTES = 180;
+/** Minimum meaningful session to count toward stats. */
+const MIN_SESSION_MINUTES = 1;
+
 /**
  * Authoritative, Idempotent Session Processing Trigger
  * Trigger: onDocumentCreated('users/{userId}/sessions/{sessionId}')
+ *
+ * Security: Client-supplied durationMinutes / focusRating are clamped and validated
+ * before any aggregation. Rules also reject out-of-range values on create.
  */
 export const onSessionCreate = onDocumentCreated(
   'users/{userId}/sessions/{sessionId}',
@@ -22,7 +30,7 @@ export const onSessionCreate = onDocumentCreated(
     const sessionType = session.type || 'work';
     if (sessionType !== 'work') return;
 
-    const durationMinutes = Math.round(
+    let durationMinutes = Math.round(
       Number(
         session.durationMinutes ||
         (session.actualSecondsCompleted ? session.actualSecondsCompleted / 60 : 0) ||
@@ -30,10 +38,22 @@ export const onSessionCreate = onDocumentCreated(
       )
     );
 
-    if (durationMinutes <= 0) return;
+    // Clamp + hard reject pathological / spoofed values
+    if (!Number.isFinite(durationMinutes) || durationMinutes < MIN_SESSION_MINUTES) {
+      console.warn(`Session ${sessionId} rejected: invalid durationMinutes=${durationMinutes}`);
+      return;
+    }
+    if (durationMinutes > MAX_SESSION_MINUTES) {
+      console.warn(
+        `Session ${sessionId} durationMinutes=${durationMinutes} exceeds max ${MAX_SESSION_MINUTES}; clamping`
+      );
+      durationMinutes = MAX_SESSION_MINUTES;
+    }
 
-    const category = session.category || 'General';
+    const category = String(session.category || 'General').slice(0, 40);
     const focusRating = Math.min(5, Math.max(1, Number(session.focusRating || 5)));
+    if (!Number.isFinite(focusRating)) return;
+
     const timestamp = Number(session.timestamp || Date.now());
     const weekId = getISOWeekString(new Date(timestamp));
 
@@ -56,7 +76,8 @@ export const onSessionCreate = onDocumentCreated(
       const userRef = db.doc(`users/${userId}`);
       const userSnap = await transaction.get(userRef);
       const userData = userSnap.exists ? userSnap.data() : {};
-      const userName = session.userName || userData?.displayName || userData?.username || 'Ultradian Achiever';
+      const userName =
+        session.userName || userData?.displayName || userData?.username || 'Ultradian Achiever';
       const leagueId = userData?.leagueId || session.leagueId || 'wood';
 
       // References
@@ -150,6 +171,8 @@ export const onSessionCreate = onDocumentCreated(
       transaction.update(sessionRef, {
         processed: true,
         processedAt: Date.now(),
+        // Record the clamped value for auditability
+        durationMinutesClamped: durationMinutes,
       });
     });
   }
