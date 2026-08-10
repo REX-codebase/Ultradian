@@ -43,9 +43,8 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
   const db = getFirestoreDb();
   const currentWeekId = getISOWeek(new Date());
 
-  console.log(`Starting Leaderboard Migration to ISO Week: ${currentWeekId}...`);
+  console.log(`Starting Canonical Leaderboard Migration to ISO Week: ${currentWeekId}...`);
 
-  // Collect user IDs from both users/ and leaderboard/ collections to guarantee no session-having user is skipped
   const userIds = new Set<string>();
 
   const usersSnap = await db.collection("users").get();
@@ -59,19 +58,18 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
   });
 
   for (const userId of userIds) {
-    // Fetch user profile doc
     const userDocSnap = await db.collection("users").doc(userId).get();
     const userData = userDocSnap.data() || {};
 
-    // Fetch old leaderboard doc if any
     const oldLeaderboardSnap = await db.collection("leaderboard").doc(userId).get();
     const oldData = oldLeaderboardSnap.data() || {};
 
-    // Fetch user sessions history
     const sessionsSnap = await db.collection("users").doc(userId).collection("sessions").get();
     
     let weeklyMins = 0;
+    let lifetimeMins = oldData.lifetimeMinutes || 0;
     let completedCycles = 0;
+    let lifetimeCycles = oldData.lifetimeCycles || 0;
     let sumRatings = 0;
     let ratingCount = 0;
     const categoryMins: Record<string, number> = {};
@@ -81,9 +79,12 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
       if (s.type === "work") {
         const sessionDate = new Date(s.timestamp || Date.now());
         const sessionWeek = getISOWeek(sessionDate);
+        const mins = Math.round(Number(s.durationMinutes || (s.actualSecondsCompleted ? s.actualSecondsCompleted / 60 : 0) || 0));
+
+        lifetimeMins += mins;
+        lifetimeCycles += 1;
 
         if (sessionWeek === currentWeekId) {
-          const mins = Math.round((s.actualSecondsCompleted || 0) / 60);
           weeklyMins += mins;
           completedCycles += 1;
           if (s.focusRating) {
@@ -105,6 +106,7 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
     await weekRef.set({
       userId,
       name: userName,
+      weeklyMinutes: weeklyMins,
       weeklyHours,
       completedCycles,
       ratingSum: sumRatings,
@@ -119,6 +121,9 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
     await globalRef.set({
       userId,
       name: userName,
+      weeklyMinutes: weeklyMins,
+      lifetimeMinutes: lifetimeMins,
+      lifetimeCycles,
       currentWeek: currentWeekId,
       leagueId,
       lastUpdated: FieldValue.serverTimestamp(),
@@ -129,6 +134,7 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
     await leagueRef.set({
       userId,
       name: userName,
+      weeklyMinutes: weeklyMins,
       weeklyHours,
       completedCycles,
       ratingSum: sumRatings,
@@ -138,10 +144,10 @@ export async function migrateLeaderboardToTimeboxedSubcollections() {
       lastUpdated: FieldValue.serverTimestamp(),
     }, { merge: true });
 
-    console.log(`Migrated user ${userId} (${userName}) -> week ${currentWeekId}`);
+    console.log(`Migrated user ${userId} (${userName}) -> week ${currentWeekId} with ${weeklyMins} mins`);
   }
 
-  console.log("Leaderboard Migration Complete!");
+  console.log("Canonical Leaderboard Migration Complete!");
 }
 
 if (process.argv[1]?.includes("migrate-leaderboard")) {

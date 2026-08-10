@@ -6,7 +6,7 @@ import {
   signUpWithEmail,
   signInAnonymouslyUser,
   signInWithGoogle,
-} from '../utils/firebase';
+} from '../services/authService';
 import { getVipState, attemptVipCode } from '../utils/vipAccess';
 import { FluidCanvas } from './FluidCanvas';
 

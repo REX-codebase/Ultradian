@@ -53,17 +53,21 @@ import {
 } from './utils/storage';
 
 import {
-  initAuth,
+  initAuthObserver as initAuth,
+  syncUserProfileToCloud,
+  signOutUser,
+} from './services/authService';
+import {
   syncSessionToCloud,
   loadCloudSessions,
-  syncUserProfileToCloud,
+} from './services/sessionService';
+import {
   subscribeToLeaderboard,
   subscribeToLeagueMembers,
   fetchGlobalRank,
   calculateGhostRival,
-  signOutUser,
-  db,
-} from './utils/firebase';
+} from './services/leaderboardService';
+import { db } from './lib/firebase';
 import { isSampleSession } from './utils/sampleRhythm';
 import { getVipState } from './utils/vipAccess';
 import { User as FirebaseUser } from 'firebase/auth';

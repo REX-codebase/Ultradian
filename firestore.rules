@@ -15,18 +15,22 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) && request.resource.data.uid == resource.data.uid;
       
-      // Sessions (Subcollection)
+      // Sessions (Subcollection - Immutable Event Log)
       match /sessions/{sessionId} {
         allow read: if isOwner(userId);
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update, delete: if isOwner(userId);
+        allow update, delete: if false; // Sessions are immutable focus events
       }
     }
     
-    // Global Leaderboard (Zero client writes, public read)
+    // Global Leaderboard & Subcollections (Zero client writes, public read)
     match /leaderboard/{userId} {
       allow read: if true;
       allow write: if false; // Only Admin SDK via Cloud Functions
+      match /{allSubcollections=**} {
+        allow read: if true;
+        allow write: if false;
+      }
     }
     
     // Leagues (Zero client writes, public read)
