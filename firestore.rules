@@ -13,9 +13,9 @@ service cloud.firestore {
       return data.userId == request.auth.uid
         && data.durationMinutes is number
         && data.durationMinutes >= 1
-        && data.durationMinutes <= 240
+        && data.durationMinutes <= 180
         && (!('focusRating' in data) || (data.focusRating is number && data.focusRating >= 1 && data.focusRating <= 5))
-        && (!('actualSecondsCompleted' in data) || (data.actualSecondsCompleted is number && data.actualSecondsCompleted >= 0 && data.actualSecondsCompleted <= 14400))
+        && (!('actualSecondsCompleted' in data) || (data.actualSecondsCompleted is number && data.actualSecondsCompleted >= 0 && data.actualSecondsCompleted <= 10800))
         && (!('type' in data) || data.type in ['work', 'shortBreak', 'longBreak'])
         && (!('category' in data) || isValidString(data.category, 40));
     }

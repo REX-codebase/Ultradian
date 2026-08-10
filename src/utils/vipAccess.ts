@@ -1,3 +1,6 @@
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../lib/firebase';
+
 /**
  * VIP Access Utilities
  * 
@@ -88,6 +91,44 @@ export function getVipState(): VipState {
   }
 }
 
+
+async function validateVipCodeWithFirebase(code: string): Promise<VipValidationResult & { rateLimited?: boolean; countAsFailedAttempt?: boolean }> {
+  const callable = httpsCallable<{ code: string }, VipValidationResult>(functions, 'validateVipCode');
+  const result = await callable({ code });
+  return result.data;
+}
+
+async function validateVipCodeWithServerEndpoint(code: string): Promise<VipValidationResult & { rateLimited?: boolean; countAsFailedAttempt?: boolean }> {
+  const response = await fetch('/api/vip/validate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 429) {
+    return {
+      success: false,
+      rateLimited: true,
+      error: data.error || 'Too many attempts. Please try again later.',
+      remainingAttempts: 0,
+    };
+  }
+
+  if (!response.ok) {
+    return {
+      success: false,
+      error: data.error || 'Invalid VIP code',
+      remainingAttempts: data.remainingAttempts,
+    };
+  }
+
+  return data;
+}
+
 /**
  * Validates a VIP code against server-side validation endpoint
  * 
@@ -123,16 +164,31 @@ export async function validateVipCode(code: string): Promise<VipValidationResult
   }
 
   try {
-    const response = await fetch('/api/vip/validate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ code }),
-    });
+    let data: VipValidationResult & { rateLimited?: boolean; countAsFailedAttempt?: boolean };
+    try {
+      data = await validateVipCodeWithFirebase(code);
+    } catch (firebaseErr: any) {
+      const codeName = String(firebaseErr?.code || '');
+      if (codeName.includes('resource-exhausted')) {
+        data = {
+          success: false,
+          rateLimited: true,
+          error: firebaseErr?.message || 'Too many attempts. Please try again later.',
+          remainingAttempts: 0,
+        };
+      } else if (codeName.includes('failed-precondition')) {
+        data = {
+          success: false,
+          error: firebaseErr?.message || 'VIP validation is not configured on this deployment.',
+          remainingAttempts: currentState.remainingAttempts,
+          countAsFailedAttempt: false,
+        };
+      } else {
+        data = await validateVipCodeWithServerEndpoint(code);
+      }
+    }
 
-    if (response.status === 429) {
-      const data = await response.json();
+    if (data.rateLimited) {
       return {
         success: false,
         error: data.error || 'Too many attempts. Please try again later.',
@@ -141,8 +197,16 @@ export async function validateVipCode(code: string): Promise<VipValidationResult
       };
     }
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
+    if (!data.success && data.countAsFailedAttempt === false) {
+      return {
+        success: false,
+        error: data.error || data.message || 'Validation failed',
+        remainingAttempts: data.remainingAttempts,
+        message: data.error || data.message || 'Validation failed',
+      };
+    }
+
+    if (!data.success) {
       const newFailedCount = currentState.failedAttempts + 1;
       const isNowLockedOut = newFailedCount >= MAX_VIP_ATTEMPTS;
       const remaining = Math.max(0, MAX_VIP_ATTEMPTS - newFailedCount);
@@ -162,14 +226,13 @@ export async function validateVipCode(code: string): Promise<VipValidationResult
 
       return {
         success: false,
-        error: data.error || 'Invalid VIP code',
+        error: data.error || data.message || 'Invalid VIP code',
         remainingAttempts: remaining,
         isLockedOut: isNowLockedOut,
         message: msg,
       };
     }
 
-    const data = await response.json();
     if (data.success) {
       try {
         localStorage.setItem(STORAGE_KEYS.UNLOCKED, 'true');
@@ -190,8 +253,8 @@ export async function validateVipCode(code: string): Promise<VipValidationResult
 
     return {
       success: false,
-      error: data.error || 'Validation failed',
-      message: data.error || 'Validation failed',
+      error: data.error || data.message || 'Validation failed',
+      message: data.error || data.message || 'Validation failed',
     };
   } catch (err) {
     return {

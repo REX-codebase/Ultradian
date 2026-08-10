@@ -1,12 +1,31 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+const { mockCallable, mockHttpsCallable } = vi.hoisted(() => {
+  const callable = vi.fn();
+  return {
+    mockCallable: callable,
+    mockHttpsCallable: vi.fn(() => callable),
+  };
+});
+
+vi.mock('firebase/functions', () => ({
+  httpsCallable: mockHttpsCallable,
+  getFunctions: vi.fn(() => ({})),
+}));
+
+vi.mock('../../lib/firebase', () => ({
+  functions: {},
+}));
+
 import { validateVipCode, getVipState, clearVipState } from '../vipAccess';
 
-// Mock fetch globally
+// Mock fetch globally for local Express fallback coverage
 global.fetch = vi.fn();
 
 describe('VIP Access Utilities', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    mockHttpsCallable.mockImplementation(() => mockCallable);
     localStorage.clear();
   });
 
@@ -44,45 +63,34 @@ describe('VIP Access Utilities', () => {
 
   describe('validateVipCode', () => {
     it('should successfully validate correct code via server API', async () => {
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            token: 'test-secure-token-123',
-            expiresAt: Date.now() + 86400000,
-          }),
-      };
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockCallable.mockResolvedValue({
+        data: {
+          success: true,
+          token: 'test-secure-token-123',
+          expiresAt: Date.now() + 86400000,
+        },
+      });
 
       const result = await validateVipCode('12345');
 
       expect(result.success).toBe(true);
       expect(result.token).toBe('test-secure-token-123');
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/vip/validate',
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({ code: '12345' }),
-        })
-      );
+      expect(mockHttpsCallable).toHaveBeenCalledWith({}, 'validateVipCode');
+      expect(mockCallable).toHaveBeenCalledWith({ code: '12345' });
+      expect(fetch).not.toHaveBeenCalled();
 
       const updatedState = getVipState();
       expect(updatedState.isUnlocked).toBe(true);
     });
 
     it('should handle invalid code response from server API', async () => {
-      const mockResponse = {
-        ok: false,
-        status: 401,
-        json: () =>
-          Promise.resolve({
-            error: 'Invalid VIP code',
-            remainingAttempts: 1,
-          }),
-      };
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockCallable.mockResolvedValue({
+        data: {
+          success: false,
+          error: 'Invalid VIP code',
+          remainingAttempts: 1,
+        },
+      });
 
       const result = await validateVipCode('invalid-code');
 
@@ -97,16 +105,13 @@ describe('VIP Access Utilities', () => {
     it('should enforce lockout on reaching maximum failed attempts', async () => {
       localStorage.setItem('ultradian_vip_failed_attempts_v1', '1');
 
-      const mockResponse = {
-        ok: false,
-        status: 401,
-        json: () =>
-          Promise.resolve({
-            error: 'Invalid VIP code',
-            remainingAttempts: 0,
-          }),
-      };
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockCallable.mockResolvedValue({
+        data: {
+          success: false,
+          error: 'Invalid VIP code',
+          remainingAttempts: 0,
+        },
+      });
 
       const result = await validateVipCode('wrong-code-2');
 
@@ -118,16 +123,10 @@ describe('VIP Access Utilities', () => {
     });
 
     it('should handle server rate limiting (429 Too Many Requests)', async () => {
-      const mockResponse = {
-        ok: false,
-        status: 429,
-        json: () =>
-          Promise.resolve({
-            error: 'Too many attempts. Please try again later.',
-            retryAfter: 3600,
-          }),
-      };
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockCallable.mockRejectedValue({
+        code: 'functions/resource-exhausted',
+        message: 'Too many attempts. Please try again later.',
+      });
 
       const result = await validateVipCode('12345');
 
