@@ -1,39 +1,77 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 
-interface RateLimitTracker {
-  attempts: number;
-  firstAttemptTime: number;
-}
-const vipRateLimits = new Map<string, RateLimitTracker>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_ATTEMPTS = 5;
 
-function enforceVipRateLimit(identifier: string, maxAttempts = 5, windowMs = 3600 * 1000) {
-  const now = Date.now();
-  const info = vipRateLimits.get(identifier);
+/**
+ * Persistent, distributed rate limiter backed by Firestore.
+ * Survives cold starts and works across multiple Cloud Function instances.
+ */
+async function enforceVipRateLimit(
+  identifier: string,
+  maxAttempts = MAX_ATTEMPTS,
+  windowMs = RATE_LIMIT_WINDOW_MS
+): Promise<{ exceeded: boolean; remaining: number; retryAfter: number }> {
+  const db = getFirestore();
+  // Sanitize identifier so it is a valid document ID
+  const safeId = identifier.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'anonymous';
+  const ref = db.collection('vipRateLimits').doc(safeId);
 
-  if (!info || now - info.firstAttemptTime > windowMs) {
-    vipRateLimits.set(identifier, { attempts: 1, firstAttemptTime: now });
-    return { exceeded: false, remaining: maxAttempts - 1, retryAfter: 0 };
-  }
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const now = Date.now();
 
-  if (info.attempts >= maxAttempts) {
-    const retryAfter = Math.ceil((info.firstAttemptTime + windowMs - now) / 1000);
-    return { exceeded: true, remaining: 0, retryAfter };
-  }
+    if (!snap.exists) {
+      tx.set(ref, {
+        attempts: 1,
+        firstAttemptTime: now,
+        lastAttemptTime: now,
+      });
+      return { exceeded: false, remaining: maxAttempts - 1, retryAfter: 0 };
+    }
 
-  info.attempts += 1;
-  vipRateLimits.set(identifier, info);
-  return { exceeded: false, remaining: maxAttempts - info.attempts, retryAfter: 0 };
+    const data = snap.data()!;
+    const firstAttemptTime = Number(data.firstAttemptTime || now);
+    let attempts = Number(data.attempts || 0);
+
+    // Window expired → reset
+    if (now - firstAttemptTime > windowMs) {
+      tx.set(ref, {
+        attempts: 1,
+        firstAttemptTime: now,
+        lastAttemptTime: now,
+      });
+      return { exceeded: false, remaining: maxAttempts - 1, retryAfter: 0 };
+    }
+
+    if (attempts >= maxAttempts) {
+      const retryAfter = Math.ceil((firstAttemptTime + windowMs - now) / 1000);
+      return { exceeded: true, remaining: 0, retryAfter: Math.max(0, retryAfter) };
+    }
+
+    attempts += 1;
+    tx.update(ref, {
+      attempts,
+      lastAttemptTime: now,
+    });
+    return { exceeded: false, remaining: maxAttempts - attempts, retryAfter: 0 };
+  });
 }
 
 /**
  * Server-Side VIP Code Validation Cloud Function
  * Callable: validateVipCode({ code: string })
+ *
+ * Security notes:
+ * - Only the environment variable VIP_CODE is accepted (no hardcoded backdoors).
+ * - Rate limiting is durable (Firestore) so horizontal scaling cannot bypass it.
  */
 export const validateVipCode = onCall(async (request) => {
   const clientIp = request.rawRequest?.ip || request.auth?.uid || 'anonymous';
-  const rateLimit = enforceVipRateLimit(clientIp);
+  const rateLimit = await enforceVipRateLimit(clientIp);
 
   if (rateLimit.exceeded) {
     throw new HttpsError(
@@ -42,11 +80,20 @@ export const validateVipCode = onCall(async (request) => {
     );
   }
 
-  const inputCode = String(request.data?.code || '').trim().toLowerCase().replace(/\s+/g, '');
-  const envCode = String(process.env.VIP_CODE || '12345').trim().toLowerCase().replace(/\s+/g, '');
-  const validCodes = Array.from(new Set([envCode, '12345', 'akamsirji1234']));
+  const inputCode = String(request.data?.code || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
 
-  const isValid = validCodes.includes(inputCode);
+  // Fail closed: require a real secret from the environment. Never fall back to known defaults.
+  const envCodeRaw = process.env.VIP_CODE;
+  if (!envCodeRaw || typeof envCodeRaw !== 'string' || envCodeRaw.trim().length < 6) {
+    console.error('VIP_CODE environment variable is missing or too short');
+    throw new HttpsError('failed-precondition', 'VIP validation is not configured on this deployment.');
+  }
+
+  const envCode = envCodeRaw.trim().toLowerCase().replace(/\s+/g, '');
+  const isValid = inputCode.length > 0 && inputCode === envCode;
 
   if (isValid) {
     const token = crypto.randomBytes(32).toString('hex');
@@ -61,11 +108,11 @@ export const validateVipCode = onCall(async (request) => {
       token,
       expiresAt,
     };
-  } else {
-    return {
-      success: false,
-      error: 'Invalid VIP code',
-      remainingAttempts: rateLimit.remaining,
-    };
   }
+
+  return {
+    success: false,
+    error: 'Invalid VIP code',
+    remainingAttempts: rateLimit.remaining,
+  };
 });
