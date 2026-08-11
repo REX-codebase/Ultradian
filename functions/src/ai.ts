@@ -94,14 +94,23 @@ Extract the following fields accurately:
 
     const parsed = JSON.parse(response.text || '{}');
     const category = ALLOWED_CATEGORIES.includes(parsed.category) ? parsed.category : 'General';
+    const focusScore = Math.min(5, Math.max(1, Math.round(Number(parsed.focusScore) || 4)));
+    const energyLevelAfter = Math.min(5, Math.max(1, Math.round(Number(parsed.energyLevelAfter) || 4)));
+    const distractionsCount = Math.min(10, Math.max(0, Math.round(Number(parsed.distractionsCount) || 0)));
+    const distractionSummary = typeof parsed.distractionSummary === 'string'
+      ? parsed.distractionSummary
+      : '';
+    const notes = typeof parsed.notes === 'string'
+      ? boundAiInput(parsed.notes)
+      : boundedUserNote;
 
     return {
       category,
-      focusScore: Math.min(5, Math.max(1, Number(parsed.focusScore) || 4)),
-      energyLevelAfter: Math.min(5, Math.max(1, Number(parsed.energyLevelAfter) || 4)),
-      distractionsCount: Math.min(10, Math.max(0, Number(parsed.distractionsCount) || 0)),
-      distractionSummary: parsed.distractionSummary || '',
-      notes: parsed.notes || boundedUserNote,
+      focusScore,
+      energyLevelAfter,
+      distractionsCount,
+      distractionSummary,
+      notes,
     };
   } catch (err: unknown) {
     console.error('Gemini error in generateAiInsights:', err);
