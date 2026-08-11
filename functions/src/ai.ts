@@ -2,6 +2,14 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { GoogleGenAI, Type } from '@google/genai';
 
 /**
+ * Sanitizes user-provided AI notes before prompt construction. Flattening lines reduces
+ * prompt-injection risk, and truncation limits context-window abuse.
+ */
+export function sanitizeAiInput(input: string): string {
+  return (input || '').replace(/[\r\n]+/g, ' ').slice(0, 500);
+}
+
+/**
  * Callable Function: generateAiInsights
  */
 export const generateAiInsights = onCall(async (request) => {
@@ -14,9 +22,11 @@ export const generateAiInsights = onCall(async (request) => {
     throw new HttpsError('invalid-argument', 'The userNote argument must be a non-empty string.');
   }
 
+  const sanitizedUserNote = sanitizeAiInput(userNote);
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    const noteLower = userNote.toLowerCase();
+    const noteLower = sanitizedUserNote.toLowerCase();
     let cat = 'General';
     if (noteLower.includes('code') || noteLower.includes('refactor')) cat = 'Coding';
     else if (noteLower.includes('write') || noteLower.includes('doc')) cat = 'Writing';
@@ -29,13 +39,13 @@ export const generateAiInsights = onCall(async (request) => {
       energyLevelAfter: 4,
       distractionsCount: 0,
       distractionSummary: 'None logged',
-      notes: userNote,
+      notes: sanitizedUserNote,
     };
   }
 
   const ai = new GoogleGenAI({ apiKey });
   const prompt = `Analyze this session note from a user's focus cycle:
-"${userNote}"
+"${sanitizedUserNote}"
 
 Extract the following fields accurately:
 1. category: Pick strictly one from ['Coding', 'Writing', 'Design', 'Research', 'Strategy', 'Study', 'General'] based on the work described.
@@ -73,7 +83,7 @@ Extract the following fields accurately:
       energyLevelAfter: Math.min(5, Math.max(1, parsed.energyLevelAfter || 4)),
       distractionsCount: Math.max(0, parsed.distractionsCount || 0),
       distractionSummary: parsed.distractionSummary || '',
-      notes: parsed.notes || userNote,
+      notes: parsed.notes || sanitizedUserNote,
     };
   } catch (err: any) {
     console.error('Gemini error in generateAiInsights:', err);
