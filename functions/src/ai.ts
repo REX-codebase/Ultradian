@@ -22,6 +22,8 @@ export const generateAiInsights = onCall(async (request) => {
     else if (noteLower.includes('write') || noteLower.includes('doc')) cat = 'Writing';
     else if (noteLower.includes('design') || noteLower.includes('ui')) cat = 'Design';
     else if (noteLower.includes('research') || noteLower.includes('read')) cat = 'Research';
+    else if (noteLower.includes('strategy')) cat = 'Strategy';
+    else if (noteLower.includes('study')) cat = 'Study';
 
     return {
       category: cat,
@@ -45,8 +47,9 @@ Extract the following fields accurately:
 5. distractionSummary: Short text string summarizing what distracted them (e.g., 'Slack & email', 'Phone call', 'None').
 6. notes: Cleaned up concise summary of their note.`;
 
+  let response;
   try {
-    const response = await ai.models.generateContent({
+    response = await ai.models.generateContent({
       model: 'gemini-3.1-flash-lite',
       contents: prompt,
       config: {
@@ -65,18 +68,25 @@ Extract the following fields accurately:
         },
       },
     });
-
-    const parsed = JSON.parse(response.text || '{}');
-    return {
-      category: parsed.category || 'General',
-      focusScore: Math.min(5, Math.max(1, parsed.focusScore || 4)),
-      energyLevelAfter: Math.min(5, Math.max(1, parsed.energyLevelAfter || 4)),
-      distractionsCount: Math.max(0, parsed.distractionsCount || 0),
-      distractionSummary: parsed.distractionSummary || '',
-      notes: parsed.notes || userNote,
-    };
   } catch (err: any) {
     console.error('Gemini error in generateAiInsights:', err);
     throw new HttpsError('internal', err?.message || 'Failed to process AI session analysis.');
   }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(response.text || '{}');
+  } catch (err) {
+    console.warn('Gemini returned malformed JSON; using a safe fallback:', err);
+    parsed = {};
+  }
+
+  return {
+    category: parsed.category || 'General',
+    focusScore: Math.min(5, Math.max(1, parsed.focusScore || 4)),
+    energyLevelAfter: Math.min(5, Math.max(1, parsed.energyLevelAfter || 4)),
+    distractionsCount: Math.max(0, parsed.distractionsCount || 0),
+    distractionSummary: parsed.distractionSummary || '',
+    notes: parsed.notes || userNote,
+  };
 });
