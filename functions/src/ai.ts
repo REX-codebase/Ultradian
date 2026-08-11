@@ -47,6 +47,8 @@ export const generateAiInsights = onCall(async (request) => {
     else if (noteLower.includes('write') || noteLower.includes('doc')) category = 'Writing';
     else if (noteLower.includes('design') || noteLower.includes('ui')) category = 'Design';
     else if (noteLower.includes('research') || noteLower.includes('read')) category = 'Research';
+    else if (noteLower.includes('strategy')) category = 'Strategy';
+    else if (noteLower.includes('study')) category = 'Study';
 
     return {
       category,
@@ -71,8 +73,9 @@ Extract the following fields accurately:
 5. distractionSummary: Short text string summarizing what distracted them (e.g., 'Slack & email', 'Phone call', 'None').
 6. notes: Cleaned up concise summary of their note.`;
 
+  let response;
   try {
-    const response = await ai.models.generateContent({
+    response = await ai.models.generateContent({
       model: 'gemini-3.1-flash-lite',
       contents: prompt,
       config: {
@@ -91,29 +94,41 @@ Extract the following fields accurately:
         },
       },
     });
-
-    const parsed = JSON.parse(response.text || '{}');
-    const category = ALLOWED_CATEGORIES.includes(parsed.category) ? parsed.category : 'General';
-    const focusScore = Math.min(5, Math.max(1, Math.round(Number(parsed.focusScore) || 4)));
-    const energyLevelAfter = Math.min(5, Math.max(1, Math.round(Number(parsed.energyLevelAfter) || 4)));
-    const distractionsCount = Math.min(10, Math.max(0, Math.round(Number(parsed.distractionsCount) || 0)));
-    const distractionSummary = typeof parsed.distractionSummary === 'string'
-      ? parsed.distractionSummary
-      : '';
-    const notes = typeof parsed.notes === 'string'
-      ? boundAiInput(parsed.notes)
-      : boundedUserNote;
-
-    return {
-      category,
-      focusScore,
-      energyLevelAfter,
-      distractionsCount,
-      distractionSummary,
-      notes,
-    };
   } catch (err: unknown) {
     console.error('Gemini error in generateAiInsights:', err);
     throw new HttpsError('internal', 'Failed to process AI session analysis.');
   }
+
+  let parsed: Record<string, unknown>;
+  try {
+    const rawParsed: unknown = JSON.parse(response.text || '{}');
+    parsed = rawParsed && typeof rawParsed === 'object'
+      ? rawParsed as Record<string, unknown>
+      : {};
+  } catch (err: unknown) {
+    console.error('Malformed Gemini JSON in generateAiInsights:', err);
+    parsed = {};
+  }
+
+  const category = ALLOWED_CATEGORIES.includes(parsed.category as typeof ALLOWED_CATEGORIES[number])
+    ? parsed.category as typeof ALLOWED_CATEGORIES[number]
+    : 'General';
+  const focusScore = Math.min(5, Math.max(1, Math.round(Number(parsed.focusScore) || 4)));
+  const energyLevelAfter = Math.min(5, Math.max(1, Math.round(Number(parsed.energyLevelAfter) || 4)));
+  const distractionsCount = Math.min(10, Math.max(0, Math.round(Number(parsed.distractionsCount) || 0)));
+  const distractionSummary = typeof parsed.distractionSummary === 'string'
+    ? parsed.distractionSummary
+    : '';
+  const notes = typeof parsed.notes === 'string'
+    ? boundAiInput(parsed.notes)
+    : boundedUserNote;
+
+  return {
+    category,
+    focusScore,
+    energyLevelAfter,
+    distractionsCount,
+    distractionSummary,
+    notes,
+  };
 });
