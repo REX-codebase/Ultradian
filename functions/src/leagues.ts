@@ -1,5 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { getUltradianFirestore } from './shared/database';
 import { getISOWeekString, LEAGUE_TIERS } from './shared/utils';
 
 const PAGE_SIZE = 400; // Keep memory footprint predictable per page
@@ -59,7 +60,7 @@ async function fetchAllMembersPaginated(
 export const weeklyLeagueMatchmaking = onSchedule(
   { schedule: '0 0 * * 1', timeZone: 'UTC', memory: '512MiB', timeoutSeconds: 540 },
   async () => {
-    const db = getFirestore();
+    const db = getUltradianFirestore();
     const newWeek = getISOWeekString();
 
     interface LeagueMemberMove {

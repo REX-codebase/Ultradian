@@ -1,15 +1,19 @@
 import { SessionRecord } from '../types';
 
+const NON_USER_SESSION_ID = /^(sample|seed|demo|test|friend|local_peer|mock)[_-]/i;
+
 /**
- * Checks whether a session record is a sample/demo session.
+ * Identifies legacy demo data so it can never be presented, aggregated, synced,
+ * or used to influence recommendations.
  */
-export function isSampleSession(record: SessionRecord): boolean {
-  if (!record) return false;
-  return !!record.isSample || record.id.startsWith('sample_') || record.id.startsWith('seed_');
+export function isSampleSession(record: Pick<SessionRecord, 'id' | 'isSample'> | null | undefined): boolean {
+  if (!record?.id) return true;
+  return Boolean(record.isSample) || NON_USER_SESSION_ID.test(record.id);
 }
 
 /**
- * Empty stub for sample sessions.
+ * Intentionally returns no records. Sample-session generation was retired so
+ * first-run analytics and social data always reflect genuine user activity.
  */
 export function generate14DaySampleSessions(): SessionRecord[] {
   return [];

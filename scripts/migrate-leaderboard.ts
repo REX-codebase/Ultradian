@@ -1,155 +1,195 @@
-import { initializeApp, getApps } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import * as fs from "fs";
-import * as path from "path";
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-/**
- * Helper to get ISO week string (e.g. "2026-W32")
- */
+const AGGREGATE_SOURCE = 'session-aggregation-v2';
+const AGGREGATE_SCHEMA_VERSION = 2;
+const NON_USER_SESSION_ID = /^(sample|seed|demo|test|friend|local_peer|mock)[_-]/i;
+
 function getISOWeek(date: Date): string {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
+  const value = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = value.getUTCDay() || 7;
+  value.setUTCDate(value.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(value.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((value.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${value.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
 function getFirestoreDb() {
-  let projectId = undefined;
-  let databaseId = undefined;
+  let projectId: string | undefined;
+  let databaseId: string | undefined;
 
-  try {
-    const configPath = path.resolve(process.cwd(), "firebase-applet-config.json");
-    if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-      projectId = config.projectId;
-      if (config.firestoreDatabaseId && config.firestoreDatabaseId !== "(default)") {
-        databaseId = config.firestoreDatabaseId;
-      }
-    }
-  } catch (e) {
-    console.warn("Could not load custom firestore databaseId from config, using default", e);
+  const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+  if (fs.existsSync(configPath)) {
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    projectId = config.projectId;
+    databaseId = config.firestoreDatabaseId !== '(default)' ? config.firestoreDatabaseId : undefined;
   }
 
-  if (!getApps().length) {
-    initializeApp(projectId ? { projectId } : undefined);
-  }
-
+  if (!getApps().length) initializeApp(projectId ? { projectId } : undefined);
   return databaseId ? getFirestore(databaseId) : getFirestore();
 }
 
-export async function migrateLeaderboardToTimeboxedSubcollections() {
-  const db = getFirestoreDb();
-  const currentWeekId = getISOWeek(new Date());
+function validSession(sessionId: string, data: Record<string, unknown>): boolean {
+  if (NON_USER_SESSION_ID.test(sessionId) || data.isSample === true || data.type !== 'work') return false;
+  const seconds = Number(data.actualSecondsCompleted);
+  const minutes = Number(data.durationMinutes);
+  return (Number.isFinite(seconds) && seconds > 0) || (Number.isFinite(minutes) && minutes > 0);
+}
 
-  console.log(`Starting Canonical Leaderboard Migration to ISO Week: ${currentWeekId}...`);
+const LEGACY_TRIBE_IDS = new Set([
+  'react_devs',
+  'yc_founders',
+  'indie_hackers',
+  'ai_builders',
+  'designers',
+]);
 
-  const userIds = new Set<string>();
+/**
+ * Removes only public projections that were not written by the verified
+ * session-aggregation-v2 pipeline. Private session documents are never read
+ * for deletion and therefore remain the immutable source of truth.
+ */
+export async function cleanupLegacyPublicData(db = getFirestoreDb()) {
+  const publicCollections = ['leaderboard', 'tribes'] as const;
 
-  const usersSnap = await db.collection("users").get();
-  usersSnap.docs.forEach((doc) => userIds.add(doc.id));
-
-  const leaderboardSnap = await db.collection("leaderboard").get();
-  leaderboardSnap.docs.forEach((doc) => {
-    if (!doc.id.startsWith("friend_") && !doc.id.startsWith("seed_")) {
-      userIds.add(doc.id);
+  for (const collectionName of publicCollections) {
+    const collection = await db.collection(collectionName).get();
+    for (const document of collection.docs) {
+      if (document.data().source !== AGGREGATE_SOURCE) {
+        await db.recursiveDelete(document.ref);
+      }
     }
-  });
+  }
 
-  for (const userId of userIds) {
-    const userDocSnap = await db.collection("users").doc(userId).get();
-    const userData = userDocSnap.data() || {};
+  const leagues = await db.collection('leagues').get();
+  for (const league of leagues.docs) {
+    const members = await league.ref.collection('members').get();
+    for (const member of members.docs) {
+      if (member.data().source !== AGGREGATE_SOURCE) {
+        await member.ref.delete();
+      }
+    }
 
-    const oldLeaderboardSnap = await db.collection("leaderboard").doc(userId).get();
-    const oldData = oldLeaderboardSnap.data() || {};
+    const remainingMembers = await league.ref.collection('members').limit(1).get();
+    if (remainingMembers.empty && league.data().source !== AGGREGATE_SOURCE) {
+      await league.ref.delete();
+    }
+  }
 
-    const sessionsSnap = await db.collection("users").doc(userId).collection("sessions").get();
-    
-    let weeklyMins = 0;
-    let lifetimeMins = oldData.lifetimeMinutes || 0;
-    let completedCycles = 0;
-    let lifetimeCycles = oldData.lifetimeCycles || 0;
-    let sumRatings = 0;
+  const users = await db.collection('users').get();
+  const batch = db.batch();
+  let changedProfiles = 0;
+  for (const user of users.docs) {
+    const data = user.data();
+    const tribeId = String(data.tribe_id || data.tribeId || '');
+    if (LEGACY_TRIBE_IDS.has(tribeId)) {
+      batch.update(user.ref, {
+        tribe_id: FieldValue.delete(),
+        tribeId: FieldValue.delete(),
+      });
+      changedProfiles += 1;
+    }
+  }
+  if (changedProfiles > 0) await batch.commit();
+}
+
+/**
+ * Rebuilds versioned public aggregates from genuine private sessions. This
+ * intentionally ignores every old leaderboard value, preventing double counts
+ * and preventing historical demo documents from re-entering public standings.
+ */
+export async function rebuildVerifiedLeaderboard() {
+  const db = getFirestoreDb();
+  await cleanupLegacyPublicData(db);
+  const currentWeek = getISOWeek(new Date());
+  const users = await db.collection('users').get();
+
+  for (const userDoc of users.docs) {
+    const user = userDoc.data();
+    const name = String(user.displayName || user.username || user.publicHandle || '').trim();
+    if (!name) continue;
+
+    const leagueId = String(user.leagueId || 'wood');
+    const sessions = await userDoc.ref.collection('sessions').get();
+    let lifetimeMinutes = 0;
+    let lifetimeCycles = 0;
+    let weeklyMinutes = 0;
+    let weeklyCycles = 0;
+    let ratingSum = 0;
     let ratingCount = 0;
     const categoryMins: Record<string, number> = {};
 
-    sessionsSnap.forEach((sDoc) => {
-      const s = sDoc.data();
-      if (s.type === "work") {
-        const sessionDate = new Date(s.timestamp || Date.now());
-        const sessionWeek = getISOWeek(sessionDate);
-        const mins = Math.round(Number(s.durationMinutes || (s.actualSecondsCompleted ? s.actualSecondsCompleted / 60 : 0) || 0));
+    sessions.forEach((sessionDoc) => {
+      const session = sessionDoc.data();
+      if (!validSession(sessionDoc.id, session)) return;
 
-        lifetimeMins += mins;
-        lifetimeCycles += 1;
+      const minutes = Math.round(
+        Number(session.actualSecondsCompleted || Number(session.durationMinutes || 0) * 60) / 60
+      );
+      if (minutes < 1 || minutes > 180) return;
 
-        if (sessionWeek === currentWeekId) {
-          weeklyMins += mins;
-          completedCycles += 1;
-          if (s.focusRating) {
-            sumRatings += s.focusRating;
-            ratingCount += 1;
-          }
-          const cat = s.category || "General";
-          categoryMins[cat] = (categoryMins[cat] || 0) + mins;
-        }
+      lifetimeMinutes += minutes;
+      lifetimeCycles += 1;
+      if (getISOWeek(new Date(Number(session.timestamp || 0))) !== currentWeek) return;
+
+      weeklyMinutes += minutes;
+      weeklyCycles += 1;
+      const category = String(session.category || 'General').slice(0, 40);
+      categoryMins[category] = (categoryMins[category] || 0) + minutes;
+      const rating = Number(session.focusRating);
+      if (Number.isFinite(rating) && rating >= 1 && rating <= 5) {
+        ratingSum += rating;
+        ratingCount += 1;
       }
     });
 
-    const weeklyHours = Math.round((weeklyMins / 60) * 10) / 10;
-    const userName = userData.displayName || userData.username || oldData.name || "Ultradian Achiever";
-    const leagueId = userData.leagueId || oldData.leagueId || "wood";
-
-    // Write to time-boxed subcollection /leaderboard/{userId}/weeks/{weekId}
-    const weekRef = db.collection("leaderboard").doc(userId).collection("weeks").doc(currentWeekId);
-    await weekRef.set({
-      userId,
-      name: userName,
-      weeklyMinutes: weeklyMins,
-      weeklyHours,
-      completedCycles,
-      ratingSum: sumRatings,
-      ratingCount,
-      categoryMins,
-      weekId: currentWeekId,
+    const topCategory = Object.entries(categoryMins).sort(([, a], [, b]) => b - a)[0]?.[0] || 'General';
+    const aggregate = {
+      userId: userDoc.id,
+      name,
+      leagueId,
+      source: AGGREGATE_SOURCE,
+      schemaVersion: AGGREGATE_SCHEMA_VERSION,
       lastUpdated: FieldValue.serverTimestamp(),
-    }, { merge: true });
+    };
 
-    // Update top-level leaderboard doc
-    const globalRef = db.collection("leaderboard").doc(userId);
-    await globalRef.set({
-      userId,
-      name: userName,
-      weeklyMinutes: weeklyMins,
-      lifetimeMinutes: lifetimeMins,
+    const batch = db.batch();
+    batch.set(db.collection('leaderboard').doc(userDoc.id), {
+      ...aggregate,
+      lifetimeMinutes,
       lifetimeCycles,
-      currentWeek: currentWeekId,
-      leagueId,
-      lastUpdated: FieldValue.serverTimestamp(),
-    }, { merge: true });
-
-    // Update league member document
-    const leagueRef = db.collection("leagues").doc(leagueId).collection("members").doc(userId);
-    await leagueRef.set({
-      userId,
-      name: userName,
-      weeklyMinutes: weeklyMins,
-      weeklyHours,
-      completedCycles,
-      ratingSum: sumRatings,
+      weeklyMinutes,
+      weeklyCycles,
+      currentWeek,
+      category: topCategory,
+      type: 'work',
+    });
+    batch.set(db.collection('leaderboard').doc(userDoc.id).collection('weeks').doc(currentWeek), {
+      ...aggregate,
+      weekId: currentWeek,
+      weeklyMinutes,
+      completedCycles: weeklyCycles,
+      ratingSum,
       ratingCount,
       categoryMins,
-      leagueId,
-      lastUpdated: FieldValue.serverTimestamp(),
-    }, { merge: true });
-
-    console.log(`Migrated user ${userId} (${userName}) -> week ${currentWeekId} with ${weeklyMins} mins`);
+    });
+    batch.set(db.collection('leagues').doc(leagueId).collection('members').doc(userDoc.id), {
+      ...aggregate,
+      weeklyMinutes,
+      weeklyCycles,
+      ratingSum,
+      ratingCount,
+      categoryMins,
+    });
+    await batch.commit();
   }
-
-  console.log("Canonical Leaderboard Migration Complete!");
 }
 
-if (process.argv[1]?.includes("migrate-leaderboard")) {
-  migrateLeaderboardToTimeboxedSubcollections().catch(console.error);
+if (process.argv[1]?.includes('migrate-leaderboard')) {
+  rebuildVerifiedLeaderboard().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }

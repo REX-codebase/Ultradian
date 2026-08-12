@@ -33,7 +33,6 @@ import {
   CategoryTag,
   SessionRecord,
   UserSettings,
-  FriendProfile,
   UltradianPreset,
   AmbientSoundType,
   LeagueTier,
@@ -47,9 +46,7 @@ import {
   loadSessionRecords,
   saveSessionRecords,
   addSessionRecord,
-  loadFriends,
-  saveFriends,
-  DEFAULT_PRESETS,
+  clearLegacyFriends,
 } from './utils/storage';
 
 import {
@@ -62,16 +59,13 @@ import {
   loadCloudSessions,
 } from './services/sessionService';
 import {
-  subscribeToLeaderboard,
   subscribeToLeagueMembers,
   fetchGlobalRank,
   calculateGhostRival,
 } from './services/leaderboardService';
-import { db } from './lib/firebase';
 import { isSampleSession } from './utils/sampleRhythm';
 import { getVipState } from './utils/vipAccess';
 import { User as FirebaseUser } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
 
 import {
   checkNotificationPermission,
@@ -82,13 +76,11 @@ import {
 } from './utils/notifications';
 
 import { playNotificationSound, startAmbientSound, stopAmbientSound, setAmbientVolume, playRankUpSound, playPhaseTransitionSound } from './utils/audio';
-import { Share2, Sparkles, Trophy } from 'lucide-react';
 
 export default function App() {
   // Settings & Theme
   const [settings, setSettings] = useState<UserSettings>(() => loadSettings());
   const [sessionRecords, setSessionRecords] = useState<SessionRecord[]>(() => loadSessionRecords());
-  const [friends, setFriends] = useState<FriendProfile[]>(() => loadFriends());
 
   // Active Timer States
   const [sessionType, setSessionType] = useState<SessionType>('work');
@@ -131,7 +123,6 @@ export default function App() {
 
   // Matchmaking Leagues & Rival Tracking State
   const [globalRank, setGlobalRank] = useState<number>(1);
-  const [currentLeague, setCurrentLeague] = useState<LeagueTier>('wood');
   const [selectedLeague, setSelectedLeague] = useState<LeagueTier>('wood');
   const [leagueMembers, setLeagueMembers] = useState<LeagueMember[]>([]);
   const [rivalInfo, setRivalInfo] = useState<RivalInfo | null>(null);
@@ -140,6 +131,7 @@ export default function App() {
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [cloudSyncError, setCloudSyncError] = useState<string | null>(null);
 
   // Creator VIP Access Code State
   const [isVipUnlocked, setIsVipUnlocked] = useState<boolean>(() => getVipState().isUnlocked);
@@ -151,6 +143,11 @@ export default function App() {
   const handleUnlockVip = () => {
     setIsVipUnlocked(true);
   };
+
+  // Clear obsolete local peer data once. Public standings are Firebase-only.
+  useEffect(() => {
+    clearLegacyFriends();
+  }, []);
 
   // Initialize Firebase Auth
   useEffect(() => {
@@ -175,50 +172,64 @@ export default function App() {
     if (!fbUser) return;
 
     // 1. Sync user profile document to Firestore
-    syncUserProfileToCloud(fbUser, {
+    void syncUserProfileToCloud(fbUser, {
       current_level: settings.staminaLevel,
-      session_count: sessionRecords.filter((r) => !isSampleSession(r)).length,
+      session_count: sessionRecords.filter((record) => !isSampleSession(record)).length,
       tribe_id: settings.tribeId,
+    }).catch((error) => {
+      console.error('Failed to initialize cloud profile:', error);
+      setCloudSyncError('Cloud profile sync is unavailable. Your on-device history remains intact.');
     });
 
     const realDisplayName = fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : '');
     let currentUsername = settings.username;
 
-    if ((!currentUsername || currentUsername === 'Ultradian Achiever') && realDisplayName) {
+    if (!currentUsername && realDisplayName) {
       currentUsername = realDisplayName;
       const updatedSettings = { ...settings, username: realDisplayName };
       setSettings(updatedSettings);
       saveSettings(updatedSettings);
     }
 
-    // 2. Load cloud sessions and sync missing local sessions
-    loadCloudSessions(fbUser.uid).then((cloudRecords) => {
-      const cleanCloud = cloudRecords ? cloudRecords.filter((r) => !isSampleSession(r)) : [];
+    // 2. Load cloud sessions and sync missing genuine local sessions.
+    // A Firebase failure is surfaced to the user; it is never treated as an
+    // empty cloud history that could overwrite or hide real activity.
+    let isCurrentUser = true;
+    setCloudSyncError(null);
 
-      setSessionRecords((prev) => {
-        const cleanPrev = prev.filter((r) => r && r.id && !isSampleSession(r));
-        const merged = [...cleanCloud];
+    loadCloudSessions(fbUser.uid)
+      .then((cloudRecords) => {
+        if (!isCurrentUser) return;
+        const cleanCloud = cloudRecords.filter((record) => !isSampleSession(record));
 
-        cleanPrev.forEach((localRec) => {
-          if (!isSampleSession(localRec) && !merged.some((r) => r.id === localRec.id)) {
-            merged.push(localRec);
-            syncSessionToCloud(fbUser.uid, localRec);
-          }
+        setSessionRecords((previousRecords) => {
+          const localRecords = previousRecords.filter((record) => record && record.id && !isSampleSession(record));
+          const mergedById = new Map(cleanCloud.map((record) => [record.id, record]));
+
+          localRecords.forEach((localRecord) => {
+            if (!mergedById.has(localRecord.id)) {
+              mergedById.set(localRecord.id, localRecord);
+              void syncSessionToCloud(fbUser.uid, localRecord).catch((error) => {
+                console.error('Failed to sync a local session:', error);
+                if (isCurrentUser) setCloudSyncError('Cloud sync is unavailable. Your session history remains safely stored on this device.');
+              });
+            }
+          });
+
+          const sorted = Array.from(mergedById.values()).sort((a, b) => b.timestamp - a.timestamp);
+          saveSessionRecords(sorted);
+          return sorted;
         });
-
-        const sorted = merged.sort((a, b) => b.timestamp - a.timestamp);
-        saveSessionRecords(sorted);
-        return sorted;
+      })
+      .catch((error) => {
+        console.error('Failed to load cloud session history:', error);
+        if (isCurrentUser) {
+          setCloudSyncError('Cloud history could not be loaded. Your existing on-device analytics are still shown and no data was erased.');
+        }
       });
-    });
-
-    // 3. Subscribe to real-time Leaderboard updates
-    const unsubscribeLeaderboard = subscribeToLeaderboard(fbUser.uid, (liveLeaderboard) => {
-      setFriends(liveLeaderboard);
-    });
 
     return () => {
-      unsubscribeLeaderboard();
+      isCurrentUser = false;
     };
   }, [fbUser]);
 
@@ -240,11 +251,12 @@ export default function App() {
   // Fetch true Global Rank
   useEffect(() => {
     if (fbUser) {
-      const totalHours = sessionRecords
+      const totalWeeklyMinutes = sessionRecords
         .filter((r) => !isSampleSession(r) && r.type === 'work')
-        .reduce((sum, r) => sum + r.actualSecondsCompleted / 3600, 0);
+        .filter((r) => Date.now() - r.timestamp <= 7 * 24 * 60 * 60 * 1000)
+        .reduce((sum, r) => sum + Math.round(r.actualSecondsCompleted / 60), 0);
 
-      fetchGlobalRank(fbUser.uid, totalHours).then((rank) => {
+      fetchGlobalRank(fbUser.uid, totalWeeklyMinutes).then((rank) => {
         setGlobalRank(rank);
       });
     }
@@ -643,11 +655,17 @@ export default function App() {
 
     // Sync to cloud Firestore
     if (fbUser) {
-      syncSessionToCloud(fbUser.uid, newRecord);
-      syncUserProfileToCloud(fbUser, {
+      void syncSessionToCloud(fbUser.uid, newRecord).catch((error) => {
+        console.error('Failed to sync completed session:', error);
+        setCloudSyncError('Your completed wave is saved on this device, but cloud sync is currently unavailable.');
+      });
+      void syncUserProfileToCloud(fbUser, {
         current_level: updatedSettings.staminaLevel,
         session_count: updated.length,
         tribe_id: settings.tribeId,
+      }).catch((error) => {
+        console.error('Failed to sync user profile:', error);
+        setCloudSyncError('Your profile changes are saved on this device, but cloud sync is currently unavailable.');
       });
     }
   };
@@ -668,10 +686,13 @@ export default function App() {
     applySessionDuration(sessionType);
 
     if (fbUser) {
-      syncUserProfileToCloud(fbUser, {
+      void syncUserProfileToCloud(fbUser, {
         current_level: updated.staminaLevel,
-        session_count: sessionRecords.length,
+        session_count: sessionRecords.filter((record) => !isSampleSession(record)).length,
         tribe_id: updated.tribeId,
+      }).catch((error) => {
+        console.error('Failed to sync updated user profile:', error);
+        setCloudSyncError('Your settings are saved on this device, but cloud sync is currently unavailable.');
       });
     }
   };
@@ -679,25 +700,6 @@ export default function App() {
   // Select Tribe
   const handleSelectTribe = (tribeId: string) => {
     handleUpdateSettings({ tribeId });
-  };
-
-  // Add Friend handler
-  const handleAddFriend = (name: string, weeklyHours: number) => {
-    const newFriend: FriendProfile = {
-      id: `friend-${Date.now()}`,
-      name,
-      weeklyHours,
-      completedCycles: Math.round((weeklyHours * 60) / 45),
-      focusScore: 85,
-      topCategory: 'Coding',
-      isUser: false,
-      rank: friends.length + 1,
-    };
-    setFriends((prev) => {
-      const updated = [...prev, newFriend];
-      saveFriends(updated);
-      return updated;
-    });
   };
 
   // Disconnect / Log Out handler
@@ -792,6 +794,21 @@ export default function App() {
           setSpectacleState((prev) => ({ ...prev, isTransitioning: false }))
         }
       />
+
+      {/* Cloud sync notice: no failed Firebase request is ever represented as an empty history. */}
+      {cloudSyncError && (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200/50 dark:border-amber-900/40 px-4 py-3 text-amber-800 dark:text-amber-200 text-xs transition-colors duration-300">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
+            <span><strong>Cloud sync needs attention:</strong> {cloudSyncError}</span>
+            <button
+              onClick={() => setCloudSyncError(null)}
+              className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 px-2 py-1 rounded transition-colors"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Firebase Configuration Info Banner if Anonymous Auth is disabled */}
       {authError && (
@@ -899,23 +916,17 @@ export default function App() {
         {activeTab === 'friends' && settings.enableCompetitiveLeagues && (
           <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
             {/* Task 3.2 Tribal Leaderboard Card */}
-            <TribalLeaderboardCard
-              userTribeId={settings.tribeId}
-              onSelectTribe={handleSelectTribe}
-              userWeeklyHours={userStats.weeklyHours}
-            />
+            <TribalLeaderboardCard userTribeId={settings.tribeId} />
 
             <ErrorBoundary>
               <Suspense fallback={<LoadingFallback label="Loading Social Leaderboard..." />}>
                 <SocialShareModal
                   userStats={userStats}
-                  friends={friends}
                   globalRank={globalRank}
                   rivalInfo={rivalInfo}
-                  currentLeague={currentLeague}
+                  currentLeague={selectedLeague}
                   leagueMembers={leagueMembers}
                   onSelectLeague={setSelectedLeague}
-                  onAddFriend={handleAddFriend}
                   isInline={true}
                 />
               </Suspense>
@@ -1070,13 +1081,11 @@ export default function App() {
           <Suspense fallback={<LoadingFallback label="Loading Share Modal..." />}>
             <SocialShareModal
               userStats={userStats}
-              friends={friends}
               globalRank={globalRank}
               rivalInfo={rivalInfo}
-              currentLeague={currentLeague}
+              currentLeague={selectedLeague}
               leagueMembers={leagueMembers}
               onSelectLeague={setSelectedLeague}
-              onAddFriend={handleAddFriend}
               onClose={() => setIsShareOpen(false)}
             />
           </Suspense>

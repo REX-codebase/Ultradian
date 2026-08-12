@@ -55,21 +55,11 @@ service cloud.firestore {
       }
     }
     
-    // Tribes (Public read, Authenticated create/update if creator)
-    // Calculated aggregation fields (weeklyHours, memberCount, etc.) are locked to Admin SDK only
+    // Tribes are public read-only projections. Their membership and aggregate
+    // fields must be maintained by trusted server workflows, never the client.
     match /tribes/{tribeId} {
       allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.creatorId == request.auth.uid
-        && isValidString(request.resource.data.name, 60)
-        && (!('weeklyHours' in request.resource.data) || request.resource.data.weeklyHours == 0)
-        && (!('memberCount' in request.resource.data) || request.resource.data.memberCount == 0);
-      allow update: if isSignedIn()
-        && resource.data.creatorId == request.auth.uid
-        // Prevent clients from overwriting server-managed aggregation metrics
-        && request.resource.data.weeklyHours == resource.data.weeklyHours
-        && request.resource.data.memberCount == resource.data.memberCount
-        && request.resource.data.creatorId == resource.data.creatorId;
+      allow write: if false;
     }
     
     // VIP rate-limit documents (server-only writes)

@@ -23,6 +23,30 @@
         { "fieldPath": "leagueId", "order": "ASCENDING" },
         { "fieldPath": "lifetimeMinutes", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "leaderboard",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "source", "order": "ASCENDING" },
+        { "fieldPath": "weeklyMinutes", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "source", "order": "ASCENDING" },
+        { "fieldPath": "weeklyMinutes", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "tribes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "source", "order": "ASCENDING" },
+        { "fieldPath": "weeklyMinutes", "order": "DESCENDING" }
+      ]
     }
   ]
 }
