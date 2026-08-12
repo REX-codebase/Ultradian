@@ -1,5 +1,6 @@
 import { onDocumentCreated } from 'firebase-functions/v2/firestore';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { FIRESTORE_DATABASE_ID, getUltradianFirestore } from './shared/database';
 import { getISOWeekString } from './shared/utils';
 
 const MAX_SESSION_MINUTES = 180;
@@ -16,7 +17,10 @@ const NON_USER_SESSION_ID = /^(sample|seed|demo|test|friend|local_peer|mock)[_-]
  * but are explicitly marked as skipped and never become aggregate data.
  */
 export const onSessionCreate = onDocumentCreated(
-  'users/{userId}/sessions/{sessionId}',
+  {
+    document: 'users/{userId}/sessions/{sessionId}',
+    database: FIRESTORE_DATABASE_ID,
+  },
   async (event) => {
     const sessionSnap = event.data;
     if (!sessionSnap) return;
@@ -54,7 +58,7 @@ export const onSessionCreate = onDocumentCreated(
 
     const timestamp = Number(session.timestamp || Date.now());
     const weekId = getISOWeekString(new Date(timestamp));
-    const db = getFirestore();
+    const db = getUltradianFirestore();
     const sessionRef = db.doc(`users/${userId}/sessions/${sessionId}`);
 
     await db.runTransaction(async (transaction) => {

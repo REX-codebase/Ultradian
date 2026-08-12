@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { getUltradianFirestore } from './shared/database';
 import crypto from 'crypto';
 
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -15,7 +16,7 @@ async function enforceVipRateLimit(
   maxAttempts = MAX_ATTEMPTS,
   windowMs = RATE_LIMIT_WINDOW_MS
 ): Promise<{ exceeded: boolean; remaining: number; retryAfter: number }> {
-  const db = getFirestore();
+  const db = getUltradianFirestore();
   // Sanitize identifier so it is a valid document ID
   const safeId = identifier.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'anonymous';
   const ref = db.collection('vipRateLimits').doc(safeId);
