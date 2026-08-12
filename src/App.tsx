@@ -691,21 +691,7 @@ export default function App() {
     }
   };
 
-  // Add friend/competitor locally for comparison without polluting Firebase
-  const handleAddFriend = (name: string, weeklyHours: number) => {
-    const newPeer: FriendProfile = {
-      id: `local_peer_${Date.now()}`,
-      name,
-      weeklyHours,
-      completedCycles: Math.round(weeklyHours * 0.7),
-      focusScore: Math.floor(Math.random() * 15) + 82,
-      topCategory: 'Coding',
-      isUser: false,
-    };
-    const updated = [newPeer, ...friends];
-    setFriends(updated);
-    saveFriends(updated);
-  };
+
 
   // Compute stats for social badge dynamically based on real work sessions
   const userStats = (() => {
@@ -749,21 +735,7 @@ export default function App() {
   }
 
   // Latest session for flex card
-  const latestSession = sessionRecords[0] || {
-    id: 'demo_1',
-    timestamp: Date.now(),
-    dateString: new Date().toISOString().split('T')[0],
-    durationMinutes: settings.workMinutes,
-    actualSecondsCompleted: settings.workMinutes * 60,
-    type: 'work',
-    presetName: settings.activePresetId,
-    category: 'Coding',
-    taskName: currentTask,
-    focusRating: 5,
-    energyLevelAfter: 5,
-    distractionsCount: 0,
-    notes: 'High flow state session.',
-  };
+  const latestSession = sessionRecords[0] || null;
 
   return (
     <div className="min-h-screen bg-stone-50/40 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans selection:bg-stone-900 selection:text-stone-100 dark:selection:bg-stone-100 dark:selection:text-stone-900 transition-colors duration-300">

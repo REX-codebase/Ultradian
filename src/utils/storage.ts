@@ -60,7 +60,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   notificationsEnabled: true,
   dailyGoalCycles: 3,
   darkMode: true,
-  username: 'Ultradian Achiever',
+  username: '',
   enableCompetitiveLeagues: true,
   staminaLevel: 1,
   level1SessionsCompleted: 0,
