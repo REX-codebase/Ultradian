@@ -81,21 +81,21 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
   };
 
   const cardContent = (
-    <div className="p-6 sm:p-8 rounded-2xl bg-white/95 dark:bg-stone-900/95 border border-amber-500/30 dark:border-amber-500/20 shadow-md relative overflow-hidden space-y-6">
+    <div className="p-4 sm:p-8 rounded-2xl bg-white/95 dark:bg-stone-900/95 border border-amber-500/30 dark:border-amber-500/20 shadow-md relative overflow-hidden space-y-4 sm:space-y-6">
       {/* Top Gradient Bar */}
       <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-stone-800 to-indigo-600 dark:from-amber-400 dark:via-stone-200 dark:to-indigo-400" />
 
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-stone-200/80 dark:border-stone-800 pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
-            <Lock className="w-6 h-6 stroke-[1.8]" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-stone-200/80 dark:border-stone-800 pb-3 sm:pb-4">
+          <div className="flex items-center space-x-2.5 sm:space-x-3">
+            <div className="p-2 sm:p-3 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+              <Lock className="w-5 h-5 sm:w-6 sm:h-6 stroke-[1.8]" />
           </div>
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
               SIGNED-IN & CREATOR VIP EXCLUSIVE
             </span>
-            <h3 className="font-serif text-xl sm:text-2xl font-medium text-stone-900 dark:text-stone-100">
+            <h3 className="font-serif text-lg sm:text-2xl font-medium text-stone-900 dark:text-stone-100">
               {featureName}
             </h3>
           </div>
@@ -108,14 +108,14 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
         </div>
       </div>
 
-      <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-sans">
+      <p className="text-[11px] sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-sans">
         {featureDescription}
       </p>
 
       {/* Dual Unlock Options: 1) Sign In   2) Enter Special Code */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 pt-1">
         {/* Option 1: Standard Sign In */}
-        <div className="p-4 sm:p-5 rounded-xl bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 flex flex-col justify-between space-y-3">
+        <div className="p-3 sm:p-5 rounded-xl bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 flex flex-col justify-between space-y-2 sm:space-y-3">
           <div className="space-y-1">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-stone-900 dark:text-stone-100">
               <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -136,7 +136,7 @@ export const VipCodeGate: React.FC<VipCodeGateProps> = ({
         </div>
 
         {/* Option 2: Enter Creator Code */}
-        <div className="p-4 sm:p-5 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/20 flex flex-col justify-between space-y-3">
+        <div className="p-3 sm:p-5 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/20 flex flex-col justify-between space-y-2 sm:space-y-3">
           <div className="space-y-1">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-900 dark:text-amber-200">
               <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
