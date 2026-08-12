@@ -38,6 +38,63 @@ function validSession(sessionId: string, data: Record<string, unknown>): boolean
   return (Number.isFinite(seconds) && seconds > 0) || (Number.isFinite(minutes) && minutes > 0);
 }
 
+const LEGACY_TRIBE_IDS = new Set([
+  'react_devs',
+  'yc_founders',
+  'indie_hackers',
+  'ai_builders',
+  'designers',
+]);
+
+/**
+ * Removes only public projections that were not written by the verified
+ * session-aggregation-v2 pipeline. Private session documents are never read
+ * for deletion and therefore remain the immutable source of truth.
+ */
+export async function cleanupLegacyPublicData(db = getFirestoreDb()) {
+  const publicCollections = ['leaderboard', 'tribes'] as const;
+
+  for (const collectionName of publicCollections) {
+    const collection = await db.collection(collectionName).get();
+    for (const document of collection.docs) {
+      if (document.data().source !== AGGREGATE_SOURCE) {
+        await db.recursiveDelete(document.ref);
+      }
+    }
+  }
+
+  const leagues = await db.collection('leagues').get();
+  for (const league of leagues.docs) {
+    const members = await league.ref.collection('members').get();
+    for (const member of members.docs) {
+      if (member.data().source !== AGGREGATE_SOURCE) {
+        await member.ref.delete();
+      }
+    }
+
+    const remainingMembers = await league.ref.collection('members').limit(1).get();
+    if (remainingMembers.empty && league.data().source !== AGGREGATE_SOURCE) {
+      await league.ref.delete();
+    }
+  }
+
+  const users = await db.collection('users').get();
+  const batch = db.batch();
+  let changedProfiles = 0;
+  for (const user of users.docs) {
+    const data = user.data();
+    const tribeId = String(data.tribe_id || data.tribeId || '');
+    if (LEGACY_TRIBE_IDS.has(tribeId)) {
+      batch.update(user.ref, {
+        tribe_id: FieldValue.delete(),
+        tribeId: FieldValue.delete(),
+      });
+      changedProfiles += 1;
+    }
+  }
+  if (changedProfiles > 0) await batch.commit();
+}
+
 /**
  * Rebuilds versioned public aggregates from genuine private sessions. This
  * intentionally ignores every old leaderboard value, preventing double counts
@@ -45,6 +102,7 @@ function validSession(sessionId: string, data: Record<string, unknown>): boolean
  */
 export async function rebuildVerifiedLeaderboard() {
   const db = getFirestoreDb();
+  await cleanupLegacyPublicData(db);
   const currentWeek = getISOWeek(new Date());
   const users = await db.collection('users').get();
 
