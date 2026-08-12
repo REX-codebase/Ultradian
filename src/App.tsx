@@ -681,6 +681,25 @@ export default function App() {
     handleUpdateSettings({ tribeId });
   };
 
+  // Add Friend handler
+  const handleAddFriend = (name: string, weeklyHours: number) => {
+    const newFriend: FriendProfile = {
+      id: `friend-${Date.now()}`,
+      name,
+      weeklyHours,
+      completedCycles: Math.round((weeklyHours * 60) / 45),
+      focusScore: 85,
+      topCategory: 'Coding',
+      isUser: false,
+      rank: friends.length + 1,
+    };
+    setFriends((prev) => {
+      const updated = [...prev, newFriend];
+      saveFriends(updated);
+      return updated;
+    });
+  };
+
   // Disconnect / Log Out handler
   const handleLogout = async () => {
     try {

@@ -26,6 +26,7 @@ import {
   SlidersHorizontal,
   Info,
   ShieldCheck,
+  Target,
 } from 'lucide-react';
 import { SessionRecord, UserSettings, CategoryTag } from '../types';
 import {
