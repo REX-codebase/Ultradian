@@ -85,28 +85,10 @@ describe('Sample Rhythm Utilities', () => {
   });
 
   describe('generate14DaySampleSessions', () => {
-    it('should generate a non-empty array of sample session records', () => {
+    it('should return empty array when dummy sample session generation is disabled', () => {
       const sessions = generate14DaySampleSessions();
-
       expect(Array.isArray(sessions)).toBe(true);
-      expect(sessions.length).toBeGreaterThan(10);
-    });
-
-    it('should mark all generated records as sample sessions', () => {
-      const sessions = generate14DaySampleSessions();
-
-      sessions.forEach((session) => {
-        expect(isSampleSession(session)).toBe(true);
-        expect(session.isSample).toBe(true);
-      });
-    });
-
-    it('should sort sessions in descending order by timestamp', () => {
-      const sessions = generate14DaySampleSessions();
-
-      for (let i = 0; i < sessions.length - 1; i++) {
-        expect(sessions[i].timestamp).toBeGreaterThanOrEqual(sessions[i + 1].timestamp);
-      }
+      expect(sessions.length).toBe(0);
     });
   });
 });
