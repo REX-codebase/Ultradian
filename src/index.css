@@ -3,20 +3,70 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-serif: "Instrument Serif", serif;
-  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+:root {
+  --paper: #f7f4ef;
+  --ink: #1c1917;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark {
+  --paper: #141210;
+  --ink: #f5f2ec;
 }
 
 @layer base {
+  html {
+    background-color: var(--paper);
+  }
+
   body {
     font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    background-color: var(--paper);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv01", "ss03";
   }
-  
+
   h1, h2, h3, .serif-heading {
     font-family: var(--font-serif);
+    letter-spacing: -0.02em;
   }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+/* Linear & Raycast Inspired Design Tokens */
+.bg-mesh-dark {
+  background-color: #0c0a09;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+}
+
+.bg-mesh-light {
+  background-color: #fafaf9;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(167, 139, 250, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(52, 211, 153, 0.08) 0px, transparent 50%);
 }
 
 /* Premium micro-animations & visual tokens */
@@ -35,6 +85,22 @@
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+.animate-aurora {
+  animation: aurora 12s ease infinite alternate;
+}
+
+@keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes fadeIn {
@@ -205,7 +271,37 @@ html.theme-transition-active canvas {
   display: none;
 }
 
-@media (max-width: 639px) {
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  padding: 0.25rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(231 229 228 / 0.9);
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.dark .bottom-nav {
+  border-top-color: rgb(41 37 36 / 0.9);
+}
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+.clock-face {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@media (max-width: 767px) {
   html,
   body {
     overflow-x: clip;

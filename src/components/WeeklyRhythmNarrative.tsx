@@ -25,18 +25,8 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
   const [report, setReport] = useState<any>(null);
   const [accepted, setAccepted] = useState(false);
 
-  if (!isAuthorizedForAi) {
-    return (
-      <VipCodeGate
-        featureName="Weekly Cognitive Synthesis & AI Experiment"
-        featureDescription="AI-driven weekly cognitive rhythm analysis and tailored experiment proposals are reserved for signed-in users or Creator VIP Code."
-        onOpenAuth={onOpenAuth}
-        onUnlocked={onUnlockVip}
-      />
-    );
-  }
-
   useEffect(() => {
+    if (!isAuthorizedForAi) return;
     let isMounted = true;
     const loadNarrative = async () => {
       setLoading(true);
@@ -62,7 +52,18 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [records]);
+  }, [records, isAuthorizedForAi]);
+
+  if (!isAuthorizedForAi) {
+    return (
+      <VipCodeGate
+        featureName="Weekly notes"
+        featureDescription="Weekly rhythm notes are available after you sign in or enter a creator code."
+        onOpenAuth={onOpenAuth}
+        onUnlocked={onUnlockVip}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -88,24 +89,24 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
   };
 
   return (
-    <div className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800/90 shadow-xs space-y-6 animate-fade-in relative overflow-hidden">
+    <div className="p-6 sm:p-8 rounded-3xl bg-white/80 dark:bg-stone-900/80 border border-stone-200/80 dark:border-stone-800/80 shadow-2xl backdrop-blur-xl space-y-6 animate-fade-in relative overflow-hidden transition-all duration-300">
       {/* Top Banner Accent */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-100 dark:border-stone-800 pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-stone-200/60 dark:border-stone-800/60 pb-5">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-stone-900 to-amber-900 dark:from-stone-100 dark:to-amber-200 text-stone-100 dark:text-stone-900 shadow-md">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-              WEEKLY COGNITIVE SYNTHESIS
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+              Weekly Cognitive Synthesis
             </span>
-            <h3 className="font-serif text-xl sm:text-2xl font-medium text-stone-900 dark:text-stone-100">
+            <h3 className="font-serif text-xl sm:text-2xl font-medium text-stone-900 dark:text-stone-100 mt-1">
               Your Rhythm This Week
             </h3>
           </div>
         </div>
 
-        <span className="px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-full border border-stone-200 dark:border-stone-750">
+        <span className="px-3.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 rounded-full border border-stone-200/60 dark:border-stone-700/60">
           {r.avgDailyFocusHours || '1.8'} hrs avg daily
         </span>
       </div>
@@ -113,45 +114,45 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
       {/* Narrative Text */}
       <div className="prose dark:prose-invert text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed font-sans space-y-3">
         <p>{r.summaryParagraph}</p>
-        <p className="text-xs text-stone-500 dark:text-stone-400 italic">
+        <p className="text-xs text-amber-600 dark:text-amber-400 font-medium italic bg-amber-500/5 p-3 rounded-xl border border-amber-500/15">
           💡 {r.energyPatternText}
         </p>
       </div>
 
       {/* Proposed Experiment Card */}
-      <div className="p-5 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 text-stone-900 dark:text-stone-100 space-y-3">
+      <div className="p-6 rounded-2xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 text-stone-900 dark:text-stone-100 space-y-4">
         <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400">
-          <Zap className="w-4 h-4" />
+          <Zap className="w-4 h-4 fill-current animate-pulse" />
           <span className="text-[10px] font-mono font-bold uppercase tracking-widest">
             PROPOSED WEEKLY EXPERIMENT
           </span>
         </div>
 
-        <h4 className="font-serif text-lg font-medium text-stone-950 dark:text-stone-50">
+        <h4 className="font-serif text-xl font-medium text-stone-950 dark:text-stone-50">
           {r.experiment.title}
         </h4>
 
-        <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed">
-          <strong>Hypothesis:</strong> {r.experiment.hypothesis}
+        <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed font-sans">
+          <strong className="text-amber-700 dark:text-amber-300">Hypothesis:</strong> {r.experiment.hypothesis}
         </p>
 
-        <div className="p-3 rounded-lg bg-white/80 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-750 text-xs font-mono space-y-1">
+        <div className="p-4 rounded-xl bg-white/80 dark:bg-stone-950/80 border border-stone-200/80 dark:border-stone-800 text-xs font-mono space-y-1.5 shadow-xs">
           <div>• <strong>Proposed Focus Wave:</strong> {r.experiment.targetWorkMinutes} minutes</div>
           <div>• <strong>Proposed Recovery Rest:</strong> {r.experiment.targetBreakMinutes} minutes</div>
           <div>• <strong>Expected Outcome:</strong> {r.experiment.expectedOutcome}</div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-          <span className="text-[10px] text-stone-500 dark:text-stone-400 italic">
+          <span className="text-[10px] text-stone-500 dark:text-stone-400 italic font-sans">
             Accepting configures timer parameters for your next wave.
           </span>
 
           <button
             onClick={handleAccept}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center space-x-2 ${
+            className={`px-6 py-3 rounded-2xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer ${
               accepted
-                ? 'bg-emerald-600 text-white'
-                : 'bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 shadow-sm'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                : 'bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 shadow-md'
             }`}
           >
             {accepted ? (
@@ -162,7 +163,7 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
             ) : (
               <>
                 <span>Accept & Launch Experiment</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
@@ -170,8 +171,8 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
       </div>
 
       {/* Non-biological Disclaimer Footer */}
-      <div className="flex items-center space-x-1.5 text-[10px] text-stone-400 dark:text-stone-500 pt-2 border-t border-stone-100 dark:border-stone-800 font-sans">
-        <ShieldCheck className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+      <div className="flex items-center space-x-2 text-[10px] text-stone-400 dark:text-stone-500 pt-3 border-t border-stone-100 dark:border-stone-800/80 font-sans">
+        <ShieldCheck className="w-4 h-4 text-stone-400 shrink-0" />
         <span>{NON_BIOLOGICAL_DISCLAIMER}</span>
       </div>
     </div>

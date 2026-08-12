@@ -56,14 +56,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<LeagueTier>(currentLeague);
 
-  const shareText = `🧠 Ultradian Focus Pulse Stats:
-⚡ Completed ${userStats.completedCycles} Ultradian (BRAC) Cycles
-⏱️ ${userStats.weeklyHours} hours of deep flow state this week
-🎯 Focus Quality Score: ${userStats.focusScore}/100
-🏆 Global Rank: #${globalRank} (${LEAGUE_BADGES[currentLeague].name})
-🔥 Primary Domain: ${userStats.topCategory}
-
-Optimize your bio-rhythms with Ultradian Focus Pulse!`;
+  const shareText = `Ultradian — ${userStats.weeklyHours}h this week, ${userStats.completedCycles} waves, rank #${globalRank}.`;
 
   const handleCopyText = () => {
     navigator.clipboard.writeText(shareText);
@@ -84,21 +77,11 @@ Optimize your bio-rhythms with Ultradian Focus Pulse!`;
   const sortedLeaderboard = [...displayList].sort((a, b) => b.weeklyHours - a.weeklyHours);
 
   const content = (
-    <div className={`w-full ${isInline ? 'max-w-3xl mx-auto' : 'max-w-xl my-auto'} p-6 sm:p-8 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xl text-stone-900 dark:text-stone-100 transition-colors duration-300`}>
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-5 mb-6">
-        <div className="flex items-center space-x-3.5">
-          <div className="p-2.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-sm">
-            <Trophy className="w-5 h-5 stroke-[1.5]" />
-          </div>
-          <div>
-            <h2 className="font-serif text-xl sm:text-2xl font-medium text-stone-950 dark:text-stone-50 flex items-center gap-2">
-              Competitive Matchmaking Leagues
-            </h2>
-            <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
-              Backend-driven real-time rankings, rival pacing & zero-trust security
-            </p>
-          </div>
+    <div className={`w-full ${isInline ? 'max-w-xl mx-auto' : 'max-w-xl my-auto'} text-stone-900 dark:text-stone-100 ${isInline ? '' : 'p-6 sm:p-8 rounded-2xl bg-[color:var(--paper)] border border-stone-200/80 dark:border-stone-800/80'}`}>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="font-serif text-xl text-stone-900 dark:text-stone-50">League</h2>
+          <p className="mt-1 text-sm text-stone-500">This week’s verified standings.</p>
         </div>
         {!isInline && onClose && (
           <button

@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Navbar } from './components/Navbar';
 import { HomeCommandCenter } from './components/HomeCommandCenter';
-import { TimerRing } from './components/TimerRing';
-import { PersistentTaskDisplay } from './components/PersistentTaskDisplay';
-import { CompactTimerBar } from './components/CompactTimerBar';
 import { SoftSessionTransition } from './components/SoftSessionTransition';
-import { PresetSelector } from './components/PresetSelector';
 import { AmbientPlayer } from './components/AmbientPlayer';
 import { ZenMode } from './components/ZenMode';
 import { ThemeTransitionSpectacle } from './components/ThemeTransitionSpectacle';
-import { ProgressiveOverloadBanner, LEVEL_INFO } from './components/ProgressiveOverloadBanner';
+import { LEVEL_INFO } from './components/ProgressiveOverloadBanner';
 import { TribalLeaderboardCard } from './components/TribalLeaderboardCard';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { RecoveryPromptBanner } from './components/RecoveryPromptBanner';
@@ -86,11 +82,11 @@ export default function App() {
   const [sessionType, setSessionType] = useState<SessionType>('work');
   const [secondsLeft, setSecondsLeft] = useState<number>(settings.workMinutes * 60);
   const [totalSeconds, setTotalSeconds] = useState<number>(settings.workMinutes * 60);
-  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
 
   // Active Task & Category
-  const [currentTask, setCurrentTask] = useState<string>('Refactoring Architecture & Flow Wave');
-  const [category, setCategory] = useState<CategoryTag>('Coding');
+  const [currentTask, setCurrentTask] = useState<string>('');
+  const [category, setCategory] = useState<CategoryTag>('General');
   const [distractionsCount, setDistractionsCount] = useState<number>(0);
   const [completedCyclesToday, setCompletedCyclesToday] = useState<number>(0);
 
@@ -105,7 +101,6 @@ export default function App() {
     () => !settings.hasCompletedOnboarding
   );
   const [isZenActive, setIsZenActive] = useState<boolean>(false);
-  const [isCompactTimer, setIsCompactTimer] = useState<boolean>(false);
   const [softTransition, setSoftTransition] = useState<{ isVisible: boolean; toType: SessionType; durationMins: number } | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
@@ -292,8 +287,10 @@ export default function App() {
   useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#141210');
     } else {
       document.documentElement.classList.remove('dark');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f7f4ef');
     }
   }, [settings.darkMode]);
 
@@ -576,7 +573,7 @@ export default function App() {
       energyLevelBefore: lastSession.energyLevelBefore,
       energyLevelAfter: lastSession.energyLevelAfter,
       distractionsCount: lastSession.distractionsCount,
-    } : undefined);
+    } : undefined).filter((prompt) => prompt.urgency !== 'gentle');
   }, [sessionRecords]);
 
   // Ambient sound selection & volume
@@ -748,9 +745,8 @@ export default function App() {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center text-stone-600 dark:text-stone-400 font-sans">
-        <div className="w-8 h-8 border-2 border-stone-400 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-xs tracking-wider uppercase font-semibold">Tuning Brainwaves...</p>
+      <div className="flex min-h-dvh items-center justify-center bg-[color:var(--paper)] text-stone-500">
+        <p className="font-serif text-lg">Ultradian</p>
       </div>
     );
   }
@@ -759,7 +755,7 @@ export default function App() {
   const latestSession = sessionRecords[0] || null;
 
   return (
-    <div className="min-h-screen bg-stone-50/40 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans selection:bg-stone-900 selection:text-stone-100 dark:selection:bg-stone-100 dark:selection:text-stone-900 transition-colors duration-300">
+    <div className="min-h-dvh bg-[color:var(--paper)] text-stone-900 dark:text-stone-100 font-sans selection:bg-stone-900/90 selection:text-stone-50 dark:selection:bg-stone-100 dark:selection:text-stone-900">
       {/* Top Header */}
       <Navbar
         settings={settings}
@@ -797,47 +793,28 @@ export default function App() {
 
       {/* Cloud sync notice: no failed Firebase request is ever represented as an empty history. */}
       {cloudSyncError && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200/50 dark:border-amber-900/40 px-4 py-3 text-amber-800 dark:text-amber-200 text-xs transition-colors duration-300">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
-            <span><strong>Cloud sync needs attention:</strong> {cloudSyncError}</span>
-            <button
-              onClick={() => setCloudSyncError(null)}
-              className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 px-2 py-1 rounded transition-colors"
-            >
-              Dismiss
-            </button>
-          </div>
+        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3 px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+          <p>{cloudSyncError}</p>
+          <button type="button" onClick={() => setCloudSyncError(null)} className="min-h-11 shrink-0 text-stone-400 hover:text-stone-700">
+            Dismiss
+          </button>
         </div>
       )}
 
-      {/* Firebase Configuration Info Banner if Anonymous Auth is disabled */}
       {authError && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200/50 dark:border-amber-900/40 px-4 py-3 text-amber-800 dark:text-amber-200 text-xs transition-colors duration-300">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">⚠️</span>
-              <span>
-                <strong>Firebase Anonymous Sign-In is disabled:</strong> Go to the Firebase Console &rarr; Authentication &rarr; Sign-in method, and enable <strong>Anonymous</strong>. Meanwhile, your Ultradian waves and stats are safely saved locally!
-              </span>
-            </div>
-            <button
-              onClick={() => setAuthError(null)}
-              className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 px-2 py-1 rounded transition-colors"
-            >
-              Dismiss
-            </button>
-          </div>
+        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3 px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+          <p>Cloud sign-in is unavailable. Sessions stay on this device.</p>
+          <button type="button" onClick={() => setAuthError(null)} className="min-h-11 shrink-0 text-stone-400 hover:text-stone-700">
+            Dismiss
+          </button>
         </div>
       )}
 
-      {/* Main Content Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Task 1.2 PWA Native App Prompt Banner */}
+      <main className="app-main mx-auto max-w-3xl px-4 pb-28 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
         <PwaInstallPrompt />
 
         {activeTab === 'timer' && (
-          <div className="space-y-8 animate-fade-in">
-            {/* Primary Single Home Experience: Command Center Dashboard */}
+          <div className="space-y-10 animate-fade-in">
             <HomeCommandCenter
               currentTask={currentTask}
               onTaskChange={setCurrentTask}
@@ -870,24 +847,15 @@ export default function App() {
               onUnlockVip={handleUnlockVip}
             />
 
-            {/* Contextual Recovery & Micro-Habit Prompts */}
-            <RecoveryPromptBanner
-              prompts={activeRecoveryPrompts}
-              onStartMicroHabit={(habit) => {
-                if (habit === 'theta_soundscape') handleSelectAmbient('theta_binaural');
-              }}
-            />
+            {activeRecoveryPrompts.length > 0 && (
+              <RecoveryPromptBanner
+                prompts={activeRecoveryPrompts}
+                onStartMicroHabit={(habit) => {
+                  if (habit === 'theta_soundscape') handleSelectAmbient('theta_binaural');
+                }}
+              />
+            )}
 
-            {/* Task 1.1 Progressive Overload Stamina Banner */}
-            <ProgressiveOverloadBanner
-              staminaLevel={settings.staminaLevel}
-              level1SessionsCompleted={settings.level1SessionsCompleted}
-              level2SessionsCompleted={settings.level2SessionsCompleted}
-              level3SessionsCompleted={settings.level3SessionsCompleted}
-              onSelectLevelPreset={handleSelectLevelPreset}
-            />
-
-            {/* Procedural Ambient Sound Generator & Soundscape Presets */}
             <AmbientPlayer
               activeAmbient={settings.ambientType}
               ambientVolume={settings.ambientVolume}
@@ -914,8 +882,7 @@ export default function App() {
         )}
 
         {activeTab === 'friends' && settings.enableCompetitiveLeagues && (
-          <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-            {/* Task 3.2 Tribal Leaderboard Card */}
+          <div className="mx-auto max-w-xl space-y-10 animate-fade-in">
             <TribalLeaderboardCard userTribeId={settings.tribeId} />
 
             <ErrorBoundary>

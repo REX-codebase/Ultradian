@@ -15,7 +15,9 @@
     "test:coverage": "vitest run --coverage",
     "analyze": "vite-bundle-visualizer",
     "analyze:treemap": "vite-bundle-visualizer --template treemap",
-    "analyze:sunburst": "vite-bundle-visualizer --template sunburst"
+    "analyze:sunburst": "vite-bundle-visualizer --template sunburst",
+    "purge:fake-users": "tsx scripts/purge-fake-users.ts",
+    "purge:fake-users:apply": "tsx scripts/purge-fake-users.ts --apply"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

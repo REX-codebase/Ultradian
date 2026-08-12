@@ -37,51 +37,37 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
   );
 
   return (
-    <section className="w-full p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-sm text-stone-900 dark:text-stone-100 transition-colors duration-300">
-      <header className="flex items-start gap-3 border-b border-stone-100 dark:border-stone-800 pb-4 mb-5">
-        <div className="p-2.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-sm">
-          <Users className="w-5 h-5 stroke-[1.5]" />
-        </div>
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-            Verified communities
-          </span>
-          <h3 className="font-serif text-lg font-medium text-stone-950 dark:text-stone-50 mt-1">
-            Tribe standings
-          </h3>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-            {currentTribe
-              ? `Your tribe: ${currentTribe.name}`
-              : 'No tribe is selected for this account.'}
-          </p>
-        </div>
+    <section className="w-full">
+      <header className="mb-6">
+        <h2 className="font-serif text-xl text-stone-900 dark:text-stone-50">Tribes</h2>
+        <p className="mt-1 text-sm text-stone-500">
+          {currentTribe ? currentTribe.name : 'No tribe yet.'}
+        </p>
       </header>
 
       {isLoading && (
-        <div className="py-10 text-center text-xs text-stone-500 dark:text-stone-400">
-          Loading verified tribe standings…
-        </div>
+        <p className="py-10 text-center text-sm text-stone-400">Loading tribes…</p>
       )}
 
       {!isLoading && error && (
-        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex gap-3 text-amber-900 dark:text-amber-200">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 flex gap-3 text-amber-900 dark:text-amber-200">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
           <p className="text-xs leading-relaxed">{error}</p>
         </div>
       )}
 
       {!isLoading && !error && tribes.length === 0 && (
-        <div className="py-10 text-center text-stone-500 dark:text-stone-400">
-          <Users className="w-8 h-8 mx-auto mb-3 opacity-50" />
-          <p className="text-sm font-medium text-stone-700 dark:text-stone-300">No verified tribes yet</p>
-          <p className="text-xs mt-1 max-w-sm mx-auto">
-            Standings will appear only after a real community has been created and has active members. Ultradian does not show placeholder teams.
+        <div className="py-12 text-center text-stone-500 dark:text-stone-400">
+          <Users className="w-10 h-10 mx-auto mb-3 text-stone-400 dark:text-stone-600 opacity-60" />
+          <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">No verified tribes present</p>
+          <p className="text-xs mt-1 max-w-sm mx-auto text-stone-500 dark:text-stone-400">
+            Standings populate automatically when active community rosters sync to Firebase. Ultradian never displays placeholder accounts.
           </p>
         </div>
       )}
 
       {!isLoading && !error && tribes.length > 0 && (
-        <div className="border border-stone-200/80 dark:border-stone-800/80 rounded-xl overflow-hidden divide-y divide-stone-100 dark:divide-stone-800/60">
+        <div className="border border-stone-200/80 dark:border-stone-800/80 rounded-2xl overflow-hidden divide-y divide-stone-100 dark:divide-stone-800/60 shadow-xs">
           {tribes.map((tribe, index) => {
             const isUserTribe = tribe.id === userTribeId;
             const weeklyHours = Math.round((tribe.weeklyMinutes / 60) * 10) / 10;
@@ -89,34 +75,39 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
               <motion.div
                 key={tribe.id}
                 layout
-                className={`flex items-center justify-between p-4 transition-colors ${
+                className={`flex items-center justify-between p-4.5 transition-all duration-200 ${
                   isUserTribe
-                    ? 'bg-stone-100/80 dark:bg-stone-800/60 font-semibold'
-                    : 'bg-white dark:bg-stone-900'
+                    ? 'bg-amber-500/10 dark:bg-amber-400/10 font-semibold border-l-4 border-amber-500'
+                    : 'bg-white/60 dark:bg-stone-900/60 hover:bg-stone-50/80 dark:hover:bg-stone-850/80'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className="w-5 text-center font-bold font-serif text-sm text-stone-500">
-                    {index === 0 ? <Trophy className="w-4 h-4 mx-auto text-yellow-500" /> : `#${index + 1}`}
+                <div className="flex items-center gap-3.5">
+                  <span className="w-6 text-center font-bold font-mono text-sm text-stone-500">
+                    {index === 0 ? <Trophy className="w-5 h-5 mx-auto text-amber-500 drop-shadow-xs" /> : `#${index + 1}`}
                   </span>
-                  <div className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 font-bold text-base flex items-center justify-center border border-stone-200/80 dark:border-stone-700/80">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-800 dark:to-stone-850 text-stone-900 dark:text-stone-100 font-bold text-base flex items-center justify-center border border-stone-200 dark:border-stone-700 shadow-xs">
                     {tribe.icon || tribe.name.slice(0, 1).toUpperCase()}
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 block">
-                      {tribe.name}{isUserTribe ? ' · Your tribe' : ''}
+                    <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                      {tribe.name}
+                      {isUserTribe && (
+                        <span className="px-2 py-0.2 text-[9px] font-mono font-bold tracking-widest uppercase bg-amber-500 text-stone-950 rounded-full">
+                          YOU
+                        </span>
+                      )}
                     </span>
-                    <span className="text-[10px] text-stone-400 dark:text-stone-500 block mt-0.5">
-                      {tribe.memberCount} {tribe.memberCount === 1 ? 'member' : 'members'} · Primary: {tribe.topCategory}
+                    <span className="text-[10px] font-mono text-stone-500 dark:text-stone-400 block mt-0.5">
+                      {tribe.memberCount} {tribe.memberCount === 1 ? 'member' : 'members'} · Focus: {tribe.topCategory}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-serif font-light text-stone-900 dark:text-stone-100 block">
+                  <span className="text-base font-serif font-medium text-stone-900 dark:text-stone-100 block">
                     {weeklyHours.toFixed(1)} hrs
                   </span>
-                  <span className="text-[9px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mt-0.5">
-                    This week
+                  <span className="text-[9px] font-mono font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mt-0.5">
+                    THIS WEEK
                   </span>
                 </div>
               </motion.div>

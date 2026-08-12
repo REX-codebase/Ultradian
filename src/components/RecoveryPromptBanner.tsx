@@ -45,7 +45,7 @@ export const RecoveryPromptBanner: React.FC<RecoveryPromptBannerProps> = ({
     };
   }, [showBreathingModal, breathingActive]);
 
-  if (!prompt) return null;
+  if (!prompt || prompt.urgency === 'gentle') return null;
 
   const handleHabitClick = () => {
     if (prompt.microHabit === 'box_breathing') {
@@ -56,51 +56,25 @@ export const RecoveryPromptBanner: React.FC<RecoveryPromptBannerProps> = ({
     }
   };
 
-  const getUrgencyStyles = (urgency: RecoveryPrompt['urgency']) => {
-    switch (urgency) {
-      case 'critical':
-        return 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200';
-      case 'recommended':
-        return 'bg-indigo-500/10 border-indigo-500/30 text-indigo-900 dark:text-indigo-200';
-      default:
-        return 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200';
-    }
-  };
-
   return (
     <>
-      <div
-        className={`w-full p-4 rounded-2xl border transition-all animate-fade-in ${getUrgencyStyles(
-          prompt.urgency
-        )}`}
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-white/80 dark:bg-stone-900/80 shadow-xs shrink-0">
-              <HeartPulse className="w-5 h-5 text-amber-500 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
-                  RECOVERY PROMPT • {prompt.suggestedBreakMins}M REST
-                </span>
-              </div>
-              <h4 className="font-serif text-base font-medium text-stone-900 dark:text-stone-100">
-                {prompt.title}
-              </h4>
-              <p className="text-xs text-stone-600 dark:text-stone-300 mt-0.5 leading-normal max-w-xl">
-                {prompt.message}
-              </p>
-            </div>
+      <div className="mx-auto w-full max-w-xl animate-fade-in text-center">
+        <div className="flex flex-col items-center gap-3">
+          <div>
+            <h4 className="font-serif text-lg text-stone-900 dark:text-stone-100">
+              {prompt.title}
+            </h4>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-stone-500">
+              {prompt.message}
+            </p>
           </div>
 
-          <div className="flex items-center space-x-2 self-end sm:self-center">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleHabitClick}
-              className="px-4 py-2 rounded-xl bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-95 flex items-center space-x-1.5"
+              className="min-h-11 text-sm text-stone-800 underline-offset-4 hover:underline dark:text-stone-200"
             >
-              <Wind className="w-3.5 h-3.5" />
-              <span>{prompt.microHabitLabel}</span>
+              {prompt.microHabitLabel}
             </button>
             {onDismiss && (
               <button
