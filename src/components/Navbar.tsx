@@ -64,15 +64,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-stone-50/95 dark:bg-stone-950/95 border-b border-stone-200/80 dark:border-stone-900/80 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-2">
         {/* Brand Logo & Title */}
         <div className="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs">
             <Clock className="w-4 h-4 stroke-[1.8]" />
           </div>
           <div className="flex items-center space-x-2">
-            <h1 className="font-serif text-lg sm:text-xl tracking-tight font-medium text-stone-900 dark:text-stone-100 whitespace-nowrap">
-              Ultradian <span className="italic font-light text-stone-500 dark:text-stone-400">Pulse</span>
+            <h1 className="font-serif text-base sm:text-xl tracking-tight font-medium text-stone-900 dark:text-stone-100 whitespace-nowrap">
+              Ultradian <span className="hidden min-[360px]:inline italic font-light text-stone-500 dark:text-stone-400">Pulse</span>
             </h1>
             <span className="hidden xs:inline-flex px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest uppercase bg-stone-100 dark:bg-stone-900 text-stone-700 dark:text-stone-300 rounded-full border border-stone-200/80 dark:border-stone-800">
               BRAC 90M
@@ -231,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenVipGate}
               title={isVipUnlocked ? 'Creator VIP Code Active' : 'Enter Creator VIP Code'}
-              className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold tracking-wider uppercase transition-all shadow-xs active:scale-95 cursor-pointer ${
+              className={`hidden sm:flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold tracking-wider uppercase transition-all shadow-xs active:scale-95 cursor-pointer ${
                 isVipUnlocked
                   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
                   : 'bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-200 dark:hover:bg-stone-800'
@@ -249,7 +249,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenAuth}
               title="Sync to Cloud Account"
-              className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 hover:opacity-90 transition-all text-[11px] font-bold tracking-wider uppercase shadow-xs active:scale-95"
+              className="hidden sm:flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 hover:opacity-90 transition-all text-[11px] font-bold tracking-wider uppercase shadow-xs active:scale-95"
             >
               <Cloud className="w-3.5 h-3.5 text-stone-300 dark:text-stone-700" />
               <span className="hidden sm:inline">Cloud Sync</span>
@@ -260,7 +260,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenSettings}
               title="View Profile & Settings"
-              className="flex items-center space-x-1.5 p-1 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-all duration-200"
+              className="hidden sm:flex items-center space-x-1.5 p-1 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-all duration-200"
             >
               <img
                 src={fbUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.uid}`}
@@ -273,7 +273,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenSettings}
               title="Timer Settings"
-              className="p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50 transition-all duration-200"
+              className="hidden sm:block p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-900/50 transition-all duration-200"
             >
               <Settings className="w-4 h-4" />
             </button>
@@ -283,33 +283,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Expandable Quick Tools Bar */}
       {showMobileTools && (
-        <div className="sm:hidden px-3 py-2 bg-stone-100/90 dark:bg-stone-900/90 border-t border-stone-200/60 dark:border-stone-800/60 flex items-center justify-around text-xs font-semibold animate-fade-in">
+        <div className="sm:hidden px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-stone-100/95 dark:bg-stone-900/95 border-t border-stone-200/60 dark:border-stone-800/60 grid grid-cols-3 gap-2 text-xs font-semibold animate-fade-in">
           <button
             onClick={toggleAmbient}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border transition-all ${
+            className={`min-h-11 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border transition-all ${
               isAmbientActive
                 ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-transparent shadow-xs'
                 : 'bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800'
             }`}
           >
-            {isAmbientActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              {isAmbientActive ? 'SOUND: ON' : 'SOUND: OFF'}
-            </span>
+            {isAmbientActive ? <Volume2 className="w-3.5 h-3.5 shrink-0" /> : <VolumeX className="w-3.5 h-3.5 shrink-0" />}
+            <span className="text-[10px] font-bold uppercase tracking-wider">Sound</span>
           </button>
 
           <button
             onClick={onRequestNotifications}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border transition-all ${
+            className={`min-h-11 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border transition-all ${
               notificationPermission === 'granted'
                 ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-transparent shadow-xs'
                 : 'bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800'
             }`}
           >
-            {notificationPermission === 'granted' ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              {notificationPermission === 'granted' ? 'ALERTS: ON' : 'ALERTS: OFF'}
-            </span>
+            {notificationPermission === 'granted' ? <Bell className="w-3.5 h-3.5 shrink-0" /> : <BellOff className="w-3.5 h-3.5 shrink-0" />}
+            <span className="text-[10px] font-bold uppercase tracking-wider">Alerts</span>
           </button>
 
           <button
@@ -317,10 +313,51 @@ export const Navbar: React.FC<NavbarProps> = ({
               setShowMobileTools(false);
               onToggleZen();
             }}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all"
+            className="min-h-11 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all"
           >
-            <Maximize2 className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">ZEN SHIELD</span>
+            <Maximize2 className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Zen</span>
+          </button>
+
+          {onOpenVipGate && (
+            <button
+              onClick={() => {
+                setShowMobileTools(false);
+                onOpenVipGate();
+              }}
+              className={`min-h-11 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border transition-all ${
+                isVipUnlocked
+                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                  : 'bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">VIP</span>
+            </button>
+          )}
+
+          {!fbUser && onOpenAuth && (
+            <button
+              onClick={() => {
+                setShowMobileTools(false);
+                onOpenAuth();
+              }}
+              className="min-h-11 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 transition-all"
+            >
+              <Cloud className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Sync</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setShowMobileTools(false);
+              onOpenSettings();
+            }}
+            className="min-h-11 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all"
+          >
+            <Settings className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Settings</span>
           </button>
         </div>
       )}

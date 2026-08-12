@@ -390,17 +390,17 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
   const progressPercent = Math.min(100, Math.round(((totalSeconds - secondsLeft) / totalSeconds) * 100));
 
   return (
-    <div className="w-full space-y-8 animate-fade-in">
+    <div className="w-full space-y-6 sm:space-y-8 animate-fade-in overflow-x-clip">
       {/* ========================================== */}
       {/* HERO COMMAND SECTION: THE 6 CORE ANSWERS   */}
       {/* ========================================== */}
-      <div className="rounded-3xl bg-white/90 dark:bg-stone-900/90 border border-stone-200/90 dark:border-stone-800/90 p-6 sm:p-8 shadow-xs backdrop-blur-md relative overflow-hidden transition-all duration-300">
+      <div className="rounded-3xl bg-white/90 dark:bg-stone-900/90 border border-stone-200/90 dark:border-stone-800/90 p-4 sm:p-8 shadow-xs backdrop-blur-md relative overflow-hidden transition-all duration-300">
         {/* Ambient Top Glow Line */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-stone-400 via-stone-800 to-stone-400 dark:from-stone-700 dark:via-stone-200 dark:to-stone-700 opacity-60" />
 
-        <div className="flex flex-col lg:flex-row items-stretch justify-between gap-8">
+        <div className="flex flex-col lg:flex-row items-stretch justify-between gap-5 sm:gap-8">
           {/* Left Side: Current Task, Wave Status, Core Answers */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-5 sm:space-y-6 order-2 lg:order-1">
             {/* Header Tagline & Streak Badge */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center space-x-2">
@@ -461,7 +461,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
                   className="group flex items-start justify-between gap-3 p-3 rounded-2xl hover:bg-stone-100/60 dark:hover:bg-stone-800/60 transition-colors cursor-pointer border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
                 >
                   <div className="space-y-1">
-                    <h2 className="font-serif text-2xl sm:text-3xl font-medium text-stone-900 dark:text-stone-100 leading-tight">
+                    <h2 className="font-serif text-xl sm:text-3xl font-medium text-stone-900 dark:text-stone-100 leading-tight">
                       {currentTask || 'Set focal objective...'}
                     </h2>
                     <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-2">
@@ -477,7 +477,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
               )}
 
               {/* Quick Task Preset Pills */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-3">
+              <div className="flex items-center gap-1.5 mt-3 -mx-1 px-1 pb-1 overflow-x-auto scrollbar-none">
                 <span className="text-[10px] text-stone-400 uppercase font-semibold mr-1">Quick Select:</span>
                 {TASK_SUGGESTIONS.map((sugg, i) => (
                   <button
@@ -486,7 +486,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
                       onTaskChange(sugg.text);
                       onCategoryChange(sugg.cat);
                     }}
-                    className={`px-2.5 py-1 rounded-xl text-[11px] font-medium transition-all cursor-pointer ${
+                    className={`shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-medium transition-all cursor-pointer ${
                       currentTask === sugg.text
                         ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 font-bold shadow-xs'
                         : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
@@ -704,7 +704,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
           </div>
 
           {/* Right Side: Interactive Timer Instrument & Direct One-Click CTA */}
-          <div className="w-full lg:w-80 shrink-0 flex flex-col justify-between p-6 rounded-2xl bg-stone-900 text-stone-100 dark:bg-stone-950 dark:border dark:border-stone-800 relative overflow-hidden shadow-lg">
+          <div className="order-1 lg:order-2 w-full lg:w-80 shrink-0 flex flex-col justify-between p-4 sm:p-6 rounded-2xl bg-stone-900 text-stone-100 dark:bg-stone-950 dark:border dark:border-stone-800 relative overflow-hidden shadow-lg">
             {/* Background subtle radial gradient */}
             <div className="absolute inset-0 bg-radial from-stone-800/40 via-transparent to-transparent opacity-50 pointer-events-none" />
 
@@ -720,7 +720,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
 
               {/* Large Timer Digits */}
               <div className="my-2">
-                <span className="font-mono text-5xl sm:text-6xl font-bold tracking-tight text-white drop-shadow-xs">
+                <span className="font-mono text-4xl min-[360px]:text-5xl sm:text-6xl font-bold tracking-tight text-white drop-shadow-xs">
                   {formatTime(secondsLeft)}
                 </span>
                 <div className="w-full bg-stone-800 rounded-full h-1.5 mt-3 overflow-hidden">
@@ -806,7 +806,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
       {/* ======================================================= */}
       {/* ANSWERS 4 & 5: GOALS, TODAY'S ACCOMPLISHMENTS & METRICS */}
       {/* ======================================================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
         {/* Answer 4: WHAT IS MY CURRENT GOAL? */}
         <div className="rounded-2xl bg-white/90 dark:bg-stone-900/90 border border-stone-200/90 dark:border-stone-800/90 p-5 shadow-xs">
           <div className="flex items-center justify-between mb-3">
@@ -908,7 +908,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
       {/* ======================================================= */}
       {/* ANSWER 6: WHAT DOES ULTRADIAN RECOMMEND I DO NEXT?       */}
       {/* ======================================================= */}
-      <div className="rounded-3xl bg-linear-to-br from-stone-900 via-stone-850 to-stone-900 text-stone-100 dark:border dark:border-stone-800 p-6 sm:p-8 shadow-md relative overflow-hidden">
+      <div className="rounded-3xl bg-linear-to-br from-stone-900 via-stone-850 to-stone-900 text-stone-100 dark:border dark:border-stone-800 p-4 sm:p-8 shadow-md relative overflow-hidden">
         {/* Glow Accent */}
         <div className="absolute -top-12 -right-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -967,7 +967,7 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
               <span>Instant Quick-Start Presets (1-Click Wave Launch)</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 sm:grid-cols-4 gap-3">
               {DEFAULT_PRESETS.map((preset) => {
                 const isActive = settings.activePresetId === preset.id;
                 return (

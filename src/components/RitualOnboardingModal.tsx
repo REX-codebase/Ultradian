@@ -150,22 +150,22 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-stone-900 border border-stone-800 rounded-2xl shadow-2xl overflow-hidden my-auto text-stone-100 flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-[max(0.75rem,env(safe-area-inset-top))] px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-stone-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-stone-900 border border-stone-800 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden my-auto text-stone-100 flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[92vh]">
         {/* Header / Progress Bar */}
-        <div className="px-5 pt-5 pb-4 border-b border-stone-800 bg-stone-900/90 flex items-center justify-between shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xs">
+        <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-stone-800 bg-stone-900/95 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xs shrink-0">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h2 className="font-serif text-lg sm:text-xl font-medium tracking-tight text-stone-100 flex items-center gap-2">
+              <h2 className="font-serif text-base sm:text-xl font-medium tracking-tight text-stone-100 flex flex-wrap items-center gap-1.5 sm:gap-2">
                 Ritual Onboarding
                 <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-stone-800 text-stone-400 border border-stone-700">
                   Step {step} of 3
                 </span>
               </h2>
-              <p className="text-xs text-stone-400">Under 60 seconds • Zero forms • Personalized flow</p>
+              <p className="text-[11px] sm:text-xs text-stone-400">Under 60 seconds • Zero forms • Personalized flow</p>
             </div>
           </div>
 
@@ -198,7 +198,7 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto overscroll-contain flex-1 custom-scrollbar">
           {/* STEP 1: What do you do? (Archetypes & 100+ Professions) */}
           {step === 1 && (
             <div className="space-y-5 animate-fade-in">
@@ -552,7 +552,7 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
         </div>
 
         {/* Modal Footer / Navigation Controls */}
-        <div className="px-5 py-4 border-t border-stone-800 bg-stone-900/90 flex items-center justify-between shrink-0">
+        <div className="px-4 sm:px-5 py-3 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-stone-800 bg-stone-900/95 flex items-center justify-between gap-3 shrink-0">
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
