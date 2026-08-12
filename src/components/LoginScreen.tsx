@@ -117,13 +117,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
     }
   };
 
-  const handleFillTestCredentials = () => {
-    setEmail('tester@ultradian.app');
-    setPassword('test123456');
-    if (isSignUp && !displayName) {
-      setDisplayName('Focus Tester');
-    }
-  };
+
 
   const handleGuestLogin = async () => {
     setError(null);
@@ -299,14 +293,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
             <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
               Email Address
             </label>
-            <button
-              type="button"
-              onClick={handleFillTestCredentials}
-              className="text-[10px] text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 font-semibold flex items-center gap-1 transition-colors"
-            >
-              <CheckCircle2 className="w-3 h-3" />
-              <span>Fill Test Credentials</span>
-            </button>
+
           </div>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />

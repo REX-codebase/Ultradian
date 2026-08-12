@@ -76,39 +76,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     return records.filter((r) => !isSampleSession(r));
   }, [records]);
 
-  // Default sample rhythm to true if real user sessions < 3
-  const [showSampleRhythm, setShowSampleRhythm] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('ultradian_show_sample_rhythm_v1');
-      if (saved !== null) return JSON.parse(saved);
-    } catch (e) {
-      // ignore
-    }
-    return realRecords.length < 3;
-  });
-
-  const handleToggleSampleRhythm = (enabled: boolean) => {
-    setShowSampleRhythm(enabled);
-    try {
-      localStorage.setItem('ultradian_show_sample_rhythm_v1', JSON.stringify(enabled));
-    } catch (e) {
-      // ignore
-    }
-  };
-
   const activeRecords = useMemo(() => {
-    if (showSampleRhythm) {
-      const sample = generate14DaySampleSessions();
-      const combined = [...records];
-      sample.forEach((s) => {
-        if (!combined.some((r) => r.id === s.id)) {
-          combined.push(s);
-        }
-      });
-      return combined.sort((a, b) => b.timestamp - a.timestamp);
-    }
-    return records.filter((r) => !isSampleSession(r));
-  }, [records, showSampleRhythm]);
+    return records;
+  }, [records]);
 
   const recommendation = useMemo(() => {
     return generateTransparentRecommendation(activeRecords, recommendationCategory);
@@ -214,71 +184,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 pb-12 animate-fade-in">
-      {/* 0. Sample Rhythm Toggle & Banner */}
-      <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-amber-500/10 via-stone-100 to-amber-500/5 dark:from-amber-950/20 dark:via-stone-900 dark:to-amber-950/10 border border-amber-500/20 dark:border-amber-900/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-        <div className="flex items-start space-x-3">
-          <div className="p-2.5 rounded-lg bg-amber-500/20 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-            <Sparkles className="w-5 h-5 stroke-[1.8]" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h3 className="font-serif text-base font-medium text-stone-900 dark:text-stone-100">
-                Explore with sample rhythm
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-300/50 dark:border-amber-700/50">
-                14 DAYS PREVIEW
-              </span>
-            </div>
-            <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 max-w-2xl">
-              {showSampleRhythm
-                ? 'Displaying 14 days of realistic focus sessions so analytics are rich on Day One. Sample sessions are clearly tagged and excluded from competitive leaderboards.'
-                : 'Toggle sample rhythm to preview 14 days of realistic ultradian sessions, bio-wave charts, and SQI quality metrics.'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3 shrink-0 self-end sm:self-auto">
-          <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
-            Sample Data:
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={showSampleRhythm}
-            onClick={() => handleToggleSampleRhythm(!showSampleRhythm)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              showSampleRhythm ? 'bg-amber-600 dark:bg-amber-500' : 'bg-stone-300 dark:bg-stone-700'
-            }`}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                showSampleRhythm ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* Empty State Prompt if sample rhythm is toggled off and no real sessions exist */}
-      {!showSampleRhythm && realRecords.length === 0 && (
+      {/* Empty State Prompt if no real sessions exist */}
+      {realRecords.length === 0 && (
         <div className="p-8 text-center rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs space-y-4">
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
-            <Sparkles className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-full bg-stone-500/10 text-stone-600 dark:text-stone-400 flex items-center justify-center mx-auto">
+            <Target className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-100">
-              No Real Sessions Logged Yet
+              No Sessions Logged Yet
             </h3>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-md mx-auto">
-              Empty-state charts are the fastest way to lose momentum. Turn on 'Explore with sample rhythm' to preview 14 days of realistic analytics immediately!
+              Start your first Ultradian focus wave to see your cognitive patterns, SQI metrics, and recovery narratives here.
             </p>
           </div>
-          <button
-            onClick={() => handleToggleSampleRhythm(true)}
-            className="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all shadow-xs"
-          >
-            ✨ Load 14-Day Sample Rhythm
-          </button>
         </div>
       )}
       {/* 1. Transparent Recommendation Engine */}
