@@ -63,31 +63,31 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showMobileTools, setShowMobileTools] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-stone-50/95 dark:bg-stone-950/95 border-b border-stone-200/80 dark:border-stone-900/80 transition-colors duration-300">
+    <header className="sticky top-0 z-30 w-full backdrop-blur-xl bg-stone-50/90 dark:bg-stone-950/90 border-b border-stone-200/70 dark:border-stone-900/80 transition-all duration-300 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-2">
         {/* Brand Logo & Title */}
-        <div className="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs">
-            <Clock className="w-4 h-4 stroke-[1.8]" />
+        <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0 cursor-pointer" onClick={() => onChangeTab('timer')}>
+          <div className="flex items-center justify-center w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-stone-900 via-stone-800 to-amber-900 dark:from-stone-100 dark:via-stone-200 dark:to-amber-200 text-stone-100 dark:text-stone-900 shadow-md transition-transform duration-300 hover:scale-105">
+            <Clock className="w-4 h-4 stroke-[2]" />
           </div>
           <div className="flex items-center space-x-2">
             <h1 className="font-serif text-base sm:text-xl tracking-tight font-medium text-stone-900 dark:text-stone-100 whitespace-nowrap">
-              Ultradian <span className="hidden min-[360px]:inline italic font-light text-stone-500 dark:text-stone-400">Pulse</span>
+              Ultradian <span className="hidden min-[360px]:inline italic font-light text-amber-700/80 dark:text-amber-400/90">Pulse</span>
             </h1>
-            <span className="hidden xs:inline-flex px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest uppercase bg-stone-100 dark:bg-stone-900 text-stone-700 dark:text-stone-300 rounded-full border border-stone-200/80 dark:border-stone-800">
+            <span className="hidden xs:inline-flex px-2.5 py-0.5 text-[10px] font-mono font-bold tracking-widest uppercase bg-stone-100 dark:bg-stone-900/90 text-stone-700 dark:text-stone-300 rounded-full border border-stone-200 dark:border-stone-800 shadow-2xs">
               BRAC 90M
             </span>
           </div>
         </div>
 
         {/* Center Tabs Navigation (Desktop) */}
-        <nav className="hidden md:flex items-center space-x-1 p-1 bg-stone-200/60 dark:bg-stone-900/60 rounded-xl border border-stone-200/40 dark:border-stone-800/40">
+        <nav className="hidden md:flex items-center space-x-1 p-1.5 bg-stone-200/50 dark:bg-stone-900/50 backdrop-blur-md rounded-2xl border border-stone-200/60 dark:border-stone-800/60">
           <button
             onClick={() => onChangeTab('timer')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
               activeTab === 'timer'
-                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-sm'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/40 dark:hover:bg-stone-800/40'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -96,10 +96,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => onChangeTab('analytics')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
               activeTab === 'analytics'
-                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-sm'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/40 dark:hover:bg-stone-800/40'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -109,10 +109,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {settings.enableCompetitiveLeagues && (
             <button
               onClick={() => onChangeTab('friends')}
-              className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
                 activeTab === 'friends'
-                  ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-sm'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/40 dark:hover:bg-stone-800/40'
               }`}
             >
               <Share2 className="w-3.5 h-3.5" />
@@ -128,15 +128,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenRitualOnboarding}
               title="Customize Focus Ritual & Archetype"
-              className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all text-[11px] font-mono font-bold uppercase tracking-wider shadow-xs"
+              className="flex items-center space-x-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-all duration-200 text-[11px] font-mono font-bold uppercase tracking-wider shadow-xs hover:shadow-sm active:scale-95"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 animate-pulse" />
               <span className="hidden lg:inline truncate max-w-[120px]">
                 {settings.focusRitualName || settings.archetype || 'RITUAL'}
               </span>
               <span className="lg:hidden text-[10px]">RITUAL</span>
             </button>
           )}
+
 
           {/* Daily Goal Badge (Desktop & Tablet) */}
           <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-mono font-bold uppercase tracking-wider">

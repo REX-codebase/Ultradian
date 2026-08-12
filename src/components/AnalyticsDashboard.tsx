@@ -160,32 +160,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Focus Hours */}
-        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl glass-card glass-card-hover shadow-xs">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               FOCUS HOURS
             </span>
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
+            <Clock className="w-4 h-4 text-stone-400 shrink-0" />
           </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-normal text-stone-900 dark:text-stone-100">
             {totalFocusHours} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">HRS</span>
           </p>
           <span className="text-[9px] sm:text-[10px] text-stone-500 dark:text-stone-400 flex items-center mt-2 font-semibold tracking-wider uppercase">
-            <TrendingUp className="w-3 h-3 mr-1 text-stone-400 shrink-0" />
+            <TrendingUp className="w-3 h-3 mr-1 text-emerald-500 shrink-0" />
             Biological wave depth
           </span>
         </div>
 
         {/* Completed Cycles */}
-        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl glass-card glass-card-hover shadow-xs">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               COMPLETED WAVES
             </span>
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" />
           </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
-            {totalCompletedCycles} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">CYCLES</span>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-normal text-stone-900 dark:text-stone-100">
+            {totalCompletedCycles} <span className="text-[9px] sm:text-xs font-sans font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">CYCLES</span>
           </p>
           <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2 block font-semibold uppercase tracking-wider">
             BRAC sessions completed
@@ -193,14 +193,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Focus Score */}
-        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl glass-card glass-card-hover shadow-xs">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               SUBJECTIVE CLARITY
             </span>
-            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0" />
+            <Award className="w-4 h-4 text-emerald-500 shrink-0" />
           </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-normal text-stone-900 dark:text-stone-100">
             {avgFocusScore} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">/ 5.0</span>
           </p>
           <span className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 mt-2 block font-semibold uppercase tracking-wider">
@@ -209,7 +209,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Session Quality Index (SQI) Card & Model Inspector Button */}
-        <div className="p-3.5 sm:p-6 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs relative">
+        <div className="p-4 sm:p-6 rounded-2xl glass-card glass-card-hover shadow-xs relative glow-stone">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               SQI MODEL INDEX
@@ -217,12 +217,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <button
               onClick={() => setShowSqiInspector(true)}
               title="Inspect SQI Formula & Model Parameters"
-              className="p-1 rounded bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 text-stone-600 dark:text-stone-300 transition-colors"
+              className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-light text-stone-900 dark:text-stone-100">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-serif font-normal text-amber-600 dark:text-amber-400">
             {ultradianEfficiencyScore} <span className="text-[9px] sm:text-xs font-sans font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">SQI</span>
           </p>
           <button
@@ -240,15 +240,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       )}
 
       {/* Main Weekly Line / Area Chart */}
-      <div className="p-4 sm:p-8 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs">
-        <div className="mb-6">
-          <h3 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-100 flex items-center">
-            <Calendar className="w-5 h-5 mr-2 text-stone-500" />
-            Weekly Focus Volume
-          </h3>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
-            Accumulated focus minutes distributed across recent cognitive waves
-          </p>
+      <div className="p-5 sm:p-8 rounded-3xl glass-card shadow-lg">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h3 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-100 flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-amber-500" />
+              Weekly Focus Volume
+            </h3>
+            <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+              Accumulated focus minutes distributed across recent cognitive waves
+            </p>
+          </div>
         </div>
 
         <div className="h-72 w-full">
@@ -256,30 +258,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorMins" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#78716c" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#78716c" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" className="dark:stroke-stone-800" opacity={0.5} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fontFamily: 'var(--font-sans)', fontWeight: 500 }} stroke="#a8a29e" />
-              <YAxis tick={{ fontSize: 11, fontFamily: 'var(--font-sans)', fontWeight: 500 }} stroke="#a8a29e" />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fontFamily: 'var(--font-sans)', fontWeight: 600 }} stroke="#a8a29e" />
+              <YAxis tick={{ fontSize: 11, fontFamily: 'var(--font-sans)', fontWeight: 600 }} stroke="#a8a29e" />
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#1c1917',
-                  borderColor: '#2e2b2a',
-                  borderRadius: '4px',
+                  borderColor: '#44403c',
+                  borderRadius: '12px',
                   color: '#f5f5f4',
                   fontSize: '11px',
                   fontFamily: 'var(--font-sans)',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="minutes"
                 name="Focus Minutes"
-                stroke="#44403c"
-                className="dark:stroke-stone-300"
-                strokeWidth={1.5}
+                stroke="#d97706"
+                className="dark:stroke-amber-400"
+                strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorMins)"
               />
@@ -287,6 +290,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </ResponsiveContainer>
         </div>
       </div>
+
 
       {/* Two Column Section for Breakdown & Hours */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
