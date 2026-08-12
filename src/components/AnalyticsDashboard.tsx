@@ -35,7 +35,7 @@ import {
   calculateSQI,
   NON_BIOLOGICAL_DISCLAIMER,
 } from '../utils/rhythmEngine';
-import { isSampleSession, generate14DaySampleSessions } from '../utils/sampleRhythm';
+import { calculatePersonalFocusAnalytics, totalHoursLabel } from '../utils/sessionAnalytics';
 import { TransparentRecommendationCard } from './TransparentRecommendationCard';
 import { WeeklyRhythmNarrative } from './WeeklyRhythmNarrative';
 import { InsightCardsGrid } from './InsightCardsGrid';
@@ -73,13 +73,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const [recommendationCategory, setRecommendationCategory] = useState<CategoryTag>('Coding');
   const [showSqiInspector, setShowSqiInspector] = useState(false);
 
-  const realRecords = useMemo(() => {
-    return records.filter((r) => !isSampleSession(r));
-  }, [records]);
-
-  const activeRecords = useMemo(() => {
-    return records;
-  }, [records]);
+  const personalAnalytics = useMemo(() => calculatePersonalFocusAnalytics(records), [records]);
+  const activeRecords = personalAnalytics.records;
+  const realRecords = activeRecords;
+  const weeklyData = personalAnalytics.weeklyData;
+  const categoryData = personalAnalytics.categoryData.map((item) => ({
+    ...item,
+    color: CATEGORY_COLORS[item.name] || '#78716c',
+  }));
+  const hourlyData = personalAnalytics.hourlyData;
+  const totalFocusHours = totalHoursLabel(personalAnalytics.totalFocusMinutes);
+  const totalCompletedCycles = personalAnalytics.totalCompletedCycles;
+  const avgFocusScore = personalAnalytics.averageFocusScore.toFixed(1);
+  const totalDistractions = personalAnalytics.totalDistractions;
+  const ultradianEfficiencyScore = personalAnalytics.ultradianEfficiencyScore;
 
   const recommendation = useMemo(() => {
     return generateTransparentRecommendation(activeRecords, recommendationCategory);
@@ -87,95 +94,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const insightCards = useMemo(() => {
     return generateInsightCards(activeRecords);
-  }, [activeRecords]);
-
-  const {
-    weeklyData,
-    categoryData,
-    hourlyData,
-    totalFocusHours,
-    totalCompletedCycles,
-    avgFocusScore,
-    totalDistractions,
-    ultradianEfficiencyScore,
-  } = useMemo(() => {
-    const now = Date.now();
-    const DAY_MS = 24 * 60 * 60 * 1000;
-    const past7Days: Record<string, { date: string; label: string; minutes: number; cycles: number }> = {};
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now - i * DAY_MS);
-      const dateStr = d.toISOString().split('T')[0];
-      const label = d.toLocaleDateString('en-US', { weekday: 'short' });
-      past7Days[dateStr] = { date: dateStr, label, minutes: 0, cycles: 0 };
-    }
-
-    let totMins = 0;
-    let totCycles = 0;
-    let totRatings = 0;
-    let ratingCount = 0;
-    let totDistractions = 0;
-
-    const catTotals: Record<string, number> = {};
-    const hourBuckets: Record<number, number> = {};
-    for (let h = 0; h < 24; h += 2) hourBuckets[h] = 0;
-
-    activeRecords.forEach((rec) => {
-      const recDate = rec.dateString;
-      const mins = Math.round(rec.actualSecondsCompleted / 60);
-
-      totMins += mins;
-      if (rec.type === 'work') totCycles += 1;
-      if (rec.focusRating) {
-        totRatings += rec.focusRating;
-        ratingCount += 1;
-      }
-      totDistractions += rec.distractionsCount || 0;
-
-      if (past7Days[recDate]) {
-        past7Days[recDate].minutes += mins;
-        if (rec.type === 'work') past7Days[recDate].cycles += 1;
-      }
-
-      const cat = rec.category || 'General';
-      catTotals[cat] = (catTotals[cat] || 0) + mins;
-
-      const hr = new Date(rec.timestamp).getHours();
-      const bucket = Math.floor(hr / 2) * 2;
-      hourBuckets[bucket] = (hourBuckets[bucket] || 0) + mins;
-    });
-
-    const weeklyChart = Object.values(past7Days);
-    const categoryChart = Object.entries(catTotals).map(([name, value]) => ({
-      name,
-      value: Math.round((value / 60) * 10) / 10,
-      color: CATEGORY_COLORS[name] || '#78716c',
-    }));
-
-    const hourlyChart = Object.entries(hourBuckets).map(([hour, mins]) => {
-      const hNum = parseInt(hour, 10);
-      const ampm = hNum >= 12 ? (hNum === 12 ? '12pm' : `${hNum - 12}pm`) : (hNum === 0 ? '12am' : `${hNum}am`);
-      return {
-        hourLabel: ampm,
-        focusMinutes: mins,
-      };
-    });
-
-    const avgScore = ratingCount > 0 ? (totRatings / ratingCount).toFixed(1) : '0.0';
-    const hoursTotal = (totMins / 60).toFixed(1);
-    const rawEfficiency = totCycles > 0 ? Math.round((totCycles * 15) + (parseFloat(avgScore) * 10) - (totDistractions * 2)) : 0;
-    const efficiency = totCycles > 0 ? Math.min(100, Math.max(10, rawEfficiency)) : 0;
-
-    return {
-      weeklyData: weeklyChart,
-      categoryData: categoryChart,
-      hourlyData: hourlyChart,
-      totalFocusHours: hoursTotal,
-      totalCompletedCycles: totCycles,
-      avgFocusScore: avgScore,
-      totalDistractions: totDistractions,
-      ultradianEfficiencyScore: efficiency,
-    };
   }, [activeRecords]);
 
   const filteredRecords = useMemo(() => {
@@ -214,7 +132,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
       {/* 2. Weekly "Your rhythm this week" Narrative & Proposed Experiment */}
       <WeeklyRhythmNarrative
-        records={records}
+        records={activeRecords}
         settings={settings}
         onAcceptExperiment={onApplyRecommendation}
         isAuthorizedForAi={isAuthorizedForAi}
@@ -513,14 +431,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <span className="font-semibold text-stone-900 dark:text-stone-100">
                         {rec.taskName || 'Ultradian Wave'}
                       </span>
-                      {isSampleSession(rec) && (
-                        <span
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-100/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/60"
-                          title="Sample rhythm session. Excluded from leaderboard."
-                        >
-                          Sample Rhythm
-                        </span>
-                      )}
                     </div>
                     <div className="text-[10px] text-stone-400 mt-0.5">{rec.category || 'General'}</div>
                   </td>

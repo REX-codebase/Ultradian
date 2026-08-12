@@ -1,4 +1,4 @@
-import { SessionRecord, UserSettings, FriendProfile, UltradianPreset } from '../types';
+import { SessionRecord, UserSettings, UltradianPreset } from '../types';
 
 const STORAGE_KEYS = {
   SESSIONS: 'ultradian_focus_sessions_v1',
@@ -66,16 +66,21 @@ export const DEFAULT_SETTINGS: UserSettings = {
   level1SessionsCompleted: 0,
   level2SessionsCompleted: 0,
   level3SessionsCompleted: 0,
-  tribeId: 'react_devs',
+  tribeId: '',
 };
-
-export const INITIAL_FRIENDS: FriendProfile[] = [];
 
 export function loadSettings(): UserSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (raw) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+      const settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } as UserSettings;
+      // Drop the hardcoded tribe assigned by legacy demo builds. A real tribe
+      // can only come from a verified Firebase-backed community workflow.
+      if (['react_devs', 'yc_founders', 'indie_hackers', 'ai_builders', 'designers'].includes(settings.tribeId)) {
+        settings.tribeId = '';
+        saveSettings(settings);
+      }
+      return settings;
     }
   } catch (e) {
     console.warn('Failed loading settings', e);
@@ -97,8 +102,13 @@ export function loadSessionRecords(): SessionRecord[] {
     if (raw) {
       const records: SessionRecord[] = JSON.parse(raw);
       if (Array.isArray(records)) {
-        // Filter out any legacy seed/fake records from localStorage
-        const clean = records.filter((r) => r && r.id && !r.id.startsWith('seed_'));
+        // Keep only genuine session records; legacy demo, sample, seed, and peer data
+        // must never influence a user's analytics or cloud synchronization.
+        const clean = records.filter((r) => {
+          if (!r || !r.id) return false;
+          const id = r.id.toLowerCase();
+          return !r.isSample && !/^(sample|seed|demo|test|friend|local_peer|mock)[_-]/.test(id);
+        });
         if (clean.length !== records.length) {
           saveSessionRecords(clean);
         }
@@ -127,23 +137,15 @@ export function addSessionRecord(record: SessionRecord): SessionRecord[] {
   return updated;
 }
 
-export function loadFriends(): FriendProfile[] {
+/**
+ * Removes the retired local-peer cache created by earlier demo builds.
+ * League standings are now Firebase-only and cannot be synthesized locally.
+ */
+export function clearLegacyFriends(): void {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.FRIENDS);
-    if (raw) {
-      return JSON.parse(raw);
-    }
+    localStorage.removeItem(STORAGE_KEYS.FRIENDS);
   } catch (e) {
-    console.warn('Failed loading friends', e);
-  }
-  return [];
-}
-
-export function saveFriends(friends: FriendProfile[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEYS.FRIENDS, JSON.stringify(friends));
-  } catch (e) {
-    console.warn('Failed saving friends', e);
+    console.warn('Failed clearing legacy peer data', e);
   }
 }
 

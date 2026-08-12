@@ -7,16 +7,15 @@ import {
   Clock,
   Sparkles,
   Users,
-  Plus,
   X,
   Trophy,
   Zap,
   ChevronRight,
   ShieldAlert,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { FriendProfile, LeagueTier, LeagueMember, RivalInfo } from '../types';
-import { playRankUpSound, playMilestoneSound } from '../utils/audio';
+import { motion } from 'motion/react';
+import { LeagueTier, LeagueMember, RivalInfo } from '../types';
+import { playMilestoneSound } from '../utils/audio';
 
 interface SocialShareModalProps {
   userStats: {
@@ -25,13 +24,11 @@ interface SocialShareModalProps {
     focusScore: number;
     topCategory: string;
   };
-  friends: FriendProfile[];
   globalRank?: number;
   rivalInfo?: RivalInfo | null;
   currentLeague?: LeagueTier;
   leagueMembers?: LeagueMember[];
   onSelectLeague?: (league: LeagueTier) => void;
-  onAddFriend: (name: string, weeklyHours: number) => void;
   onClose?: () => void;
   isInline?: boolean;
 }
@@ -48,20 +45,15 @@ const LEAGUE_BADGES: Record<LeagueTier, { name: string; icon: string; color: str
 
 export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   userStats,
-  friends,
   globalRank = 1,
   rivalInfo,
   currentLeague = 'wood',
   leagueMembers = [],
   onSelectLeague,
-  onAddFriend,
   onClose,
   isInline = false,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [newFriendName, setNewFriendName] = useState('');
-  const [newFriendHours, setNewFriendHours] = useState('15.0');
-  const [showAddForm, setShowAddForm] = useState(false);
   const [activeTab, setActiveTab] = useState<LeagueTier>(currentLeague);
 
   const shareText = `🧠 Ultradian Focus Pulse Stats:
@@ -80,24 +72,14 @@ Optimize your bio-rhythms with Ultradian Focus Pulse!`;
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleAddFriendSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newFriendName.trim()) return;
-    onAddFriend(newFriendName.trim(), parseFloat(newFriendHours) || 10);
-    setNewFriendName('');
-    setShowAddForm(false);
-  };
-
   const handleTabChange = (tier: LeagueTier) => {
     setActiveTab(tier);
     if (onSelectLeague) onSelectLeague(tier);
   };
 
-  const displayList = leagueMembers.length > 0 ? leagueMembers : friends.map((f, i) => ({
-    ...f,
-    leagueId: currentLeague,
-    rank: i + 1,
-  }));
+  // Never fall back to local peers or global documents. Empty means no verified
+  // Firebase members are currently present in this selected league.
+  const displayList = leagueMembers;
 
   const sortedLeaderboard = [...displayList].sort((a, b) => b.weeklyHours - a.weeklyHours);
 
@@ -253,13 +235,7 @@ Optimize your bio-rhythms with Ultradian Focus Pulse!`;
             <Users className="w-4 h-4 mr-1.5 text-stone-500" />
             League Division Standings
           </h3>
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="text-xs font-bold text-stone-600 dark:text-stone-300 flex items-center hover:underline"
-          >
-            <Plus className="w-3.5 h-3.5 mr-0.5" />
-            <span>Add peer</span>
-          </button>
+
         </div>
 
         {/* League Tier Pills */}
@@ -284,33 +260,6 @@ Optimize your bio-rhythms with Ultradian Focus Pulse!`;
           })}
         </div>
 
-        {showAddForm && (
-          <form
-            onSubmit={handleAddFriendSubmit}
-            className="p-4 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-center gap-2"
-          >
-            <input
-              type="text"
-              placeholder="Peer Handle..."
-              value={newFriendName}
-              onChange={(e) => setNewFriendName(e.target.value)}
-              className="flex-1 w-full px-3.5 py-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-semibold text-stone-900 dark:text-stone-100 focus:outline-none"
-            />
-            <input
-              type="number"
-              placeholder="Weekly Hours"
-              value={newFriendHours}
-              onChange={(e) => setNewFriendHours(e.target.value)}
-              className="w-full sm:w-28 px-3.5 py-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-semibold text-stone-900 dark:text-stone-100 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 font-bold text-xs uppercase tracking-wider"
-            >
-              Add Peer
-            </button>
-          </form>
-        )}
 
         {/* STEP 3.1: Real-Time Layout Animated Leaderboard List */}
         <div className="border border-stone-200/80 dark:border-stone-800/80 rounded-xl overflow-hidden divide-y divide-stone-100 dark:divide-stone-800/60">

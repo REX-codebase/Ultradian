@@ -67,7 +67,9 @@ export async function syncUserProfileToCloud(user: FirebaseUser, extraFields?: R
     userDocRef,
     {
       uid: user.uid,
-      displayName: user.displayName || 'Ultradian Focus User',
+      // Never invent a public name. Anonymous users retain private history but
+      // are excluded from public Firebase aggregates until they choose one.
+      displayName: user.displayName || '',
       email: user.email || '',
       photoURL: user.photoURL || '',
       lastLoginAt: Date.now(),

@@ -2,17 +2,18 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getISOWeekString } from './shared/utils';
 
-/** Maximum realistic focus session length (minutes). Anything above is treated as spoof. */
 const MAX_SESSION_MINUTES = 180;
-/** Minimum meaningful session to count toward stats. */
 const MIN_SESSION_MINUTES = 1;
+const AGGREGATE_SOURCE = 'session-aggregation-v2';
+const AGGREGATE_SCHEMA_VERSION = 2;
+const NON_USER_SESSION_ID = /^(sample|seed|demo|test|friend|local_peer|mock)[_-]/i;
 
 /**
- * Authoritative, Idempotent Session Processing Trigger
- * Trigger: onDocumentCreated('users/{userId}/sessions/{sessionId}')
+ * Authoritative, idempotent focus-session processor.
  *
- * Security: Client-supplied durationMinutes / focusRating are clamped and validated
- * before any aggregation. Rules also reject out-of-range values on create.
+ * Only genuine work sessions from a named account can affect public rankings.
+ * Legacy sample/demo sessions remain in the private event log for auditability,
+ * but are explicitly marked as skipped and never become aggregate data.
  */
 export const onSessionCreate = onDocumentCreated(
   'users/{userId}/sessions/{sessionId}',
@@ -26,29 +27,26 @@ export const onSessionCreate = onDocumentCreated(
     const userId = event.params.userId;
     const sessionId = event.params.sessionId;
 
-    // Strict validation: only work sessions with non-zero duration
-    const sessionType = session.type || 'work';
-    if (sessionType !== 'work') return;
+    if (session.isSample === true || NON_USER_SESSION_ID.test(sessionId)) {
+      await sessionSnap.ref.update({
+        processed: true,
+        processedAt: Date.now(),
+        processingSkippedReason: 'non_user_session',
+      });
+      return;
+    }
+
+    if ((session.type || 'work') !== 'work') return;
 
     let durationMinutes = Math.round(
-      Number(
-        session.durationMinutes ||
-        (session.actualSecondsCompleted ? session.actualSecondsCompleted / 60 : 0) ||
-        0
-      )
+      Number(session.durationMinutes || (session.actualSecondsCompleted ? session.actualSecondsCompleted / 60 : 0))
     );
 
-    // Clamp + hard reject pathological / spoofed values
     if (!Number.isFinite(durationMinutes) || durationMinutes < MIN_SESSION_MINUTES) {
       console.warn(`Session ${sessionId} rejected: invalid durationMinutes=${durationMinutes}`);
       return;
     }
-    if (durationMinutes > MAX_SESSION_MINUTES) {
-      console.warn(
-        `Session ${sessionId} durationMinutes=${durationMinutes} exceeds max ${MAX_SESSION_MINUTES}; clamping`
-      );
-      durationMinutes = MAX_SESSION_MINUTES;
-    }
+    durationMinutes = Math.min(durationMinutes, MAX_SESSION_MINUTES);
 
     const category = String(session.category || 'General').slice(0, 40);
     const focusRating = Math.min(5, Math.max(1, Number(session.focusRating || 5)));
@@ -56,69 +54,75 @@ export const onSessionCreate = onDocumentCreated(
 
     const timestamp = Number(session.timestamp || Date.now());
     const weekId = getISOWeekString(new Date(timestamp));
-
     const db = getFirestore();
     const sessionRef = db.doc(`users/${userId}/sessions/${sessionId}`);
 
-    // Transactionally process session to guarantee idempotency
     await db.runTransaction(async (transaction) => {
       const currentSessionDoc = await transaction.get(sessionRef);
-      if (!currentSessionDoc.exists) return;
+      if (!currentSessionDoc.exists || currentSessionDoc.data()?.processed === true) return;
 
-      const currentData = currentSessionDoc.data();
-      // Idempotency check: if already processed, terminate immediately
-      if (currentData?.processed === true) {
-        console.log(`Session ${sessionId} for user ${userId} already processed. Skipping.`);
-        return;
-      }
-
-      // Fetch user profile for display name and league
       const userRef = db.doc(`users/${userId}`);
       const userSnap = await transaction.get(userRef);
       const userData = userSnap.exists ? userSnap.data() : {};
-      const userName =
-        session.userName || userData?.displayName || userData?.username || 'Ultradian Achiever';
-      const leagueId = userData?.leagueId || session.leagueId || 'wood';
+      const userName = String(
+        userData?.displayName || userData?.username || userData?.publicHandle || ''
+      ).trim();
 
-      // References
+      // A private anonymous session may be valid for personal analytics, but never
+      // gets a fabricated public name or a public leaderboard entry.
+      if (!userName) {
+        transaction.update(sessionRef, {
+          processed: true,
+          processedAt: Date.now(),
+          processingSkippedReason: 'missing_public_name',
+        });
+        return;
+      }
+
+      const leagueId = String(userData?.leagueId || session.leagueId || 'wood');
       const leaderboardRef = db.doc(`leaderboard/${userId}`);
       const weekRef = db.doc(`leaderboard/${userId}/weeks/${weekId}`);
       const leagueMemberRef = db.doc(`leagues/${leagueId}/members/${userId}`);
 
-      const leaderboardSnap = await transaction.get(leaderboardRef);
-      const weekSnap = await transaction.get(weekRef);
-      const leagueMemberSnap = await transaction.get(leagueMemberRef);
+      const [leaderboardSnap, weekSnap, leagueMemberSnap] = await Promise.all([
+        transaction.get(leaderboardRef),
+        transaction.get(weekRef),
+        transaction.get(leagueMemberRef),
+      ]);
 
-      // 1. Update Global User Statistics (/leaderboard/{userId})
+      const publicAggregate = {
+        userId,
+        name: userName,
+        leagueId,
+        source: AGGREGATE_SOURCE,
+        schemaVersion: AGGREGATE_SCHEMA_VERSION,
+        lastUpdated: Date.now(),
+      };
+
       if (leaderboardSnap.exists) {
         transaction.update(leaderboardRef, {
+          ...publicAggregate,
           lifetimeMinutes: FieldValue.increment(durationMinutes),
           lifetimeCycles: FieldValue.increment(1),
           weeklyMinutes: FieldValue.increment(durationMinutes),
           weeklyCycles: FieldValue.increment(1),
           currentWeek: weekId,
-          leagueId,
           category,
-          type: sessionType,
-          lastUpdated: Date.now(),
+          type: 'work',
         });
       } else {
         transaction.set(leaderboardRef, {
-          userId,
-          name: userName,
+          ...publicAggregate,
           lifetimeMinutes: durationMinutes,
           lifetimeCycles: 1,
           weeklyMinutes: durationMinutes,
           weeklyCycles: 1,
           currentWeek: weekId,
-          leagueId,
           category,
-          type: sessionType,
-          lastUpdated: Date.now(),
+          type: 'work',
         });
       }
 
-      // 2. Update Time-boxed Subcollection (/leaderboard/{userId}/weeks/{weekId})
       if (weekSnap.exists) {
         transaction.update(weekRef, {
           weeklyMinutes: FieldValue.increment(durationMinutes),
@@ -126,52 +130,45 @@ export const onSessionCreate = onDocumentCreated(
           ratingSum: FieldValue.increment(focusRating),
           ratingCount: FieldValue.increment(1),
           [`categoryMins.${category}`]: FieldValue.increment(durationMinutes),
+          source: AGGREGATE_SOURCE,
+          schemaVersion: AGGREGATE_SCHEMA_VERSION,
           lastUpdated: Date.now(),
         });
       } else {
         transaction.set(weekRef, {
-          userId,
-          name: userName,
+          ...publicAggregate,
           weekId,
           weeklyMinutes: durationMinutes,
           completedCycles: 1,
           ratingSum: focusRating,
           ratingCount: 1,
           categoryMins: { [category]: durationMinutes },
-          lastUpdated: Date.now(),
         });
       }
 
-      // 3. Update League Roster (/leagues/{leagueId}/members/{userId})
       if (leagueMemberSnap.exists) {
         transaction.update(leagueMemberRef, {
+          ...publicAggregate,
           weeklyMinutes: FieldValue.increment(durationMinutes),
           weeklyCycles: FieldValue.increment(1),
           ratingSum: FieldValue.increment(focusRating),
           ratingCount: FieldValue.increment(1),
           [`categoryMins.${category}`]: FieldValue.increment(durationMinutes),
-          lastUpdated: Date.now(),
         });
       } else {
         transaction.set(leagueMemberRef, {
-          userId,
-          name: userName,
-          leagueId,
+          ...publicAggregate,
           weeklyMinutes: durationMinutes,
           weeklyCycles: 1,
-          focusScore: Math.round(focusRating * 20),
           ratingSum: focusRating,
           ratingCount: 1,
           categoryMins: { [category]: durationMinutes },
-          lastUpdated: Date.now(),
         });
       }
 
-      // Mark session as processed atomically
       transaction.update(sessionRef, {
         processed: true,
         processedAt: Date.now(),
-        // Record the clamped value for auditability
         durationMinutesClamped: durationMinutes,
       });
     });
