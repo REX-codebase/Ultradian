@@ -3,36 +3,188 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-serif: "Instrument Serif", serif;
-  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+:root {
+  --paper: #f7f4ef;
+  --ink: #1c1917;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark {
+  --paper: #141210;
+  --ink: #f5f2ec;
 }
 
 @layer base {
+  html {
+    background-color: var(--paper);
+  }
+
   body {
     font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    background-color: var(--paper);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv01", "ss03";
   }
-  
+
   h1, h2, h3, .serif-heading {
     font-family: var(--font-serif);
+    letter-spacing: -0.02em;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
   }
 }
 
-/* Premium micro-animations & layout tweaks */
+/* Linear & Raycast Inspired Design Tokens */
+.bg-mesh-dark {
+  background-color: #0c0a09;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+}
+
+.bg-mesh-light {
+  background-color: #fafaf9;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(167, 139, 250, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(52, 211, 153, 0.08) 0px, transparent 50%);
+}
+
+/* Premium micro-animations & visual tokens */
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite linear;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-aurora {
+  animation: aurora 12s ease infinite alternate;
+}
+
+@keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Glassmorphism & High-Fidelity Elevation Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.dark .glass-card {
+  background: rgba(28, 25, 23, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(44, 40, 37, 0.8);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-card-hover:hover {
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glow-amber {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25);
+}
+
+.dark .glow-amber {
+  box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.35);
+}
+
+.glow-stone {
+  box-shadow: 0 0 20px -5px rgba(120, 113, 108, 0.2);
+}
+
+.dark .glow-stone {
+  box-shadow: 0 0 25px -5px rgba(168, 162, 158, 0.15);
 }
 
 /* Custom minimal scrollbars */
@@ -46,19 +198,26 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: #d6d3d1;
   border-radius: 9999px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #44403c;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #78716c;
 }
 
 /* -------------------------------------------------------------------------- */
 /* THEME TRANSITION SPECTACLE - Silky Smooth Global Morphing & Celestial Flare*/
 /* -------------------------------------------------------------------------- */
 
-/* Global ultra-smooth theme transition class activated during toggle */
 html.theme-transition-active,
 html.theme-transition-active body,
 html.theme-transition-active header,
@@ -84,7 +243,6 @@ html.theme-transition-active canvas {
               box-shadow 700ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Micro-interaction sun/moon spin & pulse flare */
 @keyframes celestialPulse {
   0% {
     transform: scale(0.8) rotate(-90deg);
@@ -104,8 +262,6 @@ html.theme-transition-active canvas {
   animation: celestialPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-
-/* Phone-first resilience helpers */
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -115,7 +271,37 @@ html.theme-transition-active canvas {
   display: none;
 }
 
-@media (max-width: 639px) {
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  padding: 0.25rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(231 229 228 / 0.9);
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.dark .bottom-nav {
+  border-top-color: rgb(41 37 36 / 0.9);
+}
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+.clock-face {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@media (max-width: 767px) {
   html,
   body {
     overflow-x: clip;
@@ -144,3 +330,4 @@ html.theme-transition-active canvas {
     transition-duration: 0.01ms !important;
   }
 }
+
