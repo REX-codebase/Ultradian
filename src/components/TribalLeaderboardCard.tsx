@@ -1,66 +1,10 @@
-import React, { useState } from 'react';
-import { Users, Trophy, Flame, UserPlus, Check, Copy, ChevronRight, Shield, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, UserPlus, Check, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
-import { CategoryTag } from '../types';
 import { playMilestoneSound } from '../utils/audio';
+import { subscribeToTribes, OFFICIAL_DEFAULT_TRIBES, TribeData } from '../services/tribeService';
 
-export interface TribeData {
-  id: string;
-  name: string;
-  description: string;
-  weeklyHours: number;
-  memberCount: number;
-  topCategory: CategoryTag;
-  icon: string;
-}
-
-export const INITIAL_TRIBES: TribeData[] = [
-  {
-    id: 'yc_founders',
-    name: 'YCombinator Founders',
-    description: 'High-speed startup builders scaling zero-to-one.',
-    weeklyHours: 184.5,
-    memberCount: 42,
-    topCategory: 'Strategy',
-    icon: '🚀',
-  },
-  {
-    id: 'react_devs',
-    name: 'React Devs',
-    description: 'Frontend engineers crafting responsive UI architectures.',
-    weeklyHours: 162.0,
-    memberCount: 38,
-    topCategory: 'Coding',
-    icon: '⚛️',
-  },
-  {
-    id: 'indie_hackers',
-    name: 'Indie Hackers',
-    description: 'Bootstrapped founders shipping profitable products.',
-    weeklyHours: 145.8,
-    memberCount: 31,
-    topCategory: 'Coding',
-    icon: '🛠️',
-  },
-  {
-    id: 'ai_builders',
-    name: 'AI Builders',
-    description: 'LLM researchers and agentic software creators.',
-    weeklyHours: 128.4,
-    memberCount: 29,
-    topCategory: 'Research',
-    icon: '🧠',
-  },
-  {
-    id: 'designers',
-    name: 'Designers & Creators',
-    description: 'Visual designers, writers, and creative directors.',
-    weeklyHours: 98.2,
-    memberCount: 21,
-    topCategory: 'Design',
-    icon: '🎨',
-  },
-];
+export type { TribeData };
 
 interface TribalLeaderboardCardProps {
   userTribeId: string;
@@ -74,13 +18,24 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({
   userWeeklyHours = 0,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [tribes, setTribes] = useState<TribeData[]>(INITIAL_TRIBES);
+  const [tribes, setTribes] = useState<TribeData[]>(OFFICIAL_DEFAULT_TRIBES);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTribes((liveTribes) => {
+      if (liveTribes && liveTribes.length > 0) {
+        setTribes(liveTribes);
+      }
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   // Calculate dynamic weekly hours for user's tribe
-  const currentTribe = tribes.find((t) => t.id === userTribeId) || tribes[1];
+  const currentTribe = tribes.find((t) => t.id === userTribeId) || tribes[0] || OFFICIAL_DEFAULT_TRIBES[0];
   const sortedTribes = [...tribes].sort((a, b) => b.weeklyHours - a.weeklyHours);
-  const userTribeRank = sortedTribes.findIndex((t) => t.id === userTribeId) + 1;
-  const leadingTribe = sortedTribes[0];
+  const userTribeRank = sortedTribes.findIndex((t) => t.id === userTribeId) + 1 || 1;
+  const leadingTribe = sortedTribes[0] || currentTribe;
 
   const isLeading = userTribeRank === 1;
   const hoursBehind = isLeading ? 0 : Math.round((leadingTribe.weeklyHours - currentTribe.weeklyHours) * 10) / 10;
@@ -136,7 +91,7 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({
         </div>
       </div>
 
-      {/* Task 3.2 Viral Loop Banner */}
+      {/* Viral Loop Banner */}
       <div className="p-4 rounded-xl bg-gradient-to-r from-stone-900 to-stone-950 text-stone-100 border border-stone-800 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 font-bold shrink-0">
