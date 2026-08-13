@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Minimize2, Play, Pause, RotateCcw, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import { SessionType, AmbientSoundType } from '../types';
@@ -68,8 +69,8 @@ export const ZenMode: React.FC<ZenModeProps> = ({
 
   const phaseLabel = sessionType === 'work' ? 'Focus' : 'Rest';
 
-  return (
-    <div className="app-shell fixed inset-0 z-50 flex flex-col items-center justify-between px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] text-[color:var(--ink)]">
+  const layer = (
+    <div className="zen-layer px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
       <div className="relative z-10 flex w-full max-w-xl items-center justify-between">
         <div>
           <p className="text-xs tracking-[0.18em] uppercase text-[color:var(--ink-mute)]">{phaseLabel}</p>
@@ -169,4 +170,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
       </button>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(layer, document.body);
 };

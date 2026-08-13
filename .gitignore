@@ -8,3 +8,16 @@ coverage/
 !.env.example
 
 functions/lib/
+
+# Agent / local scratch — never publish
+.vg-canvas/
+.grok/
+.agents/
+.firebase/
+
+# Secrets and machine-local credentials
+*.local
+serviceAccount*.json
+*-adminsdk-*.json
+*-firebase-adminsdk-*.json
+secrets/

@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from 'motion/react';
 
 interface SheetProps {
@@ -63,10 +64,12 @@ export const Sheet: React.FC<SheetProps> = ({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="sheet-root fixed inset-0 z-50">
+        <div className="sheet-root">
           <motion.button
             type="button"
             aria-label="Close"
@@ -77,7 +80,7 @@ export const Sheet: React.FC<SheetProps> = ({
             transition={{ duration: reduceMotion ? 0.01 : 0.32, ease: [0.25, 0.1, 0.25, 1] }}
             onClick={requestClose}
           />
-          <div className="pointer-events-none absolute inset-0 flex items-end justify-center md:items-center p-0 md:p-6">
+          <div className="sheet-stage">
             <motion.div
               ref={panelRef}
               role="dialog"
@@ -110,6 +113,7 @@ export const Sheet: React.FC<SheetProps> = ({
           </div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
