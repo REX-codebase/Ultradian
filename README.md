@@ -17,6 +17,16 @@
   <img src="assets/readme/badges.svg" alt="React 19, TypeScript, Tailwind 4, Vite 6, Firebase, Vitest, PWA, Express, MIT" />
 </p>
 
+<p align="center">
+  <video src="assets/readme/ultradian.mp4" width="100%" autoplay loop muted playsinline poster="assets/readme/ultradian-poster.png">
+    <a href="assets/readme/ultradian.mp4">
+      <img src="assets/readme/ultradian.webp" alt="A 10-second view of Ultradian Focus: name the work, choose Coding, begin a 90-minute wave." width="100%">
+    </a>
+  </video>
+</p>
+
+<p align="center"><em>A view of Focus.</em></p>
+
 <br />
 
 **Ultradian** is a focus engine for people who work in waves.

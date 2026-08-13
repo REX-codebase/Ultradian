@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ultradian — Focus view</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      margin: 0;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      background: #f7f4ef;
+    }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-label="Ultradian Focus view">
+    <defs>
+      <radialGradient id="wash" cx="50%" cy="36%" r="74%">
+        <stop offset="0%" stop-color="#fffdf8"/>
+        <stop offset="100%" stop-color="#f7f4ef"/>
+      </radialGradient>
+      <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1.5" r="0.45" fill="#1c1917" opacity="0.04"/>
+        <circle cx="4.2" cy="4" r="0.35" fill="#1c1917" opacity="0.03"/>
+      </pattern>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#1c1917" flood-opacity="0.06"/>
+      </filter>
+    </defs>
+
+    <rect width="1280" height="720" fill="url(#wash)"/>
+    <rect width="1280" height="720" fill="url(#grain)"/>
+
+    <g id="header" opacity="0">
+      <text id="wordmark" x="56" y="42" fill="#1c1917" font-family="Instrument Serif, Georgia, serif" font-size="24" letter-spacing="-0.4">Ultradian</text>
+      <text id="nav-focus" x="584" y="41" text-anchor="middle" fill="#1c1917" font-family="Inter, ui-sans-serif, sans-serif" font-size="14">Focus</text>
+      <text id="nav-rhythm" x="654" y="41" text-anchor="middle" fill="#a8a29e" font-family="Inter, ui-sans-serif, sans-serif" font-size="14">Rhythm</text>
+      <text id="nav-league" x="730" y="41" text-anchor="middle" fill="#a8a29e" font-family="Inter, ui-sans-serif, sans-serif" font-size="14">League</text>
+      <g id="moon" transform="translate(1188 24)" fill="none" stroke="#78716c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 3.5a8.2 8.2 0 1 0 7.6 11.4A6.4 6.4 0 0 1 13 3.5z"/>
+      </g>
+      <g id="gear" transform="translate(1226 25)" fill="none" stroke="#78716c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="2.4"/>
+        <path d="M8 1.6v1.6M8 12.8v1.6M1.6 8h1.6M12.8 8h1.6M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M12.7 3.3l-1.1 1.1M4.4 11.6l-1.1 1.1"/>
+      </g>
+      <line x1="0" y1="64" x2="1280" y2="64" stroke="#e7e0d6" stroke-width="1"/>
+    </g>
+
+    <g id="task-block" opacity="0">
+      <text id="task" x="640" y="148" text-anchor="middle" fill="#1c1917" font-family="Instrument Serif, Georgia, serif" font-size="36" letter-spacing="-0.5">What are you working on?</text>
+      <rect id="caret" x="640" y="122" width="1.5" height="32" fill="#1c1917" opacity="0"/>
+    </g>
+
+    <g id="pills" font-family="Inter, ui-sans-serif, sans-serif" font-size="13" opacity="0">
+      <g id="pill-coding">
+        <rect id="pill-coding-bg" x="368" y="178" width="82" height="32" rx="16" fill="none" stroke="#d6d3d1"/>
+        <text id="pill-coding-tx" x="409" y="199" text-anchor="middle" fill="#78716c">Coding</text>
+      </g>
+      <g id="pill-writing">
+        <rect x="458" y="178" width="84" height="32" rx="16" fill="none" stroke="#d6d3d1"/>
+        <text x="500" y="199" text-anchor="middle" fill="#78716c">Writing</text>
+      </g>
+      <g id="pill-design">
+        <rect x="550" y="178" width="80" height="32" rx="16" fill="none" stroke="#d6d3d1"/>
+        <text x="590" y="199" text-anchor="middle" fill="#78716c">Design</text>
+      </g>
+      <g id="pill-research">
+        <rect x="638" y="178" width="96" height="32" rx="16" fill="none" stroke="#d6d3d1"/>
+        <text x="686" y="199" text-anchor="middle" fill="#78716c">Research</text>
+      </g>
+      <g id="pill-strategy">
+        <rect x="742" y="178" width="92" height="32" rx="16" fill="none" stroke="#d6d3d1"/>
+        <text x="788" y="199" text-anchor="middle" fill="#78716c">Strategy</text>
+      </g>
+      <g id="pill-study">
+        <rect x="842" y="178" width="70" height="32" rx="16" fill="none" stroke="#d6d3d1"/>
+        <text x="877" y="199" text-anchor="middle" fill="#78716c">Study</text>
+      </g>
+    </g>
+
+    <g id="phase-block" opacity="0">
+      <text id="phase" x="640" y="286" text-anchor="middle" fill="#78716c" font-family="Inter, ui-sans-serif, sans-serif" font-size="13" letter-spacing="3.6">FOCUS</text>
+      <text id="clock" x="640" y="408" text-anchor="middle" fill="#1c1917" font-family="Instrument Serif, Georgia, serif" font-size="128" letter-spacing="-3">90:00</text>
+      <rect x="560" y="448" width="160" height="2" fill="#e7e5e4"/>
+      <rect id="progress" x="560" y="448" width="0" height="2" fill="#1c1917"/>
+    </g>
+
+    <g id="cta-block" opacity="0">
+      <g id="cta">
+        <rect id="cta-bg" x="500" y="492" width="280" height="52" rx="26" fill="#1c1917"/>
+        <g id="cta-play" transform="translate(568 508)" fill="#f5f2ec">
+          <path d="M6 4.2v19.6L22.4 14z"/>
+        </g>
+        <g id="cta-pause" transform="translate(576 508)" fill="#f5f2ec" opacity="0">
+          <rect x="0" y="4" width="4.2" height="20" rx="1"/>
+          <rect x="10" y="4" width="4.2" height="20" rx="1"/>
+        </g>
+        <text id="cta-label" x="676" y="524" text-anchor="middle" fill="#f5f2ec" font-family="Inter, ui-sans-serif, sans-serif" font-size="16" font-weight="500">Begin 90m</text>
+      </g>
+    </g>
+
+    <g id="actions" opacity="0" fill="none" stroke="#78716c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" font-family="Inter, ui-sans-serif, sans-serif">
+      <g transform="translate(464 572)">
+        <path d="M3.2 8a6.8 6.8 0 1 0 1.6-4.4"/>
+        <path d="M3.2 2.2v3.4h3.4"/>
+        <text x="28" y="12.5" fill="#78716c" stroke="none" font-size="13">Reset</text>
+      </g>
+      <g transform="translate(568 572)">
+        <path d="M4 4.2v15.6L16 12z"/>
+        <path d="M20 4.8v14.4"/>
+        <text x="30" y="12.5" fill="#78716c" stroke="none" font-size="13">Skip</text>
+      </g>
+      <g id="sound-icon" transform="translate(672 572)">
+        <path d="M4 10.2V13.8h3.2L12 18V6l-4.8 4.2H4z"/>
+        <path id="sound-waves" d="M15 9.2a3.4 3.4 0 0 1 0 5.6M18.2 7a6.2 6.2 0 0 1 0 10"/>
+        <text x="32" y="12.5" fill="#78716c" stroke="none" font-size="13">Sound</text>
+      </g>
+      <g transform="translate(790 572)">
+        <path d="M4 4h5.2v5.2M14.8 4H20v5.2M20 14.8V20h-5.2M9.2 20H4v-5.2"/>
+        <text x="28" y="12.5" fill="#78716c" stroke="none" font-size="13">Zen</text>
+      </g>
+    </g>
+
+    <g id="footer" opacity="0" font-family="Inter, ui-sans-serif, sans-serif" font-size="13">
+      <text x="640" y="656" text-anchor="middle">
+        <tspan id="waves" fill="#1c1917">0</tspan>
+        <tspan fill="#78716c"> / 3 waves</tspan>
+        <tspan fill="#d6d3d1">   ·   </tspan>
+        <tspan id="today" fill="#1c1917">0m</tspan>
+        <tspan fill="#78716c"> today</tspan>
+        <tspan fill="#d6d3d1">   ·   </tspan>
+        <tspan fill="#78716c">0 slips</tspan>
+      </text>
+      <text x="640" y="684" text-anchor="middle" fill="#a8a29e">90 / 20 min</text>
+    </g>
+  </svg>
+
+  <script>
+    const TASK = "Ship the rhythm engine";
+    const PLACEHOLDER = "What are you working on?";
+
+    const $ = (id) => document.getElementById(id);
+
+    function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+    function span(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+    function fadeUp(t, a, b) {
+      const e = easeOut(span(t, a, b));
+      return { o: e, y: (1 - e) * 10 };
+    }
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function fmt(total) {
+      const s = Math.max(0, total);
+      return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+    }
+
+    function setFade(id, anim, extraY = 0) {
+      const el = $(id);
+      el.setAttribute("opacity", String(anim.o));
+      el.setAttribute("transform", `translate(0 ${anim.y + extraY})`);
+    }
+
+    window.renderAt = function renderAt(t) {
+      const header = fadeUp(t, 0.08, 0.7);
+      setFade("header", header);
+
+      const taskAnim = fadeUp(t, 0.45, 1.15);
+      setFade("task-block", taskAnim);
+
+      const typeP = easeOut(span(t, 1.2, 2.85));
+      const typed = TASK.slice(0, Math.round(typeP * TASK.length));
+      const showPlaceholder = typeP === 0;
+      $("task").textContent = showPlaceholder ? PLACEHOLDER : typed;
+      $("task").setAttribute("fill", showPlaceholder ? "#a8a29e" : "#1c1917");
+
+      const caretOn = t >= 1.15 && t < 3.05;
+      const blink = Math.floor(t * 2.4) % 2 === 0;
+      const text = showPlaceholder ? PLACEHOLDER : typed;
+      const approx = text.length * (showPlaceholder ? 10.6 : 10.2);
+      $("caret").setAttribute("x", String(640 + approx / 2 + 6));
+      $("caret").setAttribute("opacity", caretOn && blink ? "1" : "0");
+
+      const pills = fadeUp(t, 0.7, 1.4);
+      setFade("pills", pills);
+
+      const selected = t >= 2.55;
+      const selP = easeOut(span(t, 2.55, 3.05));
+      const codingBg = $("pill-coding-bg");
+      const codingTx = $("pill-coding-tx");
+      if (selected) {
+        codingBg.setAttribute("fill", "#1c1917");
+        codingBg.setAttribute("stroke", "none");
+        codingTx.setAttribute("fill", "#f5f2ec");
+        $("pill-coding").setAttribute("transform", `scale(${1 + (1 - selP) * 0.04})`);
+        $("pill-coding").setAttribute("transform-origin", "409px 194px");
+        $("pill-coding").style.transformOrigin = "409px 194px";
+      } else {
+        codingBg.setAttribute("fill", "none");
+        codingBg.setAttribute("stroke", "#d6d3d1");
+        codingTx.setAttribute("fill", "#78716c");
+        $("pill-coding").removeAttribute("transform");
+      }
+
+      const phase = fadeUp(t, 2.35, 3.2);
+      setFade("phase-block", phase);
+
+      const running = t >= 4.05;
+      const sessionT = Math.max(0, t - 4.05);
+      const secondsLeft = 90 * 60 - Math.floor(sessionT);
+      $("clock").textContent = fmt(secondsLeft);
+      $("phase").textContent = running ? "FOCUS · LIVE" : "FOCUS";
+      $("phase").setAttribute("letter-spacing", running ? "2.4" : "3.6");
+      const livePulse = running ? 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(sessionT * Math.PI * 2 / 2.8)) : 1;
+      $("phase").setAttribute("opacity", String(livePulse));
+
+      const progress = running ? Math.min(160, 6 + sessionT * 1.15) : 0;
+      $("progress").setAttribute("width", String(progress));
+
+      const cta = fadeUp(t, 2.7, 3.45);
+      const press = t >= 3.72 && t < 4.05;
+      const scale = press ? 0.975 : 1;
+      $("cta-block").setAttribute("opacity", String(cta.o));
+      $("cta-block").setAttribute("transform", `translate(0 ${cta.y})`);
+      $("cta").setAttribute("transform", `translate(640 518) scale(${scale}) translate(-640 -518)`);
+
+      if (running) {
+        $("cta-play").setAttribute("opacity", "0");
+        $("cta-pause").setAttribute("opacity", "1");
+        $("cta-label").textContent = "Pause";
+        $("cta-label").setAttribute("x", "662");
+      } else {
+        $("cta-play").setAttribute("opacity", "1");
+        $("cta-pause").setAttribute("opacity", "0");
+        $("cta-label").textContent = "Begin 90m";
+        $("cta-label").setAttribute("x", "676");
+      }
+
+      const actions = fadeUp(t, 3.0, 3.8);
+      setFade("actions", actions);
+      $("sound-waves").setAttribute("opacity", running ? "1" : "0.35");
+
+      const footer = fadeUp(t, 3.5, 4.4);
+      setFade("footer", footer);
+      $("today").textContent = running ? `${Math.max(1, Math.floor(sessionT) >= 1 ? 1 : 0)}m` : "0m";
+    };
+
+    window.__ready = document.fonts.ready.then(() => {
+      document.documentElement.dataset.fonts = "ready";
+    });
+
+    const params = new URLSearchParams(location.search);
+    if (params.has("t")) {
+      window.renderAt(Number(params.get("t")) || 0);
+    } else if (!params.has("still")) {
+      let start = null;
+      const loop = (now) => {
+        if (start == null) start = now;
+        const t = ((now - start) / 1000) % 10;
+        window.renderAt(t);
+        requestAnimationFrame(loop);
+      };
+      document.fonts.ready.then(() => requestAnimationFrame(loop));
+    } else {
+      document.fonts.ready.then(() => window.renderAt(0));
+    }
+  </script>
+</body>
+</html>
