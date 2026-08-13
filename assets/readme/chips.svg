@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="628" height="32" viewBox="0 0 628 32" role="img" aria-label="Focus, Rhythm, League">
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12">
+    <rect width="200" height="32" rx="16" fill="#1c1917"/>
+    <text x="100" y="21" text-anchor="middle" fill="#f5f2ec">Focus · the clock</text>
+
+    <rect x="214" width="200" height="32" rx="16" fill="#1c1917"/>
+    <text x="314" y="21" text-anchor="middle" fill="#f5f2ec">Rhythm · the ledger</text>
+
+    <rect x="428" width="200" height="32" rx="16" fill="#1c1917"/>
+    <text x="528" y="21" text-anchor="middle" fill="#f5f2ec">League · the tribe</text>
+  </g>
+</svg>

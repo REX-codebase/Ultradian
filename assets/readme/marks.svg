@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="704" height="32" viewBox="0 0 704 32" role="img" aria-label="Ultradian product marks">
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12">
+    <rect width="148" height="32" rx="16" fill="#1c1917"/>
+    <text x="74" y="21" text-anchor="middle" fill="#f5f2ec">90-minute BRAC</text>
+
+    <rect x="156" width="136" height="32" rx="16" fill="#1c1917"/>
+    <text x="224" y="21" text-anchor="middle" fill="#f5f2ec">4 archetypes</text>
+
+    <rect x="300" width="148" height="32" rx="16" fill="#1c1917"/>
+    <text x="374" y="21" text-anchor="middle" fill="#f5f2ec">120 professions</text>
+
+    <rect x="456" width="70" height="32" rx="16" fill="#1c1917"/>
+    <text x="491" y="21" text-anchor="middle" fill="#f5f2ec">SQI</text>
+
+    <rect x="534" width="170" height="32" rx="16" fill="#1c1917"/>
+    <text x="619" y="21" text-anchor="middle" fill="#f5f2ec">verified hours only</text>
+  </g>
+</svg>

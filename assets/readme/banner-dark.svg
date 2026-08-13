@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
+  <title id="title">Ultradian</title>
+  <desc id="desc">A focus engine for biological time. Name the work. Hold the wave.</desc>
+  <defs>
+    <radialGradient id="wash" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#141210"/>
+    </radialGradient>
+    <radialGradient id="amber" cx="18%" cy="12%" r="42%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="violet" cx="86%" cy="10%" r="38%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1.5" r="0.45" fill="#f5f2ec" opacity="0.035"/>
+      <circle cx="4.2" cy="4" r="0.35" fill="#f5f2ec" opacity="0.025"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="620" fill="url(#wash)"/>
+  <rect width="1280" height="620" fill="url(#amber)"/>
+  <rect width="1280" height="620" fill="url(#violet)"/>
+  <rect width="1280" height="620" fill="url(#grain)"/>
+  <rect x="0.5" y="0.5" width="1279" height="619" fill="none" stroke="#292524" stroke-width="1"/>
+
+  <text x="640" y="64" text-anchor="middle" fill="#f5f2ec" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-size="28" letter-spacing="-0.4">Ultradian</text>
+
+  <text x="560" y="100" text-anchor="middle" fill="#f5f2ec" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14">Focus</text>
+  <text x="640" y="100" text-anchor="middle" fill="#78716c" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14">Rhythm</text>
+  <text x="724" y="100" text-anchor="middle" fill="#78716c" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14">League</text>
+
+  <text x="640" y="176" text-anchor="middle" fill="#f5f2ec" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-size="34" letter-spacing="-0.6">What are you working on?</text>
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">
+    <rect x="368" y="202" width="82" height="32" rx="16" fill="#f5f2ec"/>
+    <text x="409" y="223" text-anchor="middle" fill="#1c1917">Coding</text>
+
+    <rect x="458" y="202" width="84" height="32" rx="16" fill="none" stroke="#44403c"/>
+    <text x="500" y="223" text-anchor="middle" fill="#a8a29e">Writing</text>
+
+    <rect x="550" y="202" width="80" height="32" rx="16" fill="none" stroke="#44403c"/>
+    <text x="590" y="223" text-anchor="middle" fill="#a8a29e">Design</text>
+
+    <rect x="638" y="202" width="96" height="32" rx="16" fill="none" stroke="#44403c"/>
+    <text x="686" y="223" text-anchor="middle" fill="#a8a29e">Research</text>
+
+    <rect x="742" y="202" width="92" height="32" rx="16" fill="none" stroke="#44403c"/>
+    <text x="788" y="223" text-anchor="middle" fill="#a8a29e">Strategy</text>
+
+    <rect x="842" y="202" width="70" height="32" rx="16" fill="none" stroke="#44403c"/>
+    <text x="877" y="223" text-anchor="middle" fill="#a8a29e">Study</text>
+  </g>
+
+  <text x="640" y="292" text-anchor="middle" fill="#a8a29e" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" letter-spacing="3.4">FOCUS · LIVE</text>
+
+  <text x="640" y="412" text-anchor="middle" fill="#f5f2ec" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-size="128" letter-spacing="-3">90:00</text>
+
+  <rect x="560" y="452" width="160" height="2" fill="#292524"/>
+  <rect x="560" y="452" width="58" height="2" fill="#e7e5e4"/>
+
+  <text x="640" y="530" text-anchor="middle" fill="#d6d3d1" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-size="20" font-style="italic">Work with your biology, not against it.</text>
+  <text x="640" y="562" text-anchor="middle" fill="#78716c" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" letter-spacing="0.4">90-minute BRAC · four archetypes · verified leagues</text>
+</svg>
