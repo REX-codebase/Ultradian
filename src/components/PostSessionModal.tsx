@@ -1,22 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
-import {
-  Flame,
-  Sparkles,
-  Star,
-  CheckCircle2,
-  Loader2,
-  SlidersHorizontal,
-  Battery,
-  Trophy,
-  Coffee,
-  ArrowRight,
-  Target,
-  Zap,
-} from 'lucide-react';
+import { Star, CheckCircle2 } from 'lucide-react';
 import { SessionRecord, CategoryTag } from '../types';
 import { playMilestoneSound } from '../utils/audio';
-import { calculateSQI, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
+import { calculateSQI } from '../utils/rhythmEngine';
+import { Sheet } from './Sheet';
 
 interface PostSessionModalProps {
   completedSession: {
@@ -51,18 +38,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
   const [manualMode, setManualMode] = useState<boolean>(false);
 
   useEffect(() => {
-    // Play celebratory sound & trigger confetti shower
     playMilestoneSound();
-    try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#f59e0b', '#10b981', '#6366f1', '#ec4899'],
-      });
-    } catch (e) {
-      console.warn('Confetti error:', e);
-    }
   }, []);
 
   const getFocusLabel = (score: number) => {
@@ -76,7 +52,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
       case 4:
         return 'Deep Flow State';
       case 5:
-        return 'Peak Cognitive Mastery 🧠';
+        return 'Peak';
       default:
         return 'High Quality';
     }
@@ -143,60 +119,27 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md animate-fade-in select-none">
-      <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800/90 shadow-2xl text-stone-900 dark:text-stone-100 relative overflow-hidden">
-        {/* Top Decorative Lights */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-emerald-500 to-indigo-500" />
-
-        {/* Accomplishment Header */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3 border border-amber-500/20 shadow-inner">
-            <Trophy className="w-8 h-8 animate-bounce" />
-          </div>
-
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-2">
-            ULTRADIAN WAVE COMPLETED
-          </span>
-
-          <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-stone-950 dark:text-stone-50">
-            Flow Session Mastered
+    <Sheet open onClose={onClose} labelledBy="session-complete-title">
+      <div className="px-6 pb-8 pt-3 text-[color:var(--ink)]">
+        <div className="mb-6 text-center">
+          <p className="text-xs tracking-[0.2em] uppercase text-[color:var(--ink-mute)]">Wave complete</p>
+          <h2 id="session-complete-title" className="mt-3 font-serif text-3xl tracking-tight">
+            {completedSession.durationMinutes} minutes
           </h2>
-
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-sm">
-            Completed <strong className="text-stone-900 dark:text-white">{completedSession.durationMinutes} minutes</strong> of undivided focus.
+          <p className="mt-2 text-sm text-[color:var(--ink-soft)]">
+            {completedSession.taskName || completedSession.category}
           </p>
         </div>
 
         {/* Session Accomplishment Summary Card */}
-        <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-750 mb-6 space-y-2">
+        <div className="mb-6 space-y-2 border-y border-[color:var(--line)] py-4 text-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Target className="w-4 h-4 text-amber-500" />
-              <span className="font-serif text-sm font-medium text-stone-900 dark:text-stone-100 truncate max-w-[200px]">
-                {completedSession.taskName || 'Focus Objective'}
-              </span>
-            </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 text-[10px] font-bold">
-              {completedSession.category}
-            </span>
+            <span className="text-[color:var(--ink-mute)]">Slips</span>
+            <span>{completedSession.distractionsCount}</span>
           </div>
-
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-stone-200/60 dark:border-stone-700/60">
-            <span className="text-stone-500 dark:text-stone-400">Interruption Register:</span>
-            {completedSession.distractionsCount === 0 ? (
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> 0 Distractions (Flawless Flow)
-              </span>
-            ) : (
-              <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                {completedSession.distractionsCount} Distractions Logged
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-stone-200/60 dark:border-stone-700/60">
-            <span className="text-stone-500 dark:text-stone-400">Calculated SQI:</span>
-            <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+          <div className="flex items-center justify-between">
+            <span className="text-[color:var(--ink-mute)]">SQI</span>
+            <span className="clock-face">
               {calculateSQI({
                 durationMinutes: completedSession.durationMinutes,
                 actualSecondsCompleted: completedSession.actualSecondsCompleted,
@@ -204,27 +147,18 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
                 energyLevelBefore: 4,
                 energyLevelAfter,
                 distractionsCount: completedSession.distractionsCount,
-              }).score}/100 Index
+              }).score}
             </span>
           </div>
         </div>
 
         {/* AI Result Confirmation Toast */}
         {aiResult ? (
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 border border-amber-500/40 text-stone-100 text-center space-y-3 animate-fade-in shadow-xl">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-widest">
-              Session Logged & Analyzed!
-            </h4>
-            <div className="p-3 rounded-xl bg-stone-800/80 border border-stone-700/80 text-xs text-stone-200 font-mono space-y-1 text-left">
-              <div>📍 <strong>Domain:</strong> {aiResult.category}</div>
-              <div>⚡ <strong>Focus Score:</strong> {aiResult.focusScore}/5 ({getFocusLabel(aiResult.focusScore)})</div>
-              <div>🔋 <strong>Post Energy:</strong> {aiResult.energyLevelAfter}/5</div>
-            </div>
-            <p className="text-[10px] text-stone-400 italic">
-              Entering recovery break...
+          <div className="space-y-3 py-2 text-center">
+            <CheckCircle2 className="mx-auto h-5 w-5 text-[color:var(--ink)]" />
+            <p className="font-serif text-xl">Saved</p>
+            <p className="text-sm text-[color:var(--ink-soft)]">
+              {aiResult.category} · {aiResult.focusScore}/5 · energy {aiResult.energyLevelAfter}/5
             </p>
           </div>
         ) : !manualMode ? (
@@ -236,7 +170,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
                 <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400">
                   Focus Quality Rating
                 </label>
-                <span className="text-xs font-serif italic text-amber-600 dark:text-amber-400 font-semibold">
+                <span className="text-sm text-[color:var(--ink-mute)]">
                   {getFocusLabel(focusRating)}
                 </span>
               </div>
@@ -250,10 +184,10 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
                     className="p-1 transition-transform hover:scale-125 active:scale-95"
                   >
                     <Star
-                      className={`w-7 h-7 ${
+                      className={`h-7 w-7 ${
                         star <= focusRating
-                          ? 'text-amber-500 fill-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]'
-                          : 'text-stone-300 dark:text-stone-700'
+                          ? 'fill-[color:var(--ink)] text-[color:var(--ink)]'
+                          : 'text-[color:var(--line)]'
                       }`}
                     />
                   </button>
@@ -271,7 +205,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
                 value={userNote}
                 onChange={(e) => setUserNote(e.target.value)}
                 placeholder="e.g. 'Finished the core UI layout smoothly, zero distractions.'"
-                className="w-full px-4 py-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-transparent px-4 py-3 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--ink-mute)] focus:outline-none"
               />
             </div>
 
@@ -279,19 +213,9 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
               <button
                 type="submit"
                 disabled={analyzing}
-                className="flex-1 py-4 rounded-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 font-bold text-xs tracking-wider uppercase shadow-lg flex items-center justify-center space-x-2 transition-all active:scale-95"
+                className="pressable flex min-h-12 flex-1 items-center justify-center rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]"
               >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
-                    <span>Gemini AI Parsing Reflection...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Complete Session & Rest</span>
-                  </>
-                )}
+                {analyzing ? <span className="ink-bar w-20" /> : <span>Save and rest</span>}
               </button>
             </div>
           </form>
@@ -338,6 +262,6 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
           </form>
         )}
       </div>
-    </div>
+    </Sheet>
   );
 };

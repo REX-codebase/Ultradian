@@ -47,13 +47,17 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
       </header>
 
       {isLoading && (
-        <p className="py-10 text-center text-sm text-stone-400">Loading tribes…</p>
+        <div className="space-y-3" aria-busy="true" aria-label="Loading tribes">
+          <div className="skeleton-line h-14 w-full rounded-xl" />
+          <div className="skeleton-line h-14 w-full rounded-xl" />
+          <div className="skeleton-line h-14 w-full rounded-xl" />
+        </div>
       )}
 
       {!isLoading && error && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 flex gap-3 text-amber-900 dark:text-amber-200">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-          <p className="text-xs leading-relaxed">{error}</p>
+        <div className="flex gap-3 border border-[color:var(--line)] px-4 py-3 text-[color:var(--ink-soft)]">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--ink-mute)]" />
+          <p className="text-sm leading-relaxed">{error}</p>
         </div>
       )}
 
@@ -76,15 +80,13 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
               <motion.div
                 key={tribe.id}
                 layout
-                className={`flex items-center justify-between p-4.5 transition-all duration-200 ${
-                  isUserTribe
-                    ? 'bg-amber-500/10 dark:bg-amber-400/10 font-semibold border-l-4 border-amber-500'
-                    : 'bg-white/60 dark:bg-stone-900/60 hover:bg-stone-50/80 dark:hover:bg-stone-850/80'
+                className={`flex items-center justify-between p-4 ${
+                  isUserTribe ? 'bg-[color:var(--ink)]/5' : ''
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <span className="w-6 text-center font-bold font-mono text-sm text-stone-500">
-                    {index === 0 ? <Trophy className="w-5 h-5 mx-auto text-amber-500 drop-shadow-xs" /> : `#${index + 1}`}
+                  <span className="w-6 text-center font-serif text-sm text-[color:var(--ink-mute)]">
+                    {index === 0 ? <Trophy className="mx-auto h-4 w-4" /> : `#${index + 1}`}
                   </span>
                   <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold text-sm flex items-center justify-center border border-stone-200 dark:border-stone-700">
                     {tribeDisplayMark(tribe.icon, tribe.name)}
@@ -93,8 +95,8 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
                     <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
                       {tribe.name}
                       {isUserTribe && (
-                        <span className="px-2 py-0.2 text-[9px] font-mono font-bold tracking-widest uppercase bg-amber-500 text-stone-950 rounded-full">
-                          YOU
+                        <span className="rounded-full bg-[color:var(--ink)] px-2 py-0.5 text-[10px] uppercase tracking-wider text-[color:var(--paper)]">
+                          You
                         </span>
                       )}
                     </span>

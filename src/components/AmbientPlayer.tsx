@@ -27,7 +27,7 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
 }) => {
   return (
     <section className="mx-auto w-full max-w-xl px-1" aria-label="Soundscape">
-      <div className="flex flex-wrap items-center justify-center gap-1.5">
+      <div className="chip-rail justify-start sm:justify-center px-1">
         {SOUNDSCAPES.map((sc) => {
           const selected = activeAmbient === sc.id;
           return (
@@ -35,10 +35,10 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
               key={sc.id}
               type="button"
               onClick={() => onSelectAmbient(sc.id)}
-              className={`min-h-10 rounded-full px-3.5 text-sm transition-colors ${
+              className={`pressable min-h-10 rounded-full px-3.5 text-sm ${
                 selected
-                  ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900'
-                  : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)]'
+                  : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]'
               }`}
               aria-pressed={selected}
             >
@@ -48,7 +48,7 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
         })}
       </div>
       {activeAmbient !== 'none' && (
-        <label className="mt-4 flex items-center justify-center gap-3 text-sm text-stone-500">
+        <label className="mt-4 flex items-center justify-center gap-3 text-sm text-[color:var(--ink-mute)]">
           <span className="sr-only">Volume</span>
           <input
             type="range"

@@ -19,6 +19,7 @@ import {
   getPeakTimeLabel,
 } from '../data/professions';
 import { buildRitualOnboardingSettings } from '../utils/ritualOnboarding';
+import { Sheet } from './Sheet';
 
 interface RitualOnboardingModalProps {
   isOpen: boolean;
@@ -96,8 +97,6 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
     });
   }, [searchQuery, activeTagFilter]);
 
-  if (!isOpen) return null;
-
   const currentArchetypeMeta = ARCHETYPES[selectedArchetype];
   const peakInfo = getPeakTimeLabel(peakHour);
 
@@ -136,11 +135,11 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
   const stepLabel = step === 1 ? 'Work' : step === 2 ? 'Peak' : 'Name';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-[max(0.75rem,env(safe-area-inset-top))] px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-stone-950/50 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 rounded-xl shadow-xs overflow-hidden my-auto text-stone-900 dark:text-stone-100 flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[92vh]">
-        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between gap-3 shrink-0">
+    <Sheet open={isOpen} onClose={onClose} size="lg" labelledBy="ritual-title">
+      <div className="flex max-h-[88dvh] flex-col text-[color:var(--ink)]">
+        <div className="flex items-center justify-between gap-3 px-5 pb-4 pt-2 sm:px-6 shrink-0">
           <div>
-            <h2 className="font-serif text-xl font-medium tracking-tight text-stone-950 dark:text-stone-50">
+            <h2 id="ritual-title" className="font-serif text-xl tracking-tight">
               Ritual
             </h2>
             <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
@@ -463,6 +462,6 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </Sheet>
   );
 };

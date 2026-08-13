@@ -44,8 +44,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   if (personalAnalytics.records.length === 0) {
     return (
       <div className="mx-auto max-w-xl px-2 py-16 text-center">
-        <h2 className="font-serif text-2xl text-stone-900 dark:text-stone-100">No waves yet</h2>
-        <p className="mt-3 text-base leading-relaxed text-stone-500">
+        <h2 className="font-serif text-2xl text-[color:var(--ink)]">No waves yet</h2>
+        <p className="mt-3 text-base leading-relaxed text-[color:var(--ink-soft)]">
           Finish a focus session and it will live here. Nothing is invented to fill the page.
         </p>
       </div>
@@ -64,14 +64,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label}>
-            <p className="text-sm text-stone-500">{stat.label}</p>
-            <p className="mt-1 font-serif text-3xl text-stone-900 dark:text-stone-50">{stat.value}</p>
+            <p className="text-sm text-[color:var(--ink-mute)]">{stat.label}</p>
+            <p className="mt-1 font-serif text-3xl text-[color:var(--ink)]">{stat.value}</p>
           </div>
         ))}
       </div>
 
       <div>
-        <h2 className="font-serif text-xl text-stone-900 dark:text-stone-100">This week</h2>
+        <h2 className="font-serif text-xl text-[color:var(--ink)]">This week</h2>
         <div className="mt-4 h-52 w-full sm:h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={personalAnalytics.weeklyData} margin={{ top: 8, right: 0, left: -28, bottom: 0 }}>
@@ -102,21 +102,21 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </div>
 
       <div>
-        <h2 className="font-serif text-xl text-stone-900 dark:text-stone-100">Recent</h2>
-        <ul className="mt-4 divide-y divide-stone-200/80 dark:divide-stone-800">
+        <h2 className="font-serif text-xl text-[color:var(--ink)]">Recent</h2>
+        <ul className="mt-4 divide-y divide-[color:var(--line)]">
           {personalAnalytics.records.slice(0, 8).map((rec) => (
             <li key={rec.id} className="flex min-h-14 items-baseline justify-between gap-4 py-3">
               <div className="min-w-0 text-left">
-                <p className="truncate text-base text-stone-800 dark:text-stone-200">
+                <p className="truncate text-base text-[color:var(--ink)]">
                   {rec.taskName || rec.category}
                 </p>
-                <p className="mt-0.5 text-sm text-stone-400">
+                <p className="mt-0.5 text-sm text-[color:var(--ink-mute)]">
                   {new Date(rec.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                   {' · '}
                   {rec.category}
                 </p>
               </div>
-              <span className="shrink-0 font-serif text-lg text-stone-700 dark:text-stone-300">
+              <span className="clock-face shrink-0 font-serif text-lg text-[color:var(--ink-soft)]">
                 {Math.round(rec.actualSecondsCompleted / 60)}m
               </span>
             </li>
@@ -127,7 +127,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <button
         type="button"
         onClick={() => setShowMore((open) => !open)}
-        className="min-h-11 text-sm text-stone-400 underline-offset-4 hover:text-stone-700 hover:underline dark:hover:text-stone-300"
+        className="pressable min-h-11 text-sm text-[color:var(--ink-mute)] underline-offset-4 hover:text-[color:var(--ink)] hover:underline"
       >
         {showMore ? 'Hide notes' : 'Notes & experiment'}
       </button>

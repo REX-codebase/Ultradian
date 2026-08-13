@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Clock, Mail, Lock, User, Sparkles, AlertCircle, ArrowRight, Chrome, X, Cloud } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Mail, Lock, User, AlertCircle, ArrowRight, X } from 'lucide-react';
 import {
   signInWithEmail,
   signUpWithEmail,
   signInAnonymouslyUser,
   signInWithGoogle,
 } from '../services/authService';
-import { FluidCanvas } from './FluidCanvas';
+import { Sheet } from './Sheet';
 
 interface LoginScreenProps {
   onAuthSuccess: (user: any) => void;
@@ -45,41 +44,39 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
       const errCode = err?.code || '';
       const errMsg = err?.message || 'An unexpected authentication error occurred.';
 
-      let errorTitle = 'Authentication Error';
+      let errorTitle = 'Could not sign in';
       let errorDesc = errMsg;
 
       if (errCode === 'auth/operation-not-allowed' || errMsg.includes('operation-not-allowed')) {
-        errorTitle = 'Email/Password Authentication Disabled';
-        errorDesc = 'Email/Password sign-in is not enabled in Firebase Auth settings. You can still sign in as a Guest or with Google.';
+        errorTitle = 'Email sign-in is off';
+        errorDesc = 'Email sign-in is disabled in Firebase. Use Google, or stay on this device.';
       } else if (errCode === 'auth/unauthorized-domain' || errMsg.includes('unauthorized-domain')) {
-        errorTitle = 'Unauthorized Domain';
-        errorDesc = 'This preview domain is not in the authorized domains list for popups.';
+        errorTitle = 'Domain not allowed';
+        errorDesc = 'This preview domain is not authorized for popups.';
       } else if (errMsg.includes('auth/invalid-credential') || errMsg.includes('auth/user-not-found') || errMsg.includes('auth/wrong-password')) {
-        errorTitle = 'Sign In Failed';
-        errorDesc = 'Invalid email or password. If you don\'t have an account yet, switch to Register or use Quick Test Account below.';
+        errorTitle = 'Sign in failed';
+        errorDesc = 'Email or password did not match. Register, or stay local.';
       } else if (errMsg.includes('auth/email-already-in-use')) {
-        errorTitle = 'Account Exists';
-        errorDesc = 'This email address is already registered. Switch to Sign In to log in with this email.';
+        errorTitle = 'Account exists';
+        errorDesc = 'This email is already registered. Switch to sign in.';
       } else if (errMsg.includes('auth/weak-password')) {
-        errorTitle = 'Weak Password';
-        errorDesc = 'Password must be at least 6 characters long.';
+        errorTitle = 'Password too short';
+        errorDesc = 'Use at least 6 characters.';
       } else if (errMsg.includes('auth/invalid-email')) {
-        errorTitle = 'Invalid Email';
-        errorDesc = 'Please enter a valid email address.';
+        errorTitle = 'Invalid email';
+        errorDesc = 'Enter a valid email address.';
       }
 
       setError(
-        <div className="space-y-1.5 text-left">
-          <p className="font-bold text-red-800 dark:text-red-400">{errorTitle}</p>
-          <p className="font-normal text-stone-600 dark:text-stone-300 leading-relaxed text-xs">{errorDesc}</p>
+        <div className="space-y-1 text-left">
+          <p className="font-medium text-[color:var(--ink)]">{errorTitle}</p>
+          <p className="text-sm leading-relaxed text-[color:var(--ink-soft)]">{errorDesc}</p>
         </div>
       );
     } finally {
       setLoading(false);
     }
   };
-
-
 
   const handleGuestLogin = async () => {
     setError(null);
@@ -92,15 +89,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
       const errMsg = err?.message || '';
       if (errMsg.includes('operation-not-allowed')) {
         setError(
-          <div className="space-y-1 text-left text-xs">
-            <p className="font-bold text-amber-800 dark:text-amber-400">Guest Sign-In Notice</p>
-            <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
-              Anonymous sign-in is disabled in Firebase Console. Please register or sign in with Email & Password.
+          <div className="space-y-1 text-left">
+            <p className="font-medium text-[color:var(--ink)]">Guest sign-in is off</p>
+            <p className="text-sm leading-relaxed text-[color:var(--ink-soft)]">
+              Anonymous sign-in is disabled. Register with email, or keep working on this device.
             </p>
           </div>
         );
       } else {
-        setError('Failed to sign in as guest. Please try email sign in.');
+        setError('Guest sign-in failed. Try email instead.');
       }
     } finally {
       setLoading(false);
@@ -118,24 +115,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
       const errCode = err?.code || '';
       const errMsg = err?.message || 'Google login error occurred.';
 
-      let errorTitle = 'Google Sign-In Notice';
+      let errorTitle = 'Google sign-in';
       let errorDesc = errMsg;
 
       if (errCode === 'auth/unauthorized-domain' || errMsg.includes('unauthorized-domain')) {
-        errorTitle = 'Domain Authorization Required';
-        errorDesc = 'Google OAuth popup requires domain authorization. Please use Email/Password Sign-In or Guest Sign-In below for preview testing.';
+        errorTitle = 'Domain not allowed';
+        errorDesc = 'Google needs this domain authorized. Use email, or stay local.';
       } else if (errMsg.includes('auth/popup-blocked')) {
-        errorTitle = 'Popup Blocked';
-        errorDesc = 'The sign-in popup was blocked by your browser. Please allow popups or use Email/Password sign-in.';
+        errorTitle = 'Popup blocked';
+        errorDesc = 'Allow popups, or use email sign-in.';
       } else if (errMsg.includes('auth/popup-closed-by-user')) {
-        errorTitle = 'Popup Closed';
-        errorDesc = 'The Google sign-in window was closed before completing.';
+        errorTitle = 'Window closed';
+        errorDesc = 'The Google window closed before finishing.';
       }
 
       setError(
-        <div className="space-y-1.5 text-left text-xs">
-          <p className="font-bold text-red-800 dark:text-red-400">{errorTitle}</p>
-          <p className="font-normal text-stone-600 dark:text-stone-300 leading-relaxed">{errorDesc}</p>
+        <div className="space-y-1 text-left">
+          <p className="font-medium text-[color:var(--ink)]">{errorTitle}</p>
+          <p className="text-sm leading-relaxed text-[color:var(--ink-soft)]">{errorDesc}</p>
         </div>
       );
     } finally {
@@ -143,61 +140,41 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
     }
   };
 
+  const fieldClass =
+    'w-full rounded-xl border border-[color:var(--line)] bg-transparent px-4 py-3 text-[color:var(--ink)] placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--ink-mute)] focus:outline-none';
+
   const content = (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="relative z-10 w-full max-w-md my-auto bg-stone-50/95 dark:bg-stone-950/95 backdrop-blur-xl border border-stone-200/80 dark:border-stone-900/80 shadow-2xl p-5 sm:p-7 rounded-2xl max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-stone-300 dark:[&::-webkit-scrollbar-thumb]:bg-stone-700"
-    >
-      {/* Close Button if Modal or onClose provided */}
+    <div className="px-5 pb-6 pt-2 sm:px-7 sm:pb-8">
       {onClose && (
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-colors z-20"
+          className="pressable absolute right-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-[color:var(--ink-mute)]"
           title="Close sign in"
         >
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" />
         </button>
       )}
 
-      {/* Brand Banner */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 mb-3 shadow-lg">
-          <Clock className="w-5 h-5 stroke-[1.5]" />
-        </div>
-        <h1 className="font-serif text-2xl tracking-tight text-center font-medium text-stone-900 dark:text-stone-100">
-          Ultradian <span className="italic font-light text-stone-500 dark:text-stone-400">Pulse</span>
-        </h1>
-        <p className="text-[10px] text-stone-400 dark:text-stone-500 mt-1 font-semibold tracking-wider uppercase text-center">
-          Basic Rest-Activity Cycle (BRAC) Companion
+      <div className="mb-6 text-center">
+        <h1 className="font-serif text-3xl tracking-tight text-[color:var(--ink)]">Ultradian</h1>
+        <p className="mt-2 text-sm text-[color:var(--ink-mute)]">
+          Sessions stay on this device until you sign in.
         </p>
       </div>
 
-      {/* Guest Mode Notice Banner */}
-      <div className="mb-5 p-3 rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200/70 dark:border-stone-800 text-xs text-stone-600 dark:text-stone-300 flex items-start gap-2.5">
-        <Cloud className="w-4 h-4 text-stone-800 dark:text-stone-200 shrink-0 mt-0.5" />
-        <div className="leading-relaxed">
-          <strong className="text-stone-900 dark:text-stone-100 block">Guest Mode is Active</strong>
-          All focus waves and settings are saved locally on your device. Sign in or register to sync data to the cloud.
-        </div>
-      </div>
-
-      {/* Auth Mode Selector Tabs */}
-      <div className="flex bg-stone-200/60 dark:bg-stone-900/60 p-1 rounded-xl mb-5">
+      <div className="mb-5 flex rounded-full bg-[color:var(--line)]/50 p-1">
         <button
           type="button"
           onClick={() => {
             setIsSignUp(false);
             setError(null);
           }}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-            !isSignUp
-              ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
-              : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+          className={`pressable min-h-10 flex-1 rounded-full text-sm ${
+            !isSignUp ? 'bg-[color:var(--paper-raised)] text-[color:var(--ink)]' : 'text-[color:var(--ink-mute)]'
           }`}
         >
-          Sign In
+          Sign in
         </button>
         <button
           type="button"
@@ -205,161 +182,124 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
             setIsSignUp(true);
             setError(null);
           }}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-            isSignUp
-              ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
-              : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+          className={`pressable min-h-10 flex-1 rounded-full text-sm ${
+            isSignUp ? 'bg-[color:var(--paper-raised)] text-[color:var(--ink)]' : 'text-[color:var(--ink-mute)]'
           }`}
         >
-          Register / Sync
+          Register
         </button>
       </div>
 
-      {/* Error Alert */}
       {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-5 p-3.5 rounded-xl bg-red-50/90 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/40 flex items-start gap-3"
-        >
-          <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-          <div className="text-xs font-semibold text-red-700 dark:text-red-300 leading-normal grow">
-            {error}
-          </div>
-        </motion.div>
+        <div className="mb-5 flex items-start gap-3 rounded-xl border border-[color:var(--line)] px-3.5 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--ink-mute)]" />
+          <div className="text-sm text-[color:var(--ink-soft)]">{error}</div>
+        </div>
       )}
 
-      {/* Login Form */}
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {isSignUp && (
-          <div className="space-y-1">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Leaderboard Handle / Display Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
+          <label className="block">
+            <span className="mb-1.5 block text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">
+              Display name
+            </span>
+            <span className="relative block">
+              <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
               <input
                 type="text"
                 required
-                placeholder="e.g. WaveRider"
+                placeholder="How you appear on the league"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-100/60 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800/80 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
+                className={`${fieldClass} pl-10`}
               />
-            </div>
-          </div>
+            </span>
+          </label>
         )}
 
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              Email Address
-            </label>
-
-          </div>
-          <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
+        <label className="block">
+          <span className="mb-1.5 block text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">Email</span>
+          <span className="relative block">
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
             <input
               type="email"
               required
               placeholder="name@domain.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-100/60 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800/80 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
+              className={`${fieldClass} pl-10`}
+              autoComplete="email"
             />
-          </div>
-        </div>
+          </span>
+        </label>
 
-        <div className="space-y-1">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
+        <label className="block">
+          <span className="mb-1.5 block text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">Password</span>
+          <span className="relative block">
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
             <input
               type="password"
               required
               placeholder={isSignUp ? 'At least 6 characters' : '••••••••'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-100/60 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800/80 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-transparent transition-all"
+              className={`${fieldClass} pl-10`}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
             />
-          </div>
-        </div>
+          </span>
+        </label>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 px-4 mt-4 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+          className="pressable mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[color:var(--paper)] disabled:opacity-50"
         >
           {loading ? (
-            <span className="w-4 h-4 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
+            <span className="ink-bar w-16" />
           ) : (
             <>
-              <span>{isSignUp ? 'Sync Local Data to Account' : 'Sign In & Sync Cloud'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>{isSignUp ? 'Create account' : 'Sign in'}</span>
+              <ArrowRight className="h-4 w-4" />
             </>
           )}
         </button>
       </form>
 
-      {/* Alternate Firebase Auth Options */}
-      <div className="mt-5 flex flex-col items-center gap-2.5 border-t border-stone-200/60 dark:border-stone-900/60 pt-5">
-        <div className="flex items-center gap-2 w-full text-stone-300 dark:text-stone-800">
-          <div className="h-[1px] bg-stone-200 dark:bg-stone-900 grow" />
-          <span className="text-[9px] uppercase tracking-widest font-extrabold text-stone-400 dark:text-stone-500">
-            or sign in with
-          </span>
-          <div className="h-[1px] bg-stone-200 dark:bg-stone-900 grow" />
-        </div>
-
+      <div className="mt-6 space-y-2 border-t border-[color:var(--line)] pt-5">
         <button
           type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-900 bg-white dark:bg-stone-900 hover:bg-stone-100/50 dark:hover:bg-stone-800/50 text-stone-700 dark:text-stone-300 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs"
+          className="pressable min-h-12 w-full rounded-full border border-[color:var(--line)] text-sm text-[color:var(--ink-soft)]"
         >
-          <Chrome className="w-3.5 h-3.5 text-stone-500" />
-          <span>Google Sign-In</span>
+          Continue with Google
         </button>
-
         <button
           type="button"
           onClick={() => {
-            if (onClose) {
-              onClose();
-            } else {
-              handleGuestLogin();
-            }
+            if (onClose) onClose();
+            else handleGuestLogin();
           }}
           disabled={loading}
-          className="w-full py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-900 hover:bg-stone-100/50 dark:hover:bg-stone-900/30 text-stone-600 dark:text-stone-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+          className="pressable min-h-12 w-full text-sm text-[color:var(--ink-mute)]"
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Continue in Local Guest Mode</span>
+          Stay on this device
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 
   if (isModal || onClose) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-950/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <Sheet open onClose={onClose || (() => undefined)} size="sm">
         {content}
-      </div>
+      </Sheet>
     );
   }
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-stone-50 dark:bg-stone-950 p-4 sm:p-6 transition-colors duration-500 overflow-y-auto select-none">
-      {/* Dynamic Interactive Fluid Canvas Background */}
-      <FluidCanvas />
-
-      {/* Decorative Warm Light Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-[35rem] h-[35rem] bg-stone-200/30 dark:bg-stone-900/10 rounded-full blur-[100px] pointer-events-none z-0" />
-      <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-stone-300/20 dark:bg-stone-900/10 rounded-full blur-[80px] pointer-events-none z-0" />
-
-      {content}
+    <div className="app-shell flex min-h-dvh items-center justify-center p-4">
+      <div className="sheet-panel relative w-full max-w-md rounded-[1.5rem]">{content}</div>
     </div>
   );
 };

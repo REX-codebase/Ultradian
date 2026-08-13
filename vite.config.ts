@@ -16,8 +16,8 @@ export default defineConfig(() => {
           name: 'Ultradian Pulse',
           short_name: 'Ultradian',
           description: 'Bio-Rhythm Focus & Flow State Tracker with Progressive Overload & AI Reflection',
-          theme_color: '#0c0a09',
-          background_color: '#0c0a09',
+          theme_color: '#1a1816',
+          background_color: '#f6f3ee',
           display: 'standalone',
           orientation: 'portrait',
           icons: [

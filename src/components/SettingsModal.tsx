@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Settings, Volume2, Play, X, Clock, LogOut, Cloud, UserRound } from 'lucide-react';
+import { Volume2, Play, X, Clock, LogOut, Cloud, UserRound } from 'lucide-react';
+import { Sheet } from './Sheet';
 import { UserSettings, SoundEffectType } from '../types';
 import { playNotificationSound } from '../utils/audio';
 import {
@@ -68,33 +69,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-8 rounded-xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-xs text-stone-900 dark:text-stone-100">
-        <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-5 mb-5">
-          <div className="flex items-center space-x-3.5">
-            <div className="p-2 rounded-sm bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900">
-              <Settings className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <h2 className="font-serif text-xl font-medium text-stone-950 dark:text-stone-50">Settings</h2>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
-                {TAB_META[workspace.tab].caption}
-              </p>
-            </div>
+    <Sheet open onClose={onClose} labelledBy="settings-title">
+      <div className="px-5 pb-6 pt-2 sm:px-8 sm:pb-8 text-[color:var(--ink)]">
+        <div className="mb-5 flex items-center justify-between pb-4">
+          <div>
+            <h2 id="settings-title" className="font-serif text-xl text-[color:var(--ink)]">Settings</h2>
+            <p className="mt-0.5 text-sm text-[color:var(--ink-mute)]">
+              {TAB_META[workspace.tab].caption}
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 min-h-11 min-w-11 rounded-md text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+            className="pressable inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-[color:var(--ink-mute)]"
           >
-            <X className="w-4.5 h-4.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         <div
           role="tablist"
           aria-label="Settings sections"
-          className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-stone-100/80 p-1 dark:bg-stone-950"
+          className="mb-6 flex gap-1 overflow-x-auto rounded-full bg-[color:var(--line)]/45 p-1"
         >
           {SETTINGS_TABS.map((tab) => {
             const selected = workspace.tab === tab;
@@ -106,10 +102,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 aria-selected={selected}
                 data-settings-tab={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`min-h-11 flex-1 rounded-lg px-3 text-xs font-semibold tracking-wide transition-colors ${
+                className={`pressable min-h-11 flex-1 rounded-full px-3 text-sm ${
                   selected
-                    ? 'bg-white text-stone-900 shadow-xs dark:bg-stone-800 dark:text-stone-50'
-                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                    ? 'bg-[color:var(--paper-raised)] text-[color:var(--ink)]'
+                    : 'text-[color:var(--ink-mute)]'
                 }`}
               >
                 {TAB_META[tab].label}
@@ -175,7 +171,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClose();
                     onOpenRitualOnboarding();
                   }}
-                  className="w-full min-h-11 py-2 px-3 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2"
+                  className="pressable flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--line)] text-sm text-[color:var(--ink-soft)]"
                 >
                   <UserRound className="w-3.5 h-3.5" />
                   <span>Revisit ritual</span>
@@ -408,12 +404,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <button
             type="submit"
-            className="w-full min-h-11 py-4 mt-2 rounded-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 font-semibold text-xs tracking-wider uppercase shadow-xs"
+            className="pressable mt-2 min-h-12 w-full rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]"
           >
-            Apply Configurations
+            Save
           </button>
         </form>
       </div>
-    </div>
+    </Sheet>
   );
 };

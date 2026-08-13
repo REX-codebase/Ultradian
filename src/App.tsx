@@ -4,14 +4,14 @@ import { HomeCommandCenter } from './components/HomeCommandCenter';
 import { SoftSessionTransition } from './components/SoftSessionTransition';
 import { AmbientPlayer } from './components/AmbientPlayer';
 import { ZenMode } from './components/ZenMode';
-import { ThemeTransitionSpectacle } from './components/ThemeTransitionSpectacle';
 import { LEVEL_INFO } from './components/ProgressiveOverloadBanner';
 import { TribalLeaderboardCard } from './components/TribalLeaderboardCard';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { RecoveryPromptBanner } from './components/RecoveryPromptBanner';
 import { LoginScreen } from './components/LoginScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LoadingFallback } from './components/LoadingStates';
+import { BootScreen, LoadingFallback } from './components/LoadingStates';
+import { TabStage } from './components/TabStage';
 import { evaluateRecoveryPrompts } from './utils/rhythmEngine';
 
 // Lazy load heavy components for performance optimization
@@ -278,47 +278,51 @@ export default function App() {
   // Exact target timestamp ref to eliminate background tab timing drift
   const endTimeRef = useRef<number | null>(null);
 
-  // Theme Transition Spectacle State
-  const [spectacleState, setSpectacleState] = useState<{
-    isTransitioning: boolean;
-    targetDarkMode: boolean;
-    originX: number;
-    originY: number;
-  }>({
-    isTransitioning: false,
-    targetDarkMode: settings.darkMode,
-    originX: 0,
-    originY: 0,
+  const themeLockRef = useRef(false);
+  const tabOrder = useMemo(
+    () =>
+      (settings.enableCompetitiveLeagues
+        ? (['timer', 'analytics', 'friends'] as const)
+        : (['timer', 'analytics'] as const)),
+    [settings.enableCompetitiveLeagues]
+  );
+  const prevTabRef = useRef(activeTab);
+  const [tabDirection, setTabDirection] = useState(0);
+  const [visitedTabs, setVisitedTabs] = useState<Record<'timer' | 'analytics' | 'friends', boolean>>({
+    timer: true,
+    analytics: false,
+    friends: false,
   });
+
+  const handleChangeTab = useCallback((tab: 'timer' | 'analytics' | 'friends') => {
+    const from = tabOrder.indexOf(prevTabRef.current as (typeof tabOrder)[number]);
+    const to = tabOrder.indexOf(tab as (typeof tabOrder)[number]);
+    setTabDirection(to >= from ? 1 : -1);
+    prevTabRef.current = tab;
+    setVisitedTabs((current) => ({ ...current, [tab]: true }));
+    setActiveTab(tab);
+  }, [tabOrder]);
 
   // Apply dark mode class to root HTML element
   useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#141210');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#1a1816');
     } else {
       document.documentElement.classList.remove('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f7f4ef');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f6f3ee');
     }
   }, [settings.darkMode]);
 
-  // Trigger smooth spectacle transition when toggling theme
   const handleToggleTheme = (e?: React.MouseEvent) => {
+    if (themeLockRef.current) return;
     const nextDarkMode = !settings.darkMode;
-    const clickX = e ? e.clientX : window.innerWidth - 120;
+    const clickX = e ? e.clientX : window.innerWidth - 48;
     const clickY = e ? e.clientY : 32;
 
     const root = document.documentElement;
     root.style.setProperty('--theme-x', `${clickX}px`);
     root.style.setProperty('--theme-y', `${clickY}px`);
-    root.classList.add('theme-transition-active');
-
-    setSpectacleState({
-      isTransitioning: true,
-      targetDarkMode: nextDarkMode,
-      originX: clickX,
-      originY: clickY,
-    });
 
     const applyChange = () => {
       const updated = { ...settings, darkMode: nextDarkMode };
@@ -326,11 +330,24 @@ export default function App() {
       saveSettings(updated);
     };
 
-    applyChange();
-
-    setTimeout(() => {
+    const finish = () => {
+      themeLockRef.current = false;
       root.classList.remove('theme-transition-active');
-    }, 850);
+    };
+
+    themeLockRef.current = true;
+    const docWithTransition = document as Document & {
+      startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+    };
+
+    if (typeof docWithTransition.startViewTransition === 'function') {
+      docWithTransition.startViewTransition(applyChange).finished.finally(finish);
+      return;
+    }
+
+    root.classList.add('theme-transition-active');
+    applyChange();
+    window.setTimeout(finish, 520);
   };
 
   // Request browser notification permission
@@ -753,19 +770,24 @@ export default function App() {
   })();
 
   if (isAuthLoading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-[color:var(--paper)] text-stone-500">
-        <p className="font-serif text-lg">Ultradian</p>
-      </div>
-    );
+    return <BootScreen />;
   }
 
   // Latest session for flex card
   const latestSession = sessionRecords[0] || null;
+  const sheetOpen =
+    isSettingsOpen ||
+    isAuthModalOpen ||
+    isOnboardingOpen ||
+    isShareOpen ||
+    !!completedSessionData ||
+    !!unlockedLevelModal ||
+    showFlexModal ||
+    !!softTransition;
 
   return (
-    <div className="min-h-dvh bg-[color:var(--paper)] text-stone-900 dark:text-stone-100 font-sans selection:bg-stone-900/90 selection:text-stone-50 dark:selection:bg-stone-100 dark:selection:text-stone-900">
-      {/* Top Header */}
+    <div className={`app-shell text-[color:var(--ink)] font-sans selection:bg-[color:var(--ink)] selection:text-[color:var(--paper)] ${sheetOpen ? 'is-recessed' : ''}`}>
+      <div className="app-shell-inner">
       <Navbar
         settings={settings}
         onUpdateSettings={handleUpdateSettings}
@@ -776,7 +798,7 @@ export default function App() {
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onOpenRitualOnboarding={() => setIsOnboardingOpen(true)}
         activeTab={activeTab}
-        onChangeTab={setActiveTab}
+        onChangeTab={handleChangeTab}
         notificationPermission={notificationPermission}
         onRequestNotifications={handleRequestNotifications}
         toggleAmbient={() =>
@@ -787,125 +809,120 @@ export default function App() {
         fbUser={fbUser}
       />
 
-      {/* Visual Theme Transition Spectacle Canvas & Waves */}
-      <ThemeTransitionSpectacle
-        isTransitioning={spectacleState.isTransitioning}
-        targetDarkMode={spectacleState.targetDarkMode}
-        originX={spectacleState.originX}
-        originY={spectacleState.originY}
-        onComplete={() =>
-          setSpectacleState((prev) => ({ ...prev, isTransitioning: false }))
-        }
-      />
-
-      {/* Cloud sync notice: no failed Firebase request is ever represented as an empty history. */}
       {cloudSyncError && (
-        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3 px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3 px-4 py-3 text-sm text-[color:var(--ink-soft)]">
           <p>{cloudSyncError}</p>
-          <button type="button" onClick={() => setCloudSyncError(null)} className="min-h-11 shrink-0 text-stone-400 hover:text-stone-700">
+          <button type="button" onClick={() => setCloudSyncError(null)} className="min-h-11 shrink-0 text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]">
             Dismiss
           </button>
         </div>
       )}
 
       {authError && (
-        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3 px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3 px-4 py-3 text-sm text-[color:var(--ink-soft)]">
           <p>Cloud sign-in is unavailable. Sessions stay on this device.</p>
-          <button type="button" onClick={() => setAuthError(null)} className="min-h-11 shrink-0 text-stone-400 hover:text-stone-700">
+          <button type="button" onClick={() => setAuthError(null)} className="min-h-11 shrink-0 text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]">
             Dismiss
           </button>
         </div>
       )}
 
-      <main className="app-main mx-auto max-w-3xl px-4 pb-28 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
+      <main className="app-main mx-auto max-w-3xl px-4 pb-36 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
         <PwaInstallPrompt />
 
-        {activeTab === 'timer' && (
-          <div className="space-y-10 animate-fade-in">
-            <HomeCommandCenter
-              currentTask={currentTask}
-              onTaskChange={setCurrentTask}
-              category={category}
-              onCategoryChange={setCategory}
-              secondsLeft={secondsLeft}
-              totalSeconds={totalSeconds}
-              isRunning={isRunning}
-              sessionType={sessionType}
-              onStart={handleStart}
-              onPause={handlePause}
-              onReset={handleReset}
-              onSkip={handleSkip}
-              distractionsCount={distractionsCount}
-              onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
-              completedCyclesToday={completedCyclesToday}
-              targetCycles={settings.dailyGoalCycles}
-              settings={settings}
-              onSelectPreset={handleSelectPreset}
-              onApplyRecommendation={handleApplyRecommendation}
-              sessionRecords={sessionRecords}
-              activeAmbient={settings.ambientType}
-              onToggleAmbient={() =>
-                handleSelectAmbient(settings.ambientType === 'none' ? 'alpha_binaural' : 'none')
-              }
-              onToggleZen={() => setIsZenActive(true)}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              isAuthorizedForAi={isAuthorizedForAi}
-              onOpenAuth={() => setIsAuthModalOpen(true)}
-            />
-
-            {activeRecoveryPrompts.length > 0 && (
-              <RecoveryPromptBanner
-                prompts={activeRecoveryPrompts}
-                onStartMicroHabit={(habit) => {
-                  if (habit === 'theta_soundscape') handleSelectAmbient('theta_binaural');
-                }}
-              />
-            )}
-
-            <AmbientPlayer
-              activeAmbient={settings.ambientType}
-              ambientVolume={settings.ambientVolume}
-              onSelectAmbient={handleSelectAmbient}
-              onVolumeChange={handleAmbientVolumeChange}
-            />
-          </div>
-        )}
-
-        {activeTab === 'analytics' && (
-          <ErrorBoundary>
-            <Suspense fallback={<LoadingFallback label="Loading Analytics Dashboard..." />}>
-              <AnalyticsDashboard
-                records={sessionRecords}
-                dailyGoalCycles={settings.dailyGoalCycles}
+        <TabStage active={activeTab} direction={tabDirection}>
+          <div hidden={activeTab !== 'timer'}>
+            <div className="space-y-10">
+              <HomeCommandCenter
+                currentTask={currentTask}
+                onTaskChange={setCurrentTask}
+                category={category}
+                onCategoryChange={setCategory}
+                secondsLeft={secondsLeft}
+                totalSeconds={totalSeconds}
+                isRunning={isRunning}
+                sessionType={sessionType}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                onSkip={handleSkip}
+                distractionsCount={distractionsCount}
+                onAddDistraction={() => setDistractionsCount((prev) => prev + 1)}
+                completedCyclesToday={completedCyclesToday}
+                targetCycles={settings.dailyGoalCycles}
                 settings={settings}
+                onSelectPreset={handleSelectPreset}
                 onApplyRecommendation={handleApplyRecommendation}
+                sessionRecords={sessionRecords}
+                activeAmbient={settings.ambientType}
+                onToggleAmbient={() =>
+                  handleSelectAmbient(settings.ambientType === 'none' ? 'alpha_binaural' : 'none')
+                }
+                onToggleZen={() => setIsZenActive(true)}
+                onOpenSettings={() => setIsSettingsOpen(true)}
                 isAuthorizedForAi={isAuthorizedForAi}
                 onOpenAuth={() => setIsAuthModalOpen(true)}
               />
-            </Suspense>
-          </ErrorBoundary>
-        )}
 
-        {activeTab === 'friends' && settings.enableCompetitiveLeagues && (
-          <div className="mx-auto max-w-xl space-y-10 animate-fade-in">
-            <TribalLeaderboardCard userTribeId={settings.tribeId} />
-
-            <ErrorBoundary>
-              <Suspense fallback={<LoadingFallback label="Loading Social Leaderboard..." />}>
-                <SocialShareModal
-                  userStats={userStats}
-                  globalRank={globalRank}
-                  rivalInfo={rivalInfo}
-                  currentLeague={selectedLeague}
-                  leagueMembers={leagueMembers}
-                  onSelectLeague={setSelectedLeague}
-                  isInline={true}
+              {activeRecoveryPrompts.length > 0 && (
+                <RecoveryPromptBanner
+                  prompts={activeRecoveryPrompts}
+                  onStartMicroHabit={(habit) => {
+                    if (habit === 'theta_soundscape') handleSelectAmbient('theta_binaural');
+                  }}
                 />
-              </Suspense>
-            </ErrorBoundary>
+              )}
+
+              <AmbientPlayer
+                activeAmbient={settings.ambientType}
+                ambientVolume={settings.ambientVolume}
+                onSelectAmbient={handleSelectAmbient}
+                onVolumeChange={handleAmbientVolumeChange}
+              />
+            </div>
           </div>
-        )}
+
+          {(visitedTabs.analytics || activeTab === 'analytics') && (
+            <div hidden={activeTab !== 'analytics'}>
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingFallback variant="rhythm" label="Reading your rhythm" />}>
+                  <AnalyticsDashboard
+                    records={sessionRecords}
+                    dailyGoalCycles={settings.dailyGoalCycles}
+                    settings={settings}
+                    onApplyRecommendation={handleApplyRecommendation}
+                    isAuthorizedForAi={isAuthorizedForAi}
+                    onOpenAuth={() => setIsAuthModalOpen(true)}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          )}
+
+          {settings.enableCompetitiveLeagues && (visitedTabs.friends || activeTab === 'friends') && (
+            <div hidden={activeTab !== 'friends'}>
+              <div className="mx-auto max-w-xl space-y-10">
+                <TribalLeaderboardCard userTribeId={settings.tribeId} />
+
+                <ErrorBoundary>
+                  <Suspense fallback={<LoadingFallback variant="league" label="Loading standings" />}>
+                    <SocialShareModal
+                      userStats={userStats}
+                      globalRank={globalRank}
+                      rivalInfo={rivalInfo}
+                      currentLeague={selectedLeague}
+                      leagueMembers={leagueMembers}
+                      onSelectLeague={setSelectedLeague}
+                      isInline={true}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
+              </div>
+            </div>
+          )}
+        </TabStage>
       </main>
+      </div>
 
       {/* Zen Distraction-Blocking Fullscreen Overlay */}
       {isZenActive && (
@@ -930,7 +947,7 @@ export default function App() {
       {/* Post Session Reflection Modal (Phase 2 AI Journal) */}
       {completedSessionData && (
         <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback label="Loading Journal Modal..." />}>
+          <Suspense fallback={<LoadingFallback variant="sheet" label="Saving the wave" />}>
             <PostSessionModal
               completedSession={completedSessionData}
               onSave={handleSaveSessionReflection}
@@ -953,7 +970,7 @@ export default function App() {
       {/* Task 1.1 Progressive Overload Level Unlock Modal */}
       {unlockedLevelModal && (
         <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback label="Loading Level Unlock..." />}>
+          <Suspense fallback={<LoadingFallback variant="sheet" label="Opening" />}>
             <LevelUnlockModal
               unlockedLevel={unlockedLevelModal}
               onClaimLevel={handleClaimLevelUp}
@@ -965,7 +982,7 @@ export default function App() {
       {/* Task 3.1 Flex Card PNG Export Modal */}
       {showFlexModal && (
         <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback label="Loading Flex Card..." />}>
+          <Suspense fallback={<LoadingFallback variant="sheet" label="Opening" />}>
             <FlexCardModal
               session={latestSession}
               settings={settings}
@@ -978,7 +995,7 @@ export default function App() {
       {/* Settings Modal */}
       {isSettingsOpen && (
         <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback label="Loading Settings..." />}>
+          <Suspense fallback={<LoadingFallback variant="sheet" label="Opening settings" />}>
             <SettingsModal
               settings={settings}
               onSaveSettings={handleUpdateSettings}
@@ -995,7 +1012,7 @@ export default function App() {
 
       {/* Ritual Onboarding Modal (3 steps, < 60s, Archetype & 114+ Professions) */}
       <ErrorBoundary>
-        <Suspense fallback={<LoadingFallback label="Loading Onboarding..." />}>
+        <Suspense fallback={<LoadingFallback variant="sheet" label="Preparing ritual" />}>
           <RitualOnboardingModal
             isOpen={isOnboardingOpen}
             onClose={() => setIsOnboardingOpen(false)}
@@ -1028,7 +1045,7 @@ export default function App() {
       {/* Social Share Badge Modal */}
       {isShareOpen && activeTab !== 'friends' && (
         <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback label="Loading Share Modal..." />}>
+          <Suspense fallback={<LoadingFallback variant="sheet" label="Opening standings" />}>
             <SocialShareModal
               userStats={userStats}
               globalRank={globalRank}

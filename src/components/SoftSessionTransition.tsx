@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Coffee, Brain, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { SessionType } from '../types';
+import { Sheet } from './Sheet';
 
 interface SoftSessionTransitionProps {
   isVisible: boolean;
@@ -18,82 +17,33 @@ export const SoftSessionTransition: React.FC<SoftSessionTransitionProps> = ({
 }) => {
   useEffect(() => {
     if (!isVisible) return;
-    const timer = setTimeout(() => {
-      onContinue();
-    }, 4500);
+    const timer = setTimeout(onContinue, 4200);
     return () => clearTimeout(timer);
   }, [isVisible, onContinue]);
-
-  if (!isVisible) return null;
 
   const isWork = toType === 'work';
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-lg text-stone-100 select-none"
-      >
-        <motion.div
-          initial={{ scale: 0.95, y: 10 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.95, y: -10 }}
-          className="max-w-md w-full p-8 rounded-3xl bg-stone-900 border border-stone-800 text-center space-y-6 shadow-2xl relative overflow-hidden"
+    <Sheet open={isVisible} onClose={onContinue} size="sm">
+      <div className="px-6 pb-8 pt-4 text-center">
+        <p className="text-xs tracking-[0.2em] uppercase text-[color:var(--ink-mute)]">
+          {isWork ? 'Focus' : 'Rest'}
+        </p>
+        <h2 className="mt-4 font-serif text-3xl tracking-tight text-[color:var(--ink)]">
+          {isWork ? `${durationMins} minutes of focus` : `${durationMins} minutes to recover`}
+        </h2>
+        <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-[color:var(--ink-soft)]">
+          {isWork ? 'Clear the desk. One task. Begin when you are ready.' : 'Step away. Let the last wave settle.'}
+        </p>
+        <div className="ink-bar mx-auto mt-8 w-36" />
+        <button
+          type="button"
+          onClick={onContinue}
+          className="pressable mt-8 min-h-12 w-full rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]"
         >
-          {/* Gentle Breathing Aura Ring */}
-          <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-amber-500/10 blur-3xl animate-pulse" />
-          <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-emerald-500/10 blur-3xl animate-pulse" />
-
-          {/* Icon Badge */}
-          <div className="w-16 h-16 rounded-2xl bg-stone-800 border border-stone-700/80 flex items-center justify-center mx-auto text-amber-400 shadow-inner">
-            {isWork ? (
-              <Brain className="w-8 h-8 animate-bounce" />
-            ) : (
-              <Coffee className="w-8 h-8 text-emerald-400 animate-pulse" />
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-stone-400 bg-stone-800 px-3 py-1 rounded-full border border-stone-700">
-              {isWork ? 'NEW ULTRADIAN WAVE' : 'RECOVERY BREAK INTERVAL'}
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-medium text-white">
-              {isWork ? 'Ready for Deep Focus?' : 'Time to Unwind & Refuel'}
-            </h2>
-            <p className="text-xs text-stone-400 max-w-xs mx-auto leading-relaxed">
-              {isWork
-                ? `Transitioning into a ${durationMins}-minute peak cognitive focus wave. Clear your workspace and lock in.`
-                : `Awesome work! Step back for ${durationMins} minutes. Let your prefrontal cortex rest and reset.`}
-            </p>
-          </div>
-
-          {/* Breathing Guide Animation */}
-          <div className="p-4 rounded-2xl bg-stone-950/60 border border-stone-800/80 space-y-2">
-            <div className="flex items-center justify-center space-x-2 text-xs font-serif italic text-stone-300">
-              <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
-              <span>Inhale deeply... exhale slowly</span>
-            </div>
-            <div className="w-full bg-stone-800 h-1.5 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 4.5, ease: 'linear' }}
-                className={`h-full ${isWork ? 'bg-amber-400' : 'bg-emerald-400'}`}
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={onContinue}
-            className="w-full py-3.5 rounded-full bg-stone-100 text-stone-900 hover:bg-stone-200 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-md"
-          >
-            <span>{isWork ? 'Begin Focus Wave Now' : 'Start Recovery Break'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+          {isWork ? 'Begin' : 'Rest'}
+        </button>
+      </div>
+    </Sheet>
   );
 };

@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas';
 import { Download, Share2, Sparkles, Check, X, Shield, Trophy, Zap, Copy } from 'lucide-react';
 import { SessionRecord, UserSettings } from '../types';
 import { playMilestoneSound } from '../utils/audio';
+import { Sheet } from './Sheet';
 
 interface FlexCardModalProps {
   session: SessionRecord;
@@ -63,25 +64,22 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-lg p-6 sm:p-8 rounded-2xl bg-stone-900 border border-stone-800 shadow-2xl text-stone-100 flex flex-col items-center">
-        {/* Close Button */}
+    <Sheet open onClose={onClose} labelledBy="flex-title">
+      <div className="relative flex flex-col items-center px-5 pb-7 pt-2 sm:px-7">
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-white transition-colors"
+          className="pressable absolute right-3 top-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-[color:var(--ink-mute)]"
         >
-          <X className="w-5 h-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        <div className="text-center mb-5">
-          <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-block mb-1.5">
-            Phase 3 Virality: "Flex" Card
-          </span>
-          <h3 className="font-serif text-2xl font-medium text-white">
-            Share Your Flow Achievement
+        <div className="mb-5 text-center">
+          <h3 id="flex-title" className="font-serif text-2xl text-[color:var(--ink)]">
+            Share this wave
           </h3>
-          <p className="text-xs text-stone-400 mt-1">
-            Export a high-res Instagram-Story flex asset to inspire your peers.
+          <p className="mt-1 text-sm text-[color:var(--ink-mute)]">
+            A quiet card for a finished session.
           </p>
         </div>
 
@@ -91,20 +89,19 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
           className="w-full max-w-sm aspect-[4/5] rounded-2xl p-7 bg-gradient-to-b from-stone-950 via-stone-900 to-stone-950 border border-stone-800/80 shadow-2xl flex flex-col justify-between text-stone-100 relative overflow-hidden"
         >
           {/* Subtle Ambient Glow Effect inside card */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="pointer-events-none absolute inset-0 opacity-40" />
 
           {/* Top Brand Header */}
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold text-xs">
-                ⚡
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-stone-700 text-xs text-stone-200">
+                U
               </div>
               <span className="font-serif font-bold text-sm tracking-wide text-stone-200">
                 ULTRADIAN PULSE
               </span>
             </div>
-            <span className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-md bg-stone-800/80 text-amber-400 border border-stone-700">
+            <span className="rounded-md border border-stone-700 bg-stone-800/80 px-2.5 py-1 text-[10px] uppercase tracking-widest text-stone-300">
               {levelName}
             </span>
           </div>
@@ -129,7 +126,7 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-stone-400 block tracking-wider">
                   Focus Rating
                 </span>
-                <span className="text-lg font-bold text-amber-400 font-mono">
+                <span className="clock-face text-lg">
                   {focusScore}/5
                 </span>
               </div>
@@ -138,7 +135,7 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-stone-400 block tracking-wider">
                   Distractions
                 </span>
-                <span className="text-lg font-bold text-emerald-400 font-mono">
+                <span className="clock-face text-lg">
                   {session.distractionsCount || 0}
                 </span>
               </div>
@@ -157,21 +154,22 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
           <button
             onClick={handleDownloadImage}
             disabled={downloading}
-            className="flex-1 py-3.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all active:scale-95"
+            className="pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]"
           >
-            <Download className="w-4 h-4" />
-            <span>{downloading ? 'Rendering Image...' : 'Download PNG Flex Card'}</span>
+            <Download className="h-4 w-4" />
+            <span>{downloading ? 'Saving' : 'Download'}</span>
           </button>
 
           <button
+            type="button"
             onClick={handleCopyText}
-            className="flex-1 py-3.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs uppercase tracking-wider border border-stone-700 shadow-sm flex items-center justify-center space-x-2 transition-all active:scale-95"
+            className="pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-[color:var(--line)] text-[color:var(--ink)]"
           >
-            {copiedText ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            <span>{copiedText ? 'Copied Stats!' : 'Copy Text Post'}</span>
+            {copiedText ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            <span>{copiedText ? 'Copied' : 'Copy'}</span>
           </button>
         </div>
       </div>
-    </div>
+    </Sheet>
   );
 };

@@ -5,65 +5,88 @@ export interface LoadingSpinnerProps {
   label?: string;
 }
 
-/**
- * LoadingSpinner Component
- * Displays a rotating accessible spinner with optional label.
- */
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
-  label = 'Loading...' 
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
+  label = 'Loading',
 }) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4 border-2',
-    md: 'h-8 w-8 border-3',
-    lg: 'h-12 w-12 border-4',
-  };
+  const width = size === 'sm' ? 'w-16' : size === 'lg' ? 'w-40' : 'w-28';
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 space-y-2">
-      <div
-        className={`${sizeClasses[size]} animate-spin rounded-full border-amber-500 border-t-transparent`}
-        role="status"
-        aria-label={label}
-      />
-      {label && <span className="text-xs text-stone-500 dark:text-stone-400 font-mono">{label}</span>}
+    <div className="flex flex-col items-center justify-center gap-3 p-4" role="status" aria-label={label}>
+      <div className={`ink-bar ${width}`} />
+      {label && <span className="text-sm text-[color:var(--ink-mute)]">{label}</span>}
     </div>
   );
 };
 
-/**
- * SkeletonCard Component
- * Displays animated skeleton placeholder for cards while async data loads.
- */
 export const SkeletonCard: React.FC = () => (
-  <div className="p-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 animate-pulse space-y-3">
-    <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded-md w-3/4"></div>
-    <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded-md w-1/2"></div>
-    <div className="h-10 bg-stone-100 dark:bg-stone-800 rounded-xl w-full"></div>
+  <div className="space-y-3 py-2">
+    <div className="skeleton-line w-3/4" />
+    <div className="skeleton-line w-1/2" />
+    <div className="skeleton-line h-10 w-full rounded-xl" />
   </div>
 );
 
-/**
- * SkeletonDashboard Component
- * Displays animated skeleton grid for dashboard views.
- */
 export const SkeletonDashboard: React.FC = () => (
-  <div className="space-y-6 animate-pulse p-4">
-    <div className="h-8 bg-stone-200 dark:bg-stone-800 rounded-xl w-1/3"></div>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <SkeletonCard />
-      <SkeletonCard />
-      <SkeletonCard />
+  <div className="mx-auto w-full max-w-2xl space-y-10 py-2" aria-busy="true" aria-label="Loading rhythm">
+    <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+      {['Hours', 'Waves', 'Clarity', 'SQI'].map((label) => (
+        <div key={label}>
+          <p className="text-sm text-[color:var(--ink-mute)]">{label}</p>
+          <div className="skeleton-line mt-3 h-8 w-16" />
+        </div>
+      ))}
     </div>
-    <div className="h-64 bg-stone-200 dark:bg-stone-800 rounded-2xl w-full"></div>
+    <div>
+      <div className="skeleton-line h-6 w-28" />
+      <div className="skeleton-line mt-5 h-52 w-full rounded-xl sm:h-64" />
+    </div>
+    <div className="space-y-4">
+      <div className="skeleton-line h-6 w-20" />
+      <div className="skeleton-line h-12 w-full" />
+      <div className="skeleton-line h-12 w-full" />
+      <div className="skeleton-line h-12 w-5/6" />
+    </div>
   </div>
 );
 
-/**
- * Full page or full modal Suspense fallback loader
- */
-export const LoadingFallback: React.FC<{ label?: string }> = ({ label = 'Loading section...' }) => (
-  <div className="flex items-center justify-center min-h-[300px] w-full p-8">
-    <LoadingSpinner size="lg" label={label} />
+export const SkeletonLeague: React.FC = () => (
+  <div className="mx-auto w-full max-w-xl space-y-6 py-2" aria-busy="true" aria-label="Loading league">
+    <div className="skeleton-line h-7 w-24" />
+    <div className="skeleton-line h-4 w-40" />
+    <div className="space-y-3 pt-2">
+      <div className="skeleton-line h-14 w-full rounded-xl" />
+      <div className="skeleton-line h-14 w-full rounded-xl" />
+      <div className="skeleton-line h-14 w-full rounded-xl" />
+    </div>
   </div>
 );
+
+export const BootScreen: React.FC = () => (
+  <div className="app-shell flex min-h-dvh items-center justify-center">
+    <div className="flex flex-col items-center gap-5" role="status" aria-label="Starting Ultradian">
+      <p className="font-serif text-2xl tracking-tight text-[color:var(--ink)]">Ultradian</p>
+      <div className="ink-bar w-24" />
+    </div>
+  </div>
+);
+
+export const LoadingFallback: React.FC<{ label?: string; variant?: 'page' | 'rhythm' | 'league' | 'sheet' }> = ({
+  label = 'Loading',
+  variant = 'page',
+}) => {
+  if (variant === 'rhythm') return <SkeletonDashboard />;
+  if (variant === 'league') return <SkeletonLeague />;
+  if (variant === 'sheet') {
+    return (
+      <div className="flex min-h-[240px] w-full items-center justify-center p-8">
+        <LoadingSpinner label={label} />
+      </div>
+    );
+  }
+  return (
+    <div className="flex min-h-[300px] w-full items-center justify-center p-8">
+      <LoadingSpinner size="lg" label={label} />
+    </div>
+  );
+};

@@ -1,22 +1,10 @@
 import React, { useState } from 'react';
-import {
-  Share2,
-  Copy,
-  Check,
-  Flame,
-  Clock,
-  Sparkles,
-  Users,
-  X,
-  Trophy,
-  Zap,
-  ChevronRight,
-  ShieldAlert,
-} from 'lucide-react';
+import { Users, X, Trophy, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { LeagueTier, LeagueMember, RivalInfo } from '../types';
 import { playMilestoneSound } from '../utils/audio';
 import { leagueMark } from '../utils/leagueMarks';
+import { Sheet } from './Sheet';
 
 interface SocialShareModalProps {
   userStats: {
@@ -35,13 +23,13 @@ interface SocialShareModalProps {
 }
 
 const LEAGUE_BADGES: Record<LeagueTier, { name: string; icon: string; color: string; border: string }> = {
-  wood: { name: 'Wood League', icon: leagueMark('wood'), color: 'from-amber-900/20 to-amber-950/20 text-amber-700 dark:text-amber-400', border: 'border-amber-700/30' },
-  bronze: { name: 'Bronze League', icon: leagueMark('bronze'), color: 'from-orange-900/20 to-orange-950/20 text-orange-700 dark:text-orange-400', border: 'border-orange-700/30' },
-  silver: { name: 'Silver League', icon: leagueMark('silver'), color: 'from-slate-400/20 to-slate-500/20 text-slate-700 dark:text-slate-300', border: 'border-slate-400/30' },
-  gold: { name: 'Gold League', icon: leagueMark('gold'), color: 'from-amber-400/20 to-yellow-500/20 text-yellow-700 dark:text-yellow-400', border: 'border-yellow-500/30' },
-  platinum: { name: 'Platinum League', icon: leagueMark('platinum'), color: 'from-cyan-400/20 to-blue-500/20 text-cyan-700 dark:text-cyan-300', border: 'border-cyan-400/30' },
-  diamond: { name: 'Diamond League', icon: leagueMark('diamond'), color: 'from-indigo-400/20 to-violet-500/20 text-indigo-700 dark:text-indigo-300', border: 'border-indigo-400/30' },
-  ultradian_master: { name: 'Ultradian Master', icon: leagueMark('ultradian_master'), color: 'from-emerald-400/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300', border: 'border-emerald-400/30' },
+  wood: { name: 'Wood League', icon: leagueMark('wood'), color: '', border: '' },
+  bronze: { name: 'Bronze League', icon: leagueMark('bronze'), color: '', border: '' },
+  silver: { name: 'Silver League', icon: leagueMark('silver'), color: '', border: '' },
+  gold: { name: 'Gold League', icon: leagueMark('gold'), color: '', border: '' },
+  platinum: { name: 'Platinum League', icon: leagueMark('platinum'), color: '', border: '' },
+  diamond: { name: 'Diamond League', icon: leagueMark('diamond'), color: '', border: '' },
+  ultradian_master: { name: 'Ultradian Master', icon: leagueMark('ultradian_master'), color: '', border: '' },
 };
 
 export const SocialShareModal: React.FC<SocialShareModalProps> = ({
@@ -98,42 +86,39 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       {rivalInfo && (
         <div className="mb-6">
           {rivalInfo.isLeading ? (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10 border border-yellow-500/40 text-stone-900 dark:text-stone-100 flex items-center justify-between">
+            <div className="flex items-center justify-between border border-[color:var(--line)] px-4 py-3">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-200">
                   <Trophy className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-yellow-700 dark:text-yellow-400">
-                    League Leader
+                  <h4 className="text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">
+                    League leader
                   </h4>
                   <p className="text-xs font-semibold text-stone-700 dark:text-stone-300">
                     You hold Rank #1 in {LEAGUE_BADGES[currentLeague].name}!
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold uppercase px-2.5 py-1 rounded bg-yellow-500/20 text-yellow-700 dark:text-yellow-300">
-                Pacesetter
-              </span>
+              <span className="text-xs text-[color:var(--ink-mute)]">First</span>
             </div>
           ) : (
             <div className="p-4 rounded-xl bg-stone-900 text-stone-100 dark:bg-stone-950 border border-stone-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
               <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-red-500/20 text-red-400 font-bold animate-pulse">
-                  <Zap className="w-4 h-4 fill-current" />
+                <div className="p-2 text-[color:var(--ink-mute)]">
+                  <Zap className="h-4 w-4" />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-400">
-                      Rival Target Ahead
+                    <span className="text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">
+                      Next rank
                     </span>
                     <span className="text-[10px] text-stone-400">
                       Rank #{rivalInfo.rankAbove}
                     </span>
                   </div>
                   <p className="text-xs font-medium text-stone-200 mt-0.5">
-                    Pass <span className="font-bold text-white">{rivalInfo.rivalName}</span> in{' '}
-                    <span className="font-bold text-emerald-400">{rivalInfo.minutesBehind} mins</span> ({rivalInfo.cyclesToPass} wave cycle) to claim Rank #{rivalInfo.rankAbove}!
+                    Pass {rivalInfo.rivalName} by {rivalInfo.minutesBehind} minutes.
                   </p>
                 </div>
               </div>
@@ -143,75 +128,32 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       )}
 
       {/* Visual Share Badge Card with Global Rank */}
-      <div className="relative p-5 sm:p-6 rounded-xl bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 border border-stone-200/80 dark:border-stone-800/80 overflow-hidden mb-6">
-        <div className="flex items-center justify-between border-b border-dashed border-stone-200 dark:border-stone-800 pb-3 mb-4">
-          <div className="flex items-center space-x-2">
-            <span className="font-serif italic text-sm tracking-wide text-stone-900 dark:text-stone-100 font-medium">
-              Ultradian Rhythm Ledger
-            </span>
+      <div className="mb-8">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+          <div>
+            <p className="text-sm text-[color:var(--ink-mute)]">Rank</p>
+            <p className="mt-1 font-serif text-3xl">#{globalRank}</p>
           </div>
-          <div className="flex items-center space-x-2">
-            {/* STEP 2.2: True Global Rank Badge */}
-            <span className="text-[10px] font-bold tracking-wider uppercase bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 px-2.5 py-1 rounded-md shadow-xs flex items-center gap-1">
-              <Trophy className="w-3 h-3 text-yellow-400 fill-current" />
-              <span>Global Rank #{globalRank}</span>
-            </span>
+          <div>
+            <p className="text-sm text-[color:var(--ink-mute)]">Waves</p>
+            <p className="mt-1 font-serif text-3xl">{userStats.completedCycles}</p>
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 my-4">
-          <div className="p-3.5 sm:p-4 border border-stone-200/60 dark:border-stone-800/60 bg-white dark:bg-stone-900/60 rounded-xl">
-            <span className="text-[9px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500 block mb-1">
-              Completed Cycles
-            </span>
-            <span className="text-xl sm:text-2xl font-serif font-light text-stone-900 dark:text-stone-100 block">
-              {userStats.completedCycles} <span className="text-xs font-sans font-semibold uppercase text-stone-400 tracking-wider">BRAC</span>
-            </span>
+          <div>
+            <p className="text-sm text-[color:var(--ink-mute)]">Hours</p>
+            <p className="mt-1 font-serif text-3xl">{userStats.weeklyHours}</p>
           </div>
-
-          <div className="p-3.5 sm:p-4 border border-stone-200/60 dark:border-stone-800/60 bg-white dark:bg-stone-900/60 rounded-xl">
-            <span className="text-[9px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500 block mb-1">
-              Flow Accumulation
-            </span>
-            <span className="text-xl sm:text-2xl font-serif font-light text-stone-900 dark:text-stone-100 block">
-              {userStats.weeklyHours} <span className="text-xs font-sans font-semibold uppercase text-stone-400 tracking-wider">Hrs</span>
-            </span>
-          </div>
-
-          <div className="p-3.5 sm:p-4 border border-stone-200/60 dark:border-stone-800/60 bg-white dark:bg-stone-900/60 rounded-xl">
-            <span className="text-[9px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500 block mb-1">
-              Active Matchmaking League
-            </span>
-            <span className="text-sm font-bold tracking-wide text-stone-800 dark:text-stone-200 mt-1 flex items-center gap-1.5 truncate">
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded bg-stone-200 px-1 text-[10px] font-semibold text-stone-700 dark:bg-stone-800 dark:text-stone-200">
-                {LEAGUE_BADGES[currentLeague].icon}
-              </span>
-              <span>{LEAGUE_BADGES[currentLeague].name}</span>
-            </span>
-          </div>
-
-          <div className="p-3.5 sm:p-4 border border-stone-200/60 dark:border-stone-800/60 bg-white dark:bg-stone-900/60 rounded-xl">
-            <span className="text-[9px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500 block mb-1">
-              Primary Domain
-            </span>
-            <span className="text-xs sm:text-sm font-bold tracking-wide text-stone-800 dark:text-stone-200 block truncate mt-1">
-              {userStats.topCategory}
-            </span>
+          <div>
+            <p className="text-sm text-[color:var(--ink-mute)]">Domain</p>
+            <p className="mt-1 font-serif text-3xl truncate">{userStats.topCategory}</p>
           </div>
         </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-dashed border-stone-200 dark:border-stone-800">
-          <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium">
-            Verified Cloud Function atomic calculation.
-          </span>
-          <button
-            onClick={handleCopyText}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 font-bold text-[10px] tracking-wider uppercase transition-all duration-200 active:scale-95"
-          >
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Ledger Copied!' : 'Copy Ledger'}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleCopyText}
+          className="pressable mt-5 min-h-11 text-sm text-[color:var(--ink-mute)] underline-offset-4 hover:underline"
+        >
+          {copied ? 'Copied' : 'Copy this week'}
+        </button>
       </div>
 
       {/* STEP 2.3: Matchmaking Leagues Tier Selector */}
@@ -321,12 +263,12 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   );
 
   if (isInline) {
-    return <div className="w-full animate-fade-in">{content}</div>;
+    return <div className="w-full">{content}</div>;
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-md p-4 sm:p-6 flex items-start sm:items-center justify-center min-h-screen py-8 sm:py-12 animate-fade-in">
-      {content}
-    </div>
+    <Sheet open onClose={onClose || (() => undefined)} size="lg">
+      <div className="px-5 pb-6 pt-2 sm:px-7">{content}</div>
+    </Sheet>
   );
 };
