@@ -19,8 +19,6 @@ interface NavbarProps {
   isAmbientActive: boolean;
   completedCyclesToday: number;
   fbUser?: any | null;
-  isVipUnlocked?: boolean;
-  onOpenVipGate?: () => void;
 }
 
 const TABS: Array<{ id: 'timer' | 'analytics' | 'friends'; label: string; icon: typeof Clock; leagueOnly?: boolean }> = [

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Sparkles, Zap, CheckCircle2, Loader2, ArrowRight, Info, ShieldCheck } from 'lucide-react';
 import { SessionRecord, UserSettings } from '../types';
 import { generateWeeklyRhythmReportFallback, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
-import { VipCodeGate } from './VipCodeGate';
+import { SignInGate } from './SignInGate';
 
 interface WeeklyRhythmNarrativeProps {
   records: SessionRecord[];
@@ -10,7 +10,6 @@ interface WeeklyRhythmNarrativeProps {
   onAcceptExperiment: (workMins: number, breakMins: number, ambient: any) => void;
   isAuthorizedForAi?: boolean;
   onOpenAuth?: () => void;
-  onUnlockVip?: () => void;
 }
 
 export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
@@ -19,7 +18,6 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
   onAcceptExperiment,
   isAuthorizedForAi = true,
   onOpenAuth,
-  onUnlockVip,
 }) => {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<any>(null);
@@ -56,11 +54,10 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
 
   if (!isAuthorizedForAi) {
     return (
-      <VipCodeGate
+      <SignInGate
         featureName="Weekly notes"
-        featureDescription="Weekly rhythm notes are available after you sign in or enter a creator code."
+        featureDescription="Sign in to read a weekly rhythm note drawn from your own sessions."
         onOpenAuth={onOpenAuth}
-        onUnlocked={onUnlockVip}
       />
     );
   }

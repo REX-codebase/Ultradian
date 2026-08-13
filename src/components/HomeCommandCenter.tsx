@@ -37,7 +37,6 @@ interface HomeCommandCenterProps {
   onOpenSettings: () => void;
   isAuthorizedForAi?: boolean;
   onOpenAuth?: () => void;
-  onUnlockVip?: () => void;
 }
 
 const CATEGORIES: CategoryTag[] = ['Coding', 'Writing', 'Design', 'Research', 'Strategy', 'Study', 'General'];

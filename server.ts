@@ -3,34 +3,8 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
-import crypto from 'crypto';
 
 dotenv.config();
-
-interface RateLimitInfo {
-  attempts: number;
-  firstAttemptTime: number;
-}
-const vipRateLimits = new Map<string, RateLimitInfo>();
-
-function checkVipRateLimit(ip: string, maxAttempts = 5, windowMs = 3600 * 1000) {
-  const now = Date.now();
-  const info = vipRateLimits.get(ip);
-
-  if (!info || now - info.firstAttemptTime > windowMs) {
-    vipRateLimits.set(ip, { attempts: 1, firstAttemptTime: now });
-    return { exceeded: false, remaining: maxAttempts - 1, retryAfter: 0 };
-  }
-
-  if (info.attempts >= maxAttempts) {
-    const retryAfter = Math.ceil((info.firstAttemptTime + windowMs - now) / 1000);
-    return { exceeded: true, remaining: 0, retryAfter };
-  }
-
-  info.attempts += 1;
-  vipRateLimits.set(ip, info);
-  return { exceeded: false, remaining: maxAttempts - info.attempts, retryAfter: 0 };
-}
 
 async function startServer() {
   const app = express();
@@ -57,54 +31,6 @@ async function startServer() {
   // Health check
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
-  });
-
-  // 1.1 Server-Side VIP Validation System (local dev mirror of Cloud Function)
-  app.post('/api/vip/validate', (req, res) => {
-    const { code } = req.body || {};
-    const clientIP = (req.ip || req.socket?.remoteAddress || '127.0.0.1').toString();
-
-    const rateCheck = checkVipRateLimit(clientIP, 5, 3600 * 1000);
-    if (rateCheck.exceeded) {
-      res.status(429).json({
-        success: false,
-        error: 'Too many attempts. Please try again later.',
-        retryAfter: rateCheck.retryAfter,
-      });
-      return;
-    }
-
-    const sanitized = String(code || '').trim().toLowerCase().replace(/\s+/g, '');
-
-    // Fail closed — only accept the environment secret. No hardcoded fallbacks.
-    const envCodeRaw = process.env.VIP_CODE;
-    if (!envCodeRaw || typeof envCodeRaw !== 'string' || envCodeRaw.trim().length < 6) {
-      res.status(503).json({
-        success: false,
-        error: 'VIP validation is not configured (VIP_CODE missing or too short).',
-      });
-      return;
-    }
-
-    const validEnvCode = envCodeRaw.trim().toLowerCase().replace(/\s+/g, '');
-    const isValid = sanitized.length > 0 && sanitized === validEnvCode;
-
-    if (isValid) {
-      const sessionToken = crypto.randomBytes(32).toString('hex');
-      const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-
-      res.json({
-        success: true,
-        token: sessionToken,
-        expiresAt,
-      });
-    } else {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid VIP code',
-        remainingAttempts: rateCheck.remaining,
-      });
-    }
   });
 
   // Task 2.1: Gemini AI Session Reflection Journal Analysis Endpoint

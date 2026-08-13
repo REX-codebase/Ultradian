@@ -139,10 +139,9 @@ Open [http://localhost:3000](http://localhost:3000).
 | Variable | Role |
 | --- | --- |
 | `GEMINI_API_KEY` | Optional. Unlocks post-session reflection and weekly narrative. Without it, those views fall back to rule-based copy. |
-| `VIP_CODE` | Server secret for creator unlock. Never shipped in the client bundle. |
 | `APP_URL` | Public origin for callbacks and self-links. |
 
-Firebase client config lives in `firebase-applet-config.json` and can be overridden with `VITE_FIREBASE_*` variables. Auth supports email, Google, and an anonymous path. A VIP code, validated on the server, unlocks the full surface without an account.
+Firebase client config lives in `firebase-applet-config.json` and can be overridden with `VITE_FIREBASE_*` variables. Auth supports email, Google, and an anonymous path. Insight surfaces unlock after sign-in.
 
 ---
 
@@ -168,21 +167,14 @@ Firebase client config lives in `firebase-applet-config.json` and can be overrid
 browser                    express :3000                 firebase
 ────────                   ──────────────                ────────
 Focus / Rhythm / League    Vite middleware (dev)         Auth
-Zen, soundscapes, PWA      POST /api/vip/validate        Firestore (named db)
-local ledger               POST /api/gemini/*            Functions
-                           rule-based fallbacks          App Check
+Zen, soundscapes, PWA      POST /api/gemini/*            Firestore (named db)
+local ledger               rule-based fallbacks          Functions
+                                                         App Check
 ```
 
-Heavy rooms (`AnalyticsDashboard`, settings, post-session, VIP gate, share, onboarding) load through `React.lazy` and `Suspense`, behind an `ErrorBoundary`. The profession catalog is split from the module that consumes it so the first paint does not evaluate a hundred records it does not need.
+Heavy rooms (`AnalyticsDashboard`, settings, post-session, share, onboarding) load through `React.lazy` and `Suspense`, behind an `ErrorBoundary`. The profession catalog is split from the module that consumes it so the first paint does not evaluate a hundred records it does not need.
 
-Cloud Functions handle session writes, weekly league matchmaking, VIP claims, and optional insight generation. Insights never block the session: if the model is dark, the ledger still stands.
-
-The VIP decision is documented in [docs/adr/001-server-side-vip-validation.md](docs/adr/001-server-side-vip-validation.md).
-
-- Rate limit: 5 attempts / hour / IP on the server
-- Client lockout sits in front of that, not instead of it
-- Success can set a Firebase custom claim `{ vip: true }`
-- The plaintext code is an environment secret, not a string in `src/`
+Cloud Functions handle session writes, weekly league matchmaking, and optional insight generation. Insights never block the session: if the model is dark, the ledger still stands.
 
 ---
 
@@ -194,10 +186,11 @@ npm test
 
 The suite is pointed at the places where a pretty UI can hide a wrong answer:
 
-- `src/utils/__tests__/vipAccess.test.ts` — token parsing, server verification, lockout
+- `src/utils/__tests__/ritualOnboarding.test.ts` — ritual payload, cloud persist, hydrate
+- `src/utils/__tests__/leagueMarks.test.ts` — clean league and tribe marks
+- `src/utils/__tests__/settingsTabs.test.ts` — settings draft survives tab switches
 - `src/utils/__tests__/sampleRhythm.test.ts` — sample-session detection so leagues stay clean
 - `src/utils/__tests__/sessionAnalytics.test.ts` — the numbers Rhythm reports
-- `src/components/__tests__/VipCodeGate.test.tsx` — unlock paths and lockout UI
 - `functions/src/__tests__/ai.test.ts` — insight path with and without a key
 
 ---

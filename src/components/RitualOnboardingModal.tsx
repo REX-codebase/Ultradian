@@ -1,24 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Sparkles,
   Search,
   Check,
   RotateCw,
-  Clock,
   ArrowRight,
   ArrowLeft,
   X,
-  Zap,
-  Volume2,
-  Brain,
   Cpu,
   Palette,
   Atom,
   Compass,
-  Briefcase,
-  Flame,
-  Layers,
-  ChevronRight,
 } from 'lucide-react';
 import { FocusArchetype, UserSettings, ProfessionItem } from '../types';
 import {
@@ -27,6 +18,7 @@ import {
   generatePoeticRitualName,
   getPeakTimeLabel,
 } from '../data/professions';
+import { buildRitualOnboardingSettings } from '../utils/ritualOnboarding';
 
 interface RitualOnboardingModalProps {
   isOpen: boolean;
@@ -35,6 +27,15 @@ interface RitualOnboardingModalProps {
   onCompleteOnboarding: (updatedSettings: Partial<UserSettings>) => void;
 }
 
+const TAG_FILTERS = ['All', 'Engineering', 'Arts & Media', 'Research & Bio', 'Leadership & Biz'] as const;
+
+const ARCHETYPE_ICONS: Record<FocusArchetype, React.ReactNode> = {
+  Builder: <Cpu className="w-4 h-4" />,
+  Creator: <Palette className="w-4 h-4" />,
+  Scientist: <Atom className="w-4 h-4" />,
+  Strategist: <Compass className="w-4 h-4" />,
+};
+
 export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
   isOpen,
   onClose,
@@ -42,8 +43,6 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
   onCompleteOnboarding,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-
-  // Selected state
   const [selectedArchetype, setSelectedArchetype] = useState<FocusArchetype>(
     settings.archetype || 'Builder'
   );
@@ -53,24 +52,16 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
   const [peakHour, setPeakHour] = useState<number>(
     settings.peakHour !== undefined ? settings.peakHour : 8
   );
-  const [ritualName, setRitualName] = useState<string>(
-    settings.focusRitualName || ''
-  );
-
-  // Profession Search & Filter
+  const [ritualName, setRitualName] = useState<string>(settings.focusRitualName || '');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTagFilter, setActiveTagFilter] = useState<string>('All');
-  const [isBrowseAllOpen, setIsBrowseAllOpen] = useState(false);
 
-  // Initialize ritual name on load or archetype change if empty
   useEffect(() => {
     if (!ritualName || ritualName.trim() === '') {
-      const generated = generatePoeticRitualName(selectedArchetype, selectedProfession, peakHour);
-      setRitualName(generated);
+      setRitualName(generatePoeticRitualName(selectedArchetype, selectedProfession, peakHour));
     }
   }, [selectedArchetype, selectedProfession, peakHour]);
 
-  // Filtered professions list
   const filteredProfessions = useMemo(() => {
     return PROFESSIONS_DATABASE.filter((item) => {
       const matchesSearch =
@@ -79,10 +70,28 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
         item.archetype.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTag =
         activeTagFilter === 'All' ||
-        (activeTagFilter === 'Engineering' && (item.tag === 'Engineering' || item.tag === 'Hardware' || item.tag === 'Security')) ||
-        (activeTagFilter === 'Arts & Media' && (item.tag === 'Art' || item.tag === 'Writing' || item.tag === 'Music' || item.tag === 'Film' || item.tag === 'Media' || item.tag === 'Design')) ||
-        (activeTagFilter === 'Research & Bio' && (item.tag === 'AI' || item.tag === 'Physics' || item.tag === 'Data' || item.tag === 'Medicine' || item.tag === 'Academia' || item.tag === 'Math')) ||
-        (activeTagFilter === 'Leadership & Biz' && (item.tag === 'Startup' || item.tag === 'Venture' || item.tag === 'Finance' || item.tag === 'Strategy' || item.tag === 'Law'));
+        (activeTagFilter === 'Engineering' &&
+          (item.tag === 'Engineering' || item.tag === 'Hardware' || item.tag === 'Security')) ||
+        (activeTagFilter === 'Arts & Media' &&
+          (item.tag === 'Art' ||
+            item.tag === 'Writing' ||
+            item.tag === 'Music' ||
+            item.tag === 'Film' ||
+            item.tag === 'Media' ||
+            item.tag === 'Design')) ||
+        (activeTagFilter === 'Research & Bio' &&
+          (item.tag === 'AI' ||
+            item.tag === 'Physics' ||
+            item.tag === 'Data' ||
+            item.tag === 'Medicine' ||
+            item.tag === 'Academia' ||
+            item.tag === 'Math')) ||
+        (activeTagFilter === 'Leadership & Biz' &&
+          (item.tag === 'Startup' ||
+            item.tag === 'Venture' ||
+            item.tag === 'Finance' ||
+            item.tag === 'Strategy' ||
+            item.tag === 'Law'));
       return matchesSearch && matchesTag;
     });
   }, [searchQuery, activeTagFilter]);
@@ -92,227 +101,162 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
   const currentArchetypeMeta = ARCHETYPES[selectedArchetype];
   const peakInfo = getPeakTimeLabel(peakHour);
 
-  // Handle archetype selection
   const handleSelectArchetype = (arch: FocusArchetype) => {
     setSelectedArchetype(arch);
-    // Find first profession in this archetype
     const defaultForArch = PROFESSIONS_DATABASE.find((p) => p.archetype === arch);
     if (defaultForArch) {
       setSelectedProfession(defaultForArch.title);
     }
-    const newName = generatePoeticRitualName(arch, defaultForArch?.title, peakHour);
-    setRitualName(newName);
+    setRitualName(generatePoeticRitualName(arch, defaultForArch?.title, peakHour));
   };
 
-  // Handle profession selection
   const handleSelectProfession = (prof: ProfessionItem) => {
     setSelectedProfession(prof.title);
     setSelectedArchetype(prof.archetype);
-    const newName = generatePoeticRitualName(prof.archetype, prof.title, peakHour);
-    setRitualName(newName);
+    setRitualName(generatePoeticRitualName(prof.archetype, prof.title, peakHour));
   };
 
-  // Regenerate ritual name
   const handleRegenerateRitualName = () => {
-    const fresh = generatePoeticRitualName(selectedArchetype, selectedProfession, peakHour);
-    setRitualName(fresh);
+    setRitualName(generatePoeticRitualName(selectedArchetype, selectedProfession, peakHour));
   };
 
-  // Finish Onboarding
   const handleFinish = () => {
-    const meta = ARCHETYPES[selectedArchetype];
-
-    // Determine default preset or work minutes
-    let defaultPresetId = 'level_1_apprentice';
-    let workMins = meta.defaultWorkMinutes;
-    let breakMins = meta.defaultBreakMinutes;
-
-    if (meta.defaultWorkMinutes === 90) {
-      defaultPresetId = 'level_3_master';
-    } else if (meta.defaultWorkMinutes === 60) {
-      defaultPresetId = 'level_2_adept';
-    }
-
-    onCompleteOnboarding({
-      archetype: selectedArchetype,
-      profession: selectedProfession,
-      peakHour,
-      focusRitualName: ritualName || `The ${selectedArchetype} Ritual`,
-      hasCompletedOnboarding: true,
-      ambientType: meta.defaultAmbient,
-      workMinutes: workMins,
-      shortBreakMinutes: breakMins,
-      activePresetId: defaultPresetId,
-      username: ritualName ? `${ritualName} (${selectedProfession})` : settings.username,
-    });
-
+    onCompleteOnboarding(
+      buildRitualOnboardingSettings({
+        archetype: selectedArchetype,
+        profession: selectedProfession,
+        peakHour,
+        ritualName,
+        currentUsername: settings.username,
+      })
+    );
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-[max(0.75rem,env(safe-area-inset-top))] px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-stone-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-stone-900 border border-stone-800 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden my-auto text-stone-100 flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[92vh]">
-        {/* Header / Progress Bar */}
-        <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-stone-800 bg-stone-900/95 flex items-center justify-between gap-3 shrink-0">
-          <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">
-            <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xs shrink-0">
-              <Sparkles className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <h2 className="font-serif text-base sm:text-xl font-medium tracking-tight text-stone-100 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                Ritual Onboarding
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-stone-800 text-stone-400 border border-stone-700">
-                  Step {step} of 3
-                </span>
-              </h2>
-              <p className="text-[11px] sm:text-xs text-stone-400">Under 60 seconds • Zero forms • Personalized flow</p>
-            </div>
-          </div>
+  const stepLabel = step === 1 ? 'Work' : step === 2 ? 'Peak' : 'Name';
 
+  return (
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-[max(0.75rem,env(safe-area-inset-top))] px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-stone-950/50 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 rounded-xl shadow-xs overflow-hidden my-auto text-stone-900 dark:text-stone-100 flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[92vh]">
+        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between gap-3 shrink-0">
+          <div>
+            <h2 className="font-serif text-xl font-medium tracking-tight text-stone-950 dark:text-stone-50">
+              Ritual
+            </h2>
+            <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+              Step {step} of 3 · {stepLabel}
+            </p>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-lg text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors"
-            title="Skip Onboarding"
+            className="p-2 min-h-11 min-w-11 rounded-md text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+            title="Skip"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
-        {/* 3 Step Visual Progress Indicator */}
-        <div className="w-full bg-stone-950 h-1 flex">
+        <div className="h-px w-full bg-stone-100 dark:bg-stone-800 flex">
           <div
-            className={`h-full transition-all duration-500 ${
-              step >= 1 ? 'bg-amber-500 w-1/3' : 'bg-stone-800 w-0'
-            }`}
-          />
-          <div
-            className={`h-full transition-all duration-500 ${
-              step >= 2 ? 'bg-amber-500 w-1/3' : 'bg-stone-800 w-0'
-            }`}
-          />
-          <div
-            className={`h-full transition-all duration-500 ${
-              step === 3 ? 'bg-amber-500 w-1/3' : 'bg-stone-800 w-0'
-            }`}
+            className="h-px bg-stone-900 dark:bg-stone-100 transition-all duration-300"
+            style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>
 
-        {/* Modal Body */}
-        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto overscroll-contain flex-1 custom-scrollbar">
-          {/* STEP 1: What do you do? (Archetypes & 100+ Professions) */}
+        <div className="p-4 sm:p-6 space-y-6 overflow-y-auto overscroll-contain flex-1">
           {step === 1 && (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-5">
               <div>
-                <h3 className="text-xl font-serif font-medium text-stone-100">
-                  Step 1: What do you do?
-                </h3>
-                <p className="text-xs sm:text-sm text-stone-400 mt-1">
-                  Choose your core archetype, or search among <span className="text-amber-400 font-semibold font-mono">114+ professions</span> to seed your theme, presets & audio.
+                <h3 className="font-serif text-lg text-stone-900 dark:text-stone-100">What do you do?</h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                  Choose an archetype, or search the profession catalog.
                 </p>
               </div>
 
-              {/* Archetype Cards Grid (4 Archetypes) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(Object.keys(ARCHETYPES) as FocusArchetype[]).map((archKey) => {
                   const meta = ARCHETYPES[archKey];
                   const isSelected = selectedArchetype === archKey;
-
                   return (
-                    <div
+                    <button
                       key={archKey}
+                      type="button"
                       onClick={() => handleSelectArchetype(archKey)}
-                      className={`group relative p-4 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+                      className={`text-left p-4 rounded-xl border transition-colors ${
                         isSelected
-                          ? `bg-stone-800/90 border-amber-500/80 shadow-lg shadow-amber-500/5 ring-1 ring-amber-500/30`
-                          : 'bg-stone-950/60 border-stone-800/80 hover:bg-stone-800/50 hover:border-stone-700'
+                          ? 'bg-stone-100 dark:bg-stone-800 border-stone-900 dark:border-stone-100'
+                          : 'bg-stone-50/60 dark:bg-stone-950/40 border-stone-200/80 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
                       }`}
                     >
-                      {/* Accent glow gradient on card */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${meta.bgGlow} opacity-60 pointer-events-none`} />
-
-                      <div className="relative z-10 flex items-start justify-between gap-2">
-                        <div className="flex items-center space-x-2.5">
-                          <div
-                            className={`flex items-center justify-center w-8 h-8 rounded-lg border text-sm font-bold ${meta.badgeBg}`}
-                          >
-                            {archKey === 'Builder' && <Cpu className="w-4 h-4" />}
-                            {archKey === 'Creator' && <Palette className="w-4 h-4" />}
-                            {archKey === 'Scientist' && <Atom className="w-4 h-4" />}
-                            {archKey === 'Strategist' && <Compass className="w-4 h-4" />}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-md border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 shrink-0">
+                            {ARCHETYPE_ICONS[archKey]}
                           </div>
-                          <div>
-                            <h4 className="font-medium text-stone-100 text-sm flex items-center gap-1.5">
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-medium text-stone-900 dark:text-stone-100">
                               {meta.title}
                             </h4>
-                            <span className="text-[10px] text-stone-400 line-clamp-1">
-                              {meta.subtitle}
-                            </span>
+                            <p className="text-[11px] text-stone-400 truncate">{meta.subtitle}</p>
                           </div>
                         </div>
-
                         {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-amber-500 text-stone-950 flex items-center justify-center shrink-0">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <div className="w-5 h-5 rounded-full bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 flex items-center justify-center shrink-0">
+                            <Check className="w-3 h-3 stroke-[3]" />
                           </div>
                         )}
                       </div>
-
-                      <p className="relative z-10 text-xs text-stone-300/90 mt-2.5 line-clamp-2 leading-relaxed">
-                        "{meta.motto}"
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mt-2.5 leading-relaxed line-clamp-2">
+                        {meta.motto}
                       </p>
-
-                      <div className="relative z-10 mt-3 flex items-center justify-between pt-2 border-t border-stone-800/60 text-[10px] font-mono text-stone-400">
-                        <span>Preset: {meta.defaultWorkMinutes}m focus</span>
-                        <span className="capitalize">Sound: {meta.defaultAmbient.replace('_', ' ')}</span>
+                      <div className="mt-3 flex items-center justify-between pt-2 border-t border-stone-200/70 dark:border-stone-800 text-[10px] text-stone-400">
+                        <span>{meta.defaultWorkMinutes}m focus</span>
+                        <span className="capitalize">{meta.defaultAmbient.replace('_', ' ')}</span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
 
-              {/* Search 100+ Professions Bar */}
-              <div className="pt-2 border-t border-stone-800/80">
+              <div className="pt-1">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Briefcase className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-stone-300">
-                      Search 114+ Professions Catalog
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                    Selected: {selectedProfession}
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                    Profession
                   </span>
+                  <span className="text-[11px] text-stone-500">{selectedProfession}</span>
                 </div>
 
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search e.g. Frontend Developer, Astrophysicist, Novelist, VC Partner..."
-                    className="w-full pl-9 pr-4 py-2 bg-stone-950 border border-stone-800 rounded-xl text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
+                    placeholder="Search professions"
+                    className="w-full pl-9 pr-16 py-2.5 bg-stone-50 dark:bg-stone-950 border border-stone-200/80 dark:border-stone-800 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:border-stone-400"
                   />
                   {searchQuery && (
                     <button
+                      type="button"
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-500 hover:text-stone-300"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
                     >
                       Clear
                     </button>
                   )}
                 </div>
 
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
-                  {['All', 'Engineering', 'Arts & Media', 'Research & Bio', 'Leadership & Biz'].map((tag) => (
+                <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-1 text-[11px]">
+                  {TAG_FILTERS.map((tag) => (
                     <button
                       key={tag}
+                      type="button"
                       onClick={() => setActiveTagFilter(tag)}
                       className={`px-2.5 py-1 rounded-lg border whitespace-nowrap transition-colors ${
                         activeTagFilter === tag
-                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-semibold'
-                          : 'bg-stone-950 text-stone-400 border-stone-800 hover:bg-stone-800 hover:text-stone-200'
+                          ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-stone-900 dark:border-stone-100'
+                          : 'bg-transparent text-stone-500 border-stone-200 dark:border-stone-800 hover:text-stone-800 dark:hover:text-stone-200'
                       }`}
                     >
                       {tag}
@@ -320,38 +264,30 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
                   ))}
                 </div>
 
-                {/* Filtered Professions Results Grid */}
-                <div className="mt-3 max-h-40 overflow-y-auto custom-scrollbar grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-1 bg-stone-950/70 border border-stone-800/80 rounded-xl">
+                <div className="mt-3 max-h-40 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-1 p-1 bg-stone-50/70 dark:bg-stone-950/50 border border-stone-200/80 dark:border-stone-800 rounded-xl">
                   {filteredProfessions.slice(0, 16).map((item) => {
                     const isProfSelected = selectedProfession === item.title;
                     return (
-                      <div
+                      <button
                         key={item.id}
+                        type="button"
                         onClick={() => handleSelectProfession(item)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
                           isProfSelected
-                            ? 'bg-amber-500/20 border border-amber-500/40 text-stone-100 font-medium'
-                            : 'hover:bg-stone-800/70 text-stone-300 border border-transparent'
+                            ? 'bg-stone-200/80 dark:bg-stone-800 text-stone-900 dark:text-stone-100'
+                            : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800/70'
                         }`}
                       >
-                        <div className="flex items-center space-x-2 truncate pr-2">
-                          <span className="text-xs truncate">{item.title}</span>
-                        </div>
-                        <div className="flex items-center space-x-1 shrink-0">
-                          <span
-                            className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
-                              ARCHETYPES[item.archetype].badgeBg
-                            }`}
-                          >
-                            {item.archetype}
-                          </span>
-                        </div>
-                      </div>
+                        <span className="text-xs truncate pr-2">{item.title}</span>
+                        <span className="text-[9px] uppercase tracking-wider text-stone-400 shrink-0">
+                          {item.archetype}
+                        </span>
+                      </button>
                     );
                   })}
                   {filteredProfessions.length === 0 && (
-                    <div className="col-span-2 py-4 text-center text-xs text-stone-500">
-                      No matching profession found. Try another search term!
+                    <div className="col-span-2 py-4 text-center text-xs text-stone-400">
+                      No matching profession.
                     </div>
                   )}
                 </div>
@@ -359,75 +295,33 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
             </div>
           )}
 
-          {/* STEP 2: When are you sharpest? (24h Energy Slider) */}
           {step === 2 && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-serif font-medium text-stone-100">
-                  Step 2: When are you sharpest?
-                </h3>
-                <p className="text-xs sm:text-sm text-stone-400 mt-1">
-                  Drag the 24-hour energy slider to align your focus rituals with your natural circadian peak.
+                <h3 className="font-serif text-lg text-stone-900 dark:text-stone-100">When are you sharpest?</h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                  Set the hour that usually holds your best work.
                 </p>
               </div>
 
-              {/* Peak Window Real-time Display Card */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 border border-stone-800 shadow-inner flex flex-col items-center text-center space-y-3">
-                <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold uppercase tracking-wider flex items-center space-x-1.5">
-                  <Zap className="w-3.5 h-3.5 fill-amber-400" />
-                  <span>{peakInfo.label}</span>
-                </div>
-
-                <div>
-                  <div className="text-3xl sm:text-4xl font-serif font-light tracking-tight text-stone-100">
-                    {peakInfo.period}
-                  </div>
-                  <p className="text-xs text-stone-400 mt-1">
-                    Your cognitive capacity is modeled to peak around <span className="text-stone-200 font-semibold">{peakInfo.window}</span>.
-                  </p>
-                </div>
-
-                {/* Circadian Wave Visual Canvas Representation */}
-                <div className="w-full h-16 pt-2">
-                  <svg className="w-full h-full overflow-visible" viewBox="0 0 240 40">
-                    {/* Baseline */}
-                    <line x1="0" y1="35" x2="240" y2="35" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
-                    {/* Sine wave for energy */}
-                    <path
-                      d="M 0 30 Q 60 5, 120 25 T 240 30"
-                      fill="none"
-                      stroke="#52525b"
-                      strokeWidth="2"
-                    />
-                    {/* Peak Energy Highlight Indicator Dot */}
-                    <circle
-                      cx={(peakHour / 24) * 240}
-                      cy={15 - Math.sin((peakHour / 24) * Math.PI * 2) * 10}
-                      r="6"
-                      fill="#f59e0b"
-                      className="animate-pulse"
-                    />
-                    <line
-                      x1={(peakHour / 24) * 240}
-                      y1="0"
-                      x2={(peakHour / 24) * 240}
-                      y2="38"
-                      stroke="#f59e0b"
-                      strokeWidth="1.5"
-                      strokeDasharray="2 2"
-                    />
-                  </svg>
-                </div>
+              <div className="p-5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200/80 dark:border-stone-800 text-center space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                  {peakInfo.label}
+                </p>
+                <p className="font-serif text-3xl font-light text-stone-900 dark:text-stone-100">
+                  {peakInfo.period}
+                </p>
+                <p className="text-xs text-stone-500">
+                  Peak window around {peakInfo.window}.
+                </p>
               </div>
 
-              {/* Interactive 24-Hour Energy Slider */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs font-mono text-stone-400">
-                  <span>Midnight (00:00)</span>
-                  <span className="text-amber-400 font-bold">Hour: {peakHour}:00</span>
-                  <span>11 PM (23:00)</span>
+                <div className="flex justify-between items-center text-xs text-stone-400">
+                  <span>00:00</span>
+                  <span className="text-stone-700 dark:text-stone-300">{peakHour}:00</span>
+                  <span>23:00</span>
                 </div>
-
                 <input
                   type="range"
                   min="0"
@@ -435,34 +329,33 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
                   step="1"
                   value={peakHour}
                   onChange={(e) => {
-                    const hour = parseInt(e.target.value);
+                    const hour = parseInt(e.target.value, 10);
                     setPeakHour(hour);
-                    const newName = generatePoeticRitualName(selectedArchetype, selectedProfession, hour);
-                    setRitualName(newName);
+                    setRitualName(generatePoeticRitualName(selectedArchetype, selectedProfession, hour));
                   }}
-                  className="w-full h-3 bg-stone-800 rounded-lg appearance-none cursor-pointer accent-amber-500 focus:outline-none"
+                  className="w-full h-2 bg-stone-200 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer accent-stone-900 dark:accent-stone-100"
                 />
-
-                {/* Quick Hour Preset Buttons */}
-                <div className="grid grid-cols-5 gap-1.5 pt-2">
+                <div className="grid grid-cols-5 gap-1.5">
                   {[
-                    { h: 6, label: 'Dawn (6 AM)' },
-                    { h: 9, label: 'Morning (9 AM)' },
-                    { h: 14, label: 'Afternoon (2 PM)' },
-                    { h: 20, label: 'Evening (8 PM)' },
-                    { h: 23, label: 'Night Owl (11 PM)' },
+                    { h: 6, label: 'Dawn' },
+                    { h: 9, label: 'Morning' },
+                    { h: 14, label: 'Afternoon' },
+                    { h: 20, label: 'Evening' },
+                    { h: 23, label: 'Night' },
                   ].map((preset) => (
                     <button
                       key={preset.h}
+                      type="button"
                       onClick={() => {
                         setPeakHour(preset.h);
-                        const newName = generatePoeticRitualName(selectedArchetype, selectedProfession, preset.h);
-                        setRitualName(newName);
+                        setRitualName(
+                          generatePoeticRitualName(selectedArchetype, selectedProfession, preset.h)
+                        );
                       }}
-                      className={`py-1.5 px-2 rounded-lg text-[10px] font-mono border text-center transition-all ${
+                      className={`py-2 px-1 rounded-lg text-[10px] border text-center transition-colors ${
                         peakHour === preset.h
-                          ? 'bg-amber-500 text-stone-950 font-bold border-amber-500'
-                          : 'bg-stone-950 text-stone-400 border-stone-800 hover:bg-stone-800'
+                          ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-stone-900 dark:border-stone-100'
+                          : 'bg-transparent text-stone-500 border-stone-200 dark:border-stone-800'
                       }`}
                     >
                       {preset.label}
@@ -473,90 +366,75 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: Name your focus ritual & Preview */}
           {step === 3 && (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-5">
               <div>
-                <h3 className="text-xl font-serif font-medium text-stone-100">
-                  Step 3: Name your focus ritual
-                </h3>
-                <p className="text-xs sm:text-sm text-stone-400 mt-1">
-                  We've synthesized a poetic suggestion based on your <span className="text-amber-400 font-medium">{selectedProfession}</span> identity and <span className="text-amber-400 font-medium">{peakInfo.label}</span>.
+                <h3 className="font-serif text-lg text-stone-900 dark:text-stone-100">Name your ritual</h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                  A quiet label for {selectedProfession}, around {peakInfo.label.toLowerCase()}.
                 </p>
               </div>
 
-              {/* Generated Poetic Ritual Name Box */}
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase tracking-wider text-stone-400 flex items-center justify-between">
-                  <span>Ritual Title</span>
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                    Ritual title
+                  </label>
                   <button
+                    type="button"
                     onClick={handleRegenerateRitualName}
-                    className="flex items-center space-x-1 text-amber-400 hover:text-amber-300 text-[11px] font-mono transition-colors"
+                    className="flex items-center gap-1 text-[11px] text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
                   >
                     <RotateCw className="w-3 h-3" />
-                    <span>Shuffle Suggestion</span>
+                    <span>Shuffle</span>
                   </button>
-                </label>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={ritualName}
-                    onChange={(e) => setRitualName(e.target.value)}
-                    placeholder="e.g. The Dawn Scribe"
-                    className="w-full px-4 py-3 bg-stone-950 border border-stone-800 rounded-xl text-lg font-serif text-amber-300 focus:outline-none focus:border-amber-500 transition-colors"
-                  />
-                  <Sparkles className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400/60" />
                 </div>
+                <input
+                  type="text"
+                  value={ritualName}
+                  onChange={(e) => setRitualName(e.target.value)}
+                  placeholder="e.g. The Dawn Scribe"
+                  className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-950 border border-stone-200/80 dark:border-stone-800 rounded-xl text-lg font-serif text-stone-900 dark:text-stone-100 focus:outline-none focus:border-stone-400"
+                />
               </div>
 
-              {/* Seeded Settings Summary Card */}
-              <div className="p-4 rounded-xl bg-stone-950 border border-stone-800 space-y-3">
-                <div className="text-xs font-mono font-bold uppercase tracking-wider text-stone-400 border-b border-stone-800 pb-2 flex items-center justify-between">
-                  <span>Seeded Profile Summary</span>
-                  <span className="text-amber-400">{selectedArchetype} Archetype</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="space-y-1">
-                    <span className="text-stone-500 block text-[10px] font-mono">PROFESSION</span>
-                    <span className="text-stone-200 font-medium">{selectedProfession}</span>
+              <div className="p-4 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200/80 dark:border-stone-800 space-y-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 border-b border-stone-200/70 dark:border-stone-800 pb-2">
+                  Summary
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-wider text-stone-400">Profession</span>
+                    <span className="text-stone-800 dark:text-stone-200">{selectedProfession}</span>
                   </div>
-
-                  <div className="space-y-1">
-                    <span className="text-stone-500 block text-[10px] font-mono">PEAK TIME</span>
-                    <span className="text-stone-200 font-medium">{peakInfo.period}</span>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-wider text-stone-400">Peak</span>
+                    <span className="text-stone-800 dark:text-stone-200">{peakInfo.period}</span>
                   </div>
-
-                  <div className="space-y-1">
-                    <span className="text-stone-500 block text-[10px] font-mono">DEFAULT PRESET</span>
-                    <span className="text-stone-200 font-medium">
-                      {currentArchetypeMeta.defaultWorkMinutes}m focus / {currentArchetypeMeta.defaultBreakMinutes}m break
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-wider text-stone-400">Preset</span>
+                    <span className="text-stone-800 dark:text-stone-200">
+                      {currentArchetypeMeta.defaultWorkMinutes}m / {currentArchetypeMeta.defaultBreakMinutes}m
                     </span>
                   </div>
-
-                  <div className="space-y-1">
-                    <span className="text-stone-500 block text-[10px] font-mono">FOCUS AMBIENT</span>
-                    <span className="text-stone-200 font-medium capitalize">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-wider text-stone-400">Sound</span>
+                    <span className="text-stone-800 dark:text-stone-200 capitalize">
                       {currentArchetypeMeta.defaultAmbient.replace('_', ' ')}
                     </span>
                   </div>
-                </div>
-
-                <div className="p-2.5 rounded-lg bg-stone-900 border border-stone-800/60 text-[11px] text-stone-400 italic">
-                  Voice style: "{currentArchetypeMeta.voiceStyle}"
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Modal Footer / Navigation Controls */}
-        <div className="px-4 sm:px-5 py-3 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-stone-800 bg-stone-900/95 flex items-center justify-between gap-3 shrink-0">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-3 shrink-0">
           {step > 1 ? (
             <button
+              type="button"
               onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors"
+              className="flex min-h-11 items-center gap-1.5 px-4 rounded-xl text-xs font-semibold text-stone-500 hover:text-stone-900 dark:hover:text-stone-100"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
@@ -567,19 +445,20 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
 
           {step < 3 ? (
             <button
+              type="button"
               onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3)}
-              className="flex items-center space-x-1.5 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+              className="flex min-h-11 items-center gap-1.5 px-5 rounded-full bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 font-semibold text-xs uppercase tracking-wider"
             >
-              <span>Next Step</span>
+              <span>Next</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleFinish}
-              className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-amber-500/20 active:scale-95"
+              className="flex min-h-11 items-center px-6 rounded-full bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 font-semibold text-xs uppercase tracking-wider"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Begin Focus Ritual</span>
+              Begin
             </button>
           )}
         </div>

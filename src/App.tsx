@@ -22,7 +22,6 @@ const SettingsModal = lazy(() => import('./components/SettingsModal').then(m => 
 const LevelUnlockModal = lazy(() => import('./components/LevelUnlockModal').then(m => ({ default: m.LevelUnlockModal })));
 const FlexCardModal = lazy(() => import('./components/FlexCardModal').then(m => ({ default: m.FlexCardModal })));
 const RitualOnboardingModal = lazy(() => import('./components/RitualOnboardingModal').then(m => ({ default: m.RitualOnboardingModal })));
-const VipCodeGate = lazy(() => import('./components/VipCodeGate').then(m => ({ default: m.VipCodeGate })));
 
 import {
   SessionType,
@@ -49,6 +48,8 @@ import {
   initAuthObserver as initAuth,
   syncUserProfileToCloud,
   signOutUser,
+  loadUserProfile,
+  writeUserProfileFields,
 } from './services/authService';
 import {
   syncSessionToCloud,
@@ -60,7 +61,7 @@ import {
   calculateGhostRival,
 } from './services/leaderboardService';
 import { isSampleSession } from './utils/sampleRhythm';
-import { getVipState } from './utils/vipAccess';
+import { applyCloudRitualHydration, extractRitualCloudFields } from './utils/ritualOnboarding';
 import { User as FirebaseUser } from 'firebase/auth';
 
 import {
@@ -128,16 +129,8 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [cloudSyncError, setCloudSyncError] = useState<string | null>(null);
 
-  // Creator VIP Access Code State
-  const [isVipUnlocked, setIsVipUnlocked] = useState<boolean>(() => getVipState().isUnlocked);
-  const [isVipModalOpen, setIsVipModalOpen] = useState<boolean>(false);
-
-  // Authorization flag for Special AI Features (Signed in OR VIP Unlocked)
-  const isAuthorizedForAi = !!fbUser || isVipUnlocked;
-
-  const handleUnlockVip = () => {
-    setIsVipUnlocked(true);
-  };
+  // Authorization flag for Special AI Features (signed-in only)
+  const isAuthorizedForAi = !!fbUser;
 
   // Clear obsolete local peer data once. Public standings are Firebase-only.
   useEffect(() => {
@@ -166,15 +159,30 @@ export default function App() {
   useEffect(() => {
     if (!fbUser) return;
 
-    // 1. Sync user profile document to Firestore
-    void syncUserProfileToCloud(fbUser, {
-      current_level: settings.staminaLevel,
-      session_count: sessionRecords.filter((record) => !isSampleSession(record)).length,
-      tribe_id: settings.tribeId,
-    }).catch((error) => {
-      console.error('Failed to initialize cloud profile:', error);
-      setCloudSyncError('Cloud profile sync is unavailable. Your on-device history remains intact.');
-    });
+    // 1. Sync user profile document to Firestore and restore ritual fields
+    void (async () => {
+      try {
+        const latestSettings = loadSettings();
+        const profile = await loadUserProfile(fbUser.uid);
+        const hydrated = await applyCloudRitualHydration(
+          fbUser.uid,
+          latestSettings,
+          profile,
+          writeUserProfileFields
+        );
+        setSettings(hydrated);
+        saveSettings(hydrated);
+        await syncUserProfileToCloud(fbUser, {
+          current_level: hydrated.staminaLevel,
+          session_count: sessionRecords.filter((record) => !isSampleSession(record)).length,
+          tribe_id: hydrated.tribeId,
+          ...extractRitualCloudFields(hydrated),
+        });
+      } catch (error) {
+        console.error('Failed to initialize cloud profile:', error);
+        setCloudSyncError('Cloud profile sync is unavailable. Your on-device history remains intact.');
+      }
+    })();
 
     const realDisplayName = fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : '');
     let currentUsername = settings.username;
@@ -687,6 +695,7 @@ export default function App() {
         current_level: updated.staminaLevel,
         session_count: sessionRecords.filter((record) => !isSampleSession(record)).length,
         tribe_id: updated.tribeId,
+        ...extractRitualCloudFields(updated),
       }).catch((error) => {
         console.error('Failed to sync updated user profile:', error);
         setCloudSyncError('Your settings are saved on this device, but cloud sync is currently unavailable.');
@@ -776,8 +785,6 @@ export default function App() {
         isAmbientActive={settings.ambientType !== 'none'}
         completedCyclesToday={completedCyclesToday}
         fbUser={fbUser}
-        isVipUnlocked={isVipUnlocked}
-        onOpenVipGate={() => setIsVipModalOpen(true)}
       />
 
       {/* Visual Theme Transition Spectacle Canvas & Waves */}
@@ -844,7 +851,6 @@ export default function App() {
               onOpenSettings={() => setIsSettingsOpen(true)}
               isAuthorizedForAi={isAuthorizedForAi}
               onOpenAuth={() => setIsAuthModalOpen(true)}
-              onUnlockVip={handleUnlockVip}
             />
 
             {activeRecoveryPrompts.length > 0 && (
@@ -875,7 +881,6 @@ export default function App() {
                 onApplyRecommendation={handleApplyRecommendation}
                 isAuthorizedForAi={isAuthorizedForAi}
                 onOpenAuth={() => setIsAuthModalOpen(true)}
-                onUnlockVip={handleUnlockVip}
               />
             </Suspense>
           </ErrorBoundary>
@@ -1018,28 +1023,6 @@ export default function App() {
             }
           }}
         />
-      )}
-
-      {/* Creator VIP Access Code Modal */}
-      {isVipModalOpen && (
-        <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback label="Loading VIP Gate..." />}>
-            <VipCodeGate
-              isInline={false}
-              featureName="Creator VIP Code Verification"
-              featureDescription="Enter your secret Creator VIP Code to unlock all current and future features across Ultradian Pulse without signing in. Maximum 2 attempts allowed."
-              onCloseModal={() => setIsVipModalOpen(false)}
-              onUnlocked={() => {
-                handleUnlockVip();
-                setIsVipModalOpen(false);
-              }}
-              onOpenAuth={() => {
-                setIsVipModalOpen(false);
-                setIsAuthModalOpen(true);
-              }}
-            />
-          </Suspense>
-        </ErrorBoundary>
       )}
 
       {/* Social Share Badge Modal */}

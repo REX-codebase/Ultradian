@@ -16,6 +16,7 @@ import {
 import { motion } from 'motion/react';
 import { LeagueTier, LeagueMember, RivalInfo } from '../types';
 import { playMilestoneSound } from '../utils/audio';
+import { leagueMark } from '../utils/leagueMarks';
 
 interface SocialShareModalProps {
   userStats: {
@@ -34,13 +35,13 @@ interface SocialShareModalProps {
 }
 
 const LEAGUE_BADGES: Record<LeagueTier, { name: string; icon: string; color: string; border: string }> = {
-  wood: { name: 'Wood League', icon: '🪵', color: 'from-amber-900/20 to-amber-950/20 text-amber-700 dark:text-amber-400', border: 'border-amber-700/30' },
-  bronze: { name: 'Bronze League', icon: '🥉', color: 'from-orange-900/20 to-orange-950/20 text-orange-700 dark:text-orange-400', border: 'border-orange-700/30' },
-  silver: { name: 'Silver League', icon: '🥈', color: 'from-slate-400/20 to-slate-500/20 text-slate-700 dark:text-slate-300', border: 'border-slate-400/30' },
-  gold: { name: 'Gold League', icon: '🥇', color: 'from-amber-400/20 to-yellow-500/20 text-yellow-700 dark:text-yellow-400', border: 'border-yellow-500/30' },
-  platinum: { name: 'Platinum League', icon: '💎', color: 'from-cyan-400/20 to-blue-500/20 text-cyan-700 dark:text-cyan-300', border: 'border-cyan-400/30' },
-  diamond: { name: 'Diamond League', icon: '💠', color: 'from-indigo-400/20 to-violet-500/20 text-indigo-700 dark:text-indigo-300', border: 'border-indigo-400/30' },
-  ultradian_master: { name: 'Ultradian Master', icon: '⚡', color: 'from-emerald-400/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300', border: 'border-emerald-400/30' },
+  wood: { name: 'Wood League', icon: leagueMark('wood'), color: 'from-amber-900/20 to-amber-950/20 text-amber-700 dark:text-amber-400', border: 'border-amber-700/30' },
+  bronze: { name: 'Bronze League', icon: leagueMark('bronze'), color: 'from-orange-900/20 to-orange-950/20 text-orange-700 dark:text-orange-400', border: 'border-orange-700/30' },
+  silver: { name: 'Silver League', icon: leagueMark('silver'), color: 'from-slate-400/20 to-slate-500/20 text-slate-700 dark:text-slate-300', border: 'border-slate-400/30' },
+  gold: { name: 'Gold League', icon: leagueMark('gold'), color: 'from-amber-400/20 to-yellow-500/20 text-yellow-700 dark:text-yellow-400', border: 'border-yellow-500/30' },
+  platinum: { name: 'Platinum League', icon: leagueMark('platinum'), color: 'from-cyan-400/20 to-blue-500/20 text-cyan-700 dark:text-cyan-300', border: 'border-cyan-400/30' },
+  diamond: { name: 'Diamond League', icon: leagueMark('diamond'), color: 'from-indigo-400/20 to-violet-500/20 text-indigo-700 dark:text-indigo-300', border: 'border-indigo-400/30' },
+  ultradian_master: { name: 'Ultradian Master', icon: leagueMark('ultradian_master'), color: 'from-emerald-400/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300', border: 'border-emerald-400/30' },
 };
 
 export const SocialShareModal: React.FC<SocialShareModalProps> = ({
@@ -99,8 +100,8 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           {rivalInfo.isLeading ? (
             <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10 border border-yellow-500/40 text-stone-900 dark:text-stone-100 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-yellow-500/20 text-yellow-600 dark:text-yellow-300 font-bold">
-                  👑
+                <div className="p-2 rounded-lg bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-200">
+                  <Trophy className="w-4 h-4" />
                 </div>
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-yellow-700 dark:text-yellow-400">
@@ -181,8 +182,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             <span className="text-[9px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500 block mb-1">
               Active Matchmaking League
             </span>
-            <span className="text-sm font-bold tracking-wide text-stone-800 dark:text-stone-200 block truncate mt-1 flex items-center gap-1.5">
-              <span>{LEAGUE_BADGES[currentLeague].icon}</span>
+            <span className="text-sm font-bold tracking-wide text-stone-800 dark:text-stone-200 mt-1 flex items-center gap-1.5 truncate">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded bg-stone-200 px-1 text-[10px] font-semibold text-stone-700 dark:bg-stone-800 dark:text-stone-200">
+                {LEAGUE_BADGES[currentLeague].icon}
+              </span>
               <span>{LEAGUE_BADGES[currentLeague].name}</span>
             </span>
           </div>
@@ -236,7 +239,9 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                     : 'bg-stone-50 dark:bg-stone-950 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-900'
                 }`}
               >
-                <span>{badge.icon}</span>
+                <span className="inline-flex h-4 min-w-4 items-center justify-center text-[10px] font-semibold">
+                  {badge.icon}
+                </span>
                 <span>{badge.name}</span>
               </button>
             );

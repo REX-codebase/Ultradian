@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Info, CheckCircle2, ChevronDown, ChevronUp, Cpu, ArrowRight, Zap, Target } from 'lucide-react';
 import { Recommendation, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
 import { UserSettings, CategoryTag } from '../types';
-import { VipCodeGate } from './VipCodeGate';
+import { SignInGate } from './SignInGate';
 
 interface TransparentRecommendationCardProps {
   recommendation: Recommendation;
@@ -11,7 +11,6 @@ interface TransparentRecommendationCardProps {
   onCategoryChange: (cat: CategoryTag) => void;
   isAuthorizedForAi?: boolean;
   onOpenAuth?: () => void;
-  onUnlockVip?: () => void;
 }
 
 export const TransparentRecommendationCard: React.FC<TransparentRecommendationCardProps> = ({
@@ -21,18 +20,16 @@ export const TransparentRecommendationCard: React.FC<TransparentRecommendationCa
   onCategoryChange,
   isAuthorizedForAi = true,
   onOpenAuth,
-  onUnlockVip,
 }) => {
   const [showFormula, setShowFormula] = useState(false);
   const [applied, setApplied] = useState(false);
 
   if (!isAuthorizedForAi) {
     return (
-      <VipCodeGate
-        featureName="Special AI Recommendation Engine"
-        featureDescription="Transparent ultradian wave recommendation algorithms tailored to your cognitive domains are available exclusively to signed-in users or Creator VIP Code."
+      <SignInGate
+        featureName="Wave recommendation"
+        featureDescription="Sign in to see a duration recommendation drawn from your logged waves."
         onOpenAuth={onOpenAuth}
-        onUnlocked={onUnlockVip}
       />
     );
   }

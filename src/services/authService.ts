@@ -9,8 +9,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { RitualCloudFields, withOwnerUid } from '../utils/ritualOnboarding';
 
 export function initAuthObserver(
   onUserChange: (user: FirebaseUser | null) => void,
@@ -77,4 +78,16 @@ export async function syncUserProfileToCloud(user: FirebaseUser, extraFields?: R
     },
     { merge: true }
   );
+}
+
+export async function writeUserProfileFields(uid: string, data: RitualCloudFields): Promise<void> {
+  if (!uid) return;
+  const userDocRef = doc(db, 'users', uid);
+  await setDoc(userDocRef, withOwnerUid(uid, data), { merge: true });
+}
+
+export async function loadUserProfile(uid: string): Promise<Record<string, unknown> | null> {
+  if (!uid) return null;
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? (snap.data() as Record<string, unknown>) : null;
 }

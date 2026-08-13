@@ -20,7 +20,6 @@ interface AnalyticsDashboardProps {
   onApplyRecommendation: (workMins: number, breakMins: number, ambient: any) => void;
   isAuthorizedForAi?: boolean;
   onOpenAuth?: () => void;
-  onUnlockVip?: () => void;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
@@ -29,7 +28,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   onApplyRecommendation,
   isAuthorizedForAi = true,
   onOpenAuth,
-  onUnlockVip,
 }) => {
   const [showMore, setShowMore] = useState(false);
 
@@ -164,7 +162,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             onAcceptExperiment={onApplyRecommendation}
             isAuthorizedForAi={isAuthorizedForAi}
             onOpenAuth={onOpenAuth}
-            onUnlockVip={onUnlockVip}
           />
 
           <p className="max-w-prose text-sm leading-relaxed text-stone-400">

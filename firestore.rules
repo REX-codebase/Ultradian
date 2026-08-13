@@ -20,11 +20,23 @@ service cloud.firestore {
         && (!('category' in data) || isValidString(data.category, 40));
     }
     
-    // User Profiles — owner-only reads to prevent PII (email) harvesting
+    function isValidRitualFields() {
+      let data = request.resource.data;
+      return (!('archetype' in data) || data.archetype in ['Builder', 'Creator', 'Scientist', 'Strategist'])
+        && (!('profession' in data) || data.profession is string)
+        && (!('peakHour' in data) || (data.peakHour is number && data.peakHour >= 0 && data.peakHour <= 23))
+        && (!('focusRitualName' in data) || data.focusRitualName is string)
+        && (!('hasCompletedOnboarding' in data) || data.hasCompletedOnboarding is bool);
+    }
+
+    // User Profiles — owner-only reads to prevent PII (email) harvesting.
+    // Owners may persist ritual onboarding fields on users/{uid}.
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) && request.resource.data.uid == resource.data.uid;
+      allow create: if isOwner(userId) && isValidRitualFields();
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && isValidRitualFields();
       
       // Sessions (Subcollection - Immutable Event Log)
       // Strict schema validation prevents leaderboard spoofing via inflated durationMinutes
@@ -62,9 +74,5 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    // VIP rate-limit documents (server-only writes)
-    match /vipRateLimits/{docId} {
-      allow read, write: if false;
-    }
   }
 }

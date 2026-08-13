@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, Mail, Lock, User, Sparkles, AlertCircle, ArrowRight, Chrome, CheckCircle2, X, Cloud, KeyRound, ShieldAlert } from 'lucide-react';
+import { Clock, Mail, Lock, User, Sparkles, AlertCircle, ArrowRight, Chrome, X, Cloud } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   signInWithEmail,
@@ -7,7 +7,6 @@ import {
   signInAnonymouslyUser,
   signInWithGoogle,
 } from '../services/authService';
-import { getVipState, attemptVipCode } from '../utils/vipAccess';
 import { FluidCanvas } from './FluidCanvas';
 
 interface LoginScreenProps {
@@ -24,43 +23,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
   const [displayName, setDisplayName] = useState<string>('');
   const [error, setError] = useState<React.ReactNode | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Creator VIP Code State
-  const [vipCodeInput, setVipCodeInput] = useState<string>('');
-  const [vipState, setVipState] = useState(() => getVipState());
-  const [showVipSection, setShowVipSection] = useState<boolean>(false);
-
-  const handleVipSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vipCodeInput.trim()) return;
-
-    const res = attemptVipCode(vipCodeInput);
-    const updated = getVipState();
-    setVipState(updated);
-
-    if (res.success) {
-      setError(
-        <div className="space-y-1 text-left text-xs">
-          <p className="font-bold text-emerald-800 dark:text-emerald-400">✨ Creator VIP Code Verified!</p>
-          <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
-            All current and future features are now unlocked for you without signing in.
-          </p>
-        </div>
-      );
-      setTimeout(() => {
-        if (onClose) onClose();
-      }, 1200);
-    } else {
-      setError(
-        <div className="space-y-1 text-left text-xs">
-          <p className="font-bold text-red-800 dark:text-red-400">
-            {res.isLockedOut ? '🚫 Entry Stopped (Locked Out)' : '❌ Incorrect VIP Code'}
-          </p>
-          <p className="text-stone-600 dark:text-stone-300 leading-relaxed">{res.message}</p>
-        </div>
-      );
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -376,59 +338,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
           <Sparkles className="w-3.5 h-3.5" />
           <span>Continue in Local Guest Mode</span>
         </button>
-
-        {/* Creator VIP Code Section */}
-        <div className="w-full pt-2">
-          <button
-            type="button"
-            onClick={() => setShowVipSection(!showVipSection)}
-            className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-between cursor-pointer"
-          >
-            <span className="flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-amber-500" />
-              <span>Have Creator VIP Passcode?</span>
-            </span>
-            <span className="text-[10px] font-mono font-bold bg-amber-500/20 px-2 py-0.5 rounded-md">
-              {vipState.isUnlocked ? 'Verified ✓' : vipState.isLockedOut ? 'Locked Out' : `${vipState.failedAttempts}/2 Tries`}
-            </span>
-          </button>
-
-          {showVipSection && (
-            <motion.form
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              onSubmit={handleVipSubmit}
-              className="mt-2 p-3 rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 space-y-2 text-left"
-            >
-              <div className="space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                  <span>Enter 5-Word Numeric Code</span>
-                  <span>{vipState.isLockedOut ? '0 Tries Left' : `${2 - vipState.failedAttempts} Try Remaining`}</span>
-                </div>
-                <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80">
-                  System passcode: 5 numeric digits (e.g. 12345). Entry stopped after 2 failed tries.
-                </p>
-              </div>
-
-              <input
-                type="text"
-                disabled={vipState.isLockedOut || vipState.isUnlocked}
-                placeholder={vipState.isLockedOut ? 'Entry stopped (2/2 failed tries)' : 'Enter 5-digit numeric code (e.g. 12345)...'}
-                value={vipCodeInput}
-                onChange={(e) => setVipCodeInput(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-xs font-mono font-bold text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
-              />
-
-              <button
-                type="submit"
-                disabled={vipState.isLockedOut || vipState.isUnlocked || !vipCodeInput.trim()}
-                className="w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white dark:text-stone-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {vipState.isUnlocked ? 'VIP Unlocked ✓' : vipState.isLockedOut ? 'Entry Stopped (Locked Out)' : 'Verify Creator Code'}
-              </button>
-            </motion.form>
-          )}
-        </div>
       </div>
     </motion.div>
   );

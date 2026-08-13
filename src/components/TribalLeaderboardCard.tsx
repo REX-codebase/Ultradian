@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Users, Trophy, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { subscribeToTribes, TribeSummary } from '../services/leaderboardService';
+import { tribeDisplayMark } from '../utils/leagueMarks';
 
 interface TribalLeaderboardCardProps {
   userTribeId?: string;
@@ -85,8 +86,8 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
                   <span className="w-6 text-center font-bold font-mono text-sm text-stone-500">
                     {index === 0 ? <Trophy className="w-5 h-5 mx-auto text-amber-500 drop-shadow-xs" /> : `#${index + 1}`}
                   </span>
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-800 dark:to-stone-850 text-stone-900 dark:text-stone-100 font-bold text-base flex items-center justify-center border border-stone-200 dark:border-stone-700 shadow-xs">
-                    {tribe.icon || tribe.name.slice(0, 1).toUpperCase()}
+                  <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold text-sm flex items-center justify-center border border-stone-200 dark:border-stone-700">
+                    {tribeDisplayMark(tribe.icon, tribe.name)}
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">

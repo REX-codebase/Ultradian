@@ -6,6 +6,5 @@ if (!getApps().length) {
 
 export { onSessionCreate } from './sessions';
 export { weeklyLeagueMatchmaking } from './leagues';
-export { validateVipCode } from './vip';
 export { generateAiInsights } from './ai';
 export { getISOWeekString } from './shared/utils';
