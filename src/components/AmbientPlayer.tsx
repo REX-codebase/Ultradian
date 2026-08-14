@@ -1,4 +1,5 @@
 import React from 'react';
+import { IconVolume } from './icons';
 import { AmbientSoundType } from '../types';
 
 interface AmbientPlayerProps {
@@ -37,7 +38,7 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
               onClick={() => onSelectAmbient(sc.id)}
               className={`pressable min-h-10 rounded-full px-3.5 text-sm ${
                 selected
-                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)]'
+                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)] font-medium'
                   : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]'
               }`}
               aria-pressed={selected}
@@ -49,6 +50,7 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
       </div>
       {activeAmbient !== 'none' && (
         <label className="mt-4 flex items-center justify-center gap-3 text-sm text-[color:var(--ink-mute)]">
+          <IconVolume size={14} />
           <span className="sr-only">Volume</span>
           <input
             type="range"
@@ -57,9 +59,9 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
             step="0.05"
             value={ambientVolume}
             onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-            className="h-1 w-36 accent-stone-800 dark:accent-stone-200"
+            className="h-1 w-36 accent-[color:var(--ink)]"
           />
-          <span className="tabular-nums">{Math.round(ambientVolume * 100)}</span>
+          <span className="tabular-nums font-mono text-xs">{Math.round(ambientVolume * 100)}</span>
         </label>
       )}
     </section>

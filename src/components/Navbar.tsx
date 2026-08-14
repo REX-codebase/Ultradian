@@ -1,7 +1,16 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Moon, Sun, Settings, Clock, BarChart3, Share2, X } from 'lucide-react';
+import {
+  UltradianLogo,
+  IconFocus,
+  IconRhythm,
+  IconLeague,
+  IconSun,
+  IconMoon,
+  IconSettings,
+  IconClose,
+} from './icons';
 import { UserSettings } from '../types';
 
 interface NavbarProps {
@@ -27,10 +36,10 @@ interface NavbarProps {
   onCloseSheet?: () => void;
 }
 
-const TABS: Array<{ id: 'timer' | 'analytics' | 'friends'; label: string; icon: typeof Clock; leagueOnly?: boolean }> = [
-  { id: 'timer', label: 'Focus', icon: Clock },
-  { id: 'analytics', label: 'Rhythm', icon: BarChart3 },
-  { id: 'friends', label: 'League', icon: Share2, leagueOnly: true },
+const TABS: Array<{ id: 'timer' | 'analytics' | 'friends'; label: string; icon: React.FC<any>; leagueOnly?: boolean }> = [
+  { id: 'timer', label: 'Focus', icon: IconFocus },
+  { id: 'analytics', label: 'Rhythm', icon: IconRhythm },
+  { id: 'friends', label: 'League', icon: IconLeague, leagueOnly: true },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -438,7 +447,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ease: 'easeInOut',
             }}
           >
-            <X className="h-3.5 w-3.5 text-[color:var(--ink)] transition-transform duration-200 group-hover:rotate-90" strokeWidth={2.5} />
+            <IconClose className="h-3.5 w-3.5 text-[color:var(--ink)] transition-transform duration-200 group-hover:rotate-90" strokeWidth={2.5} />
           </motion.div>
           
           <div className="absolute top-1 left-1.5 w-1.5 h-1.5 rounded-full bg-white/80 blur-[0.5px]" />
@@ -459,8 +468,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               triggerHaptic();
               onChangeTab('timer');
             }}
-            className="pressable min-h-11 font-serif text-lg tracking-tight text-[color:var(--ink)] sm:text-xl transition-all duration-200 flex items-center gap-1.5"
+            className="pressable min-h-11 font-serif text-lg tracking-tight text-[color:var(--ink)] sm:text-xl transition-all duration-200 flex items-center gap-2"
           >
+            <UltradianLogo size={22} className="text-[color:var(--ink)]" />
             <span>Ultradian</span>
           </motion.button>
 
@@ -569,7 +579,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     exit={reduceMotion ? { opacity: 0 } : { rotate: 90, scale: 0.5, opacity: 0 }}
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <Sun className="h-4 w-4" />
+                    <IconSun className="h-4 w-4" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -579,7 +589,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     exit={reduceMotion ? { opacity: 0 } : { rotate: -90, scale: 0.5, opacity: 0 }}
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <Moon className="h-4 w-4" />
+                    <IconMoon className="h-4 w-4" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -610,7 +620,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   whileHover={reduceMotion ? undefined : { rotate: 45 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
                 >
-                  <Settings className="h-4 w-4" />
+                  <IconSettings className="h-4 w-4" />
                 </motion.div>
               )}
             </motion.button>

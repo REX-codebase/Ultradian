@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Minimize2,
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  AlertTriangle,
-  Brain,
-  Volume2,
-  VolumeX,
-  Wind,
-  Sparkles,
-  Target,
-  Coffee,
-  Flame,
-} from 'lucide-react';
+  IconMinimize,
+  IconPlay,
+  IconPause,
+  IconReset,
+  IconSkip,
+  IconNeuralFlow,
+  IconVolume,
+  IconVolumeMute,
+  IconWind,
+  IconSparkle,
+  IconFocusTarget,
+} from './icons';
 import { SessionType, AmbientSoundType } from '../types';
 
 interface ZenModeProps {
@@ -113,7 +110,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
       <div className="relative z-10 w-full max-w-5xl flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-stone-900 to-stone-800 text-amber-400 flex items-center justify-center border border-stone-800 shadow-md">
-            <Brain className="w-5 h-5" />
+            <IconNeuralFlow size={20} />
           </div>
           <div>
             <h2 className="font-serif italic text-base text-stone-200">
@@ -135,7 +132,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
                 : 'bg-stone-900/80 text-stone-400 border-stone-800 hover:text-stone-100 hover:bg-stone-800'
             }`}
           >
-            <Wind className="w-3.5 h-3.5" />
+            <IconWind size={14} />
             <span className="hidden sm:inline">Breathing Guide</span>
           </button>
 
@@ -148,14 +145,14 @@ export const ZenMode: React.FC<ZenModeProps> = ({
             }`}
             title="Toggle Soundscape"
           >
-            {activeAmbient !== 'none' ? <Volume2 className="w-4 h-4 text-amber-400 animate-pulse" /> : <VolumeX className="w-4 h-4" />}
+            {activeAmbient !== 'none' ? <IconVolume size={16} className="text-amber-400 animate-pulse" /> : <IconVolumeMute size={16} />}
           </button>
 
           <button
             onClick={onExit}
             className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-stone-200 border border-stone-800 text-xs font-semibold transition-all duration-200 active:scale-95"
           >
-            <Minimize2 className="w-3.5 h-3.5" />
+            <IconMinimize size={14} />
             <span className="hidden sm:inline">Exit Zen</span>
           </button>
         </div>
@@ -165,7 +162,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
       <div className="relative z-10 my-4 w-full max-w-xl">
         <div className="px-5 py-3 rounded-2xl bg-stone-900/90 border border-stone-800/90 text-center flex items-center justify-between gap-3 shadow-xl backdrop-blur-xl">
           <div className="flex items-center space-x-2.5 min-w-0">
-            <Target className="w-4 h-4 text-amber-400 shrink-0" />
+            <IconFocusTarget size={16} className="text-amber-400 shrink-0" />
             <span className="text-xs text-stone-400 font-mono font-bold uppercase shrink-0">FOCUS GOAL:</span>
             <span className="font-serif italic text-sm text-stone-100 truncate">
               {currentTask || 'Singular focal objective'}
@@ -194,7 +191,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
               className="absolute -top-28 flex flex-col items-center"
             >
               <div className="w-12 h-12 rounded-full border border-amber-500/40 flex items-center justify-center bg-stone-900/90 mb-2 animate-pulse glow-amber">
-                <Sparkles className="w-5 h-5 text-amber-400" />
+                <IconSparkle size={20} className="text-amber-400" />
               </div>
               <p className="font-serif italic text-base text-stone-200">
                 {BREATHING_PHASES[breathIdx].label}
@@ -269,7 +266,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
           onClick={onReset}
           className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-all duration-200 active:scale-95"
         >
-          <RotateCcw className="w-4 h-4" />
+          <IconReset size={16} />
         </button>
 
         {isRunning ? (
@@ -277,7 +274,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
             onClick={onPause}
             className="flex items-center space-x-2 px-8 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl transition-all duration-200 active:scale-95"
           >
-            <Pause className="w-4 h-4 fill-current" />
+            <IconPause size={16} />
             <span>Pause</span>
           </button>
         ) : (
@@ -285,7 +282,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
             onClick={onStart}
             className="flex items-center space-x-2 px-8 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl transition-all duration-200 active:scale-95 glow-amber"
           >
-            <Play className="w-4 h-4 fill-current ml-0.5" />
+            <IconPlay size={16} />
             <span>Resume</span>
           </button>
         )}
@@ -294,7 +291,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
           onClick={onSkip}
           className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-all duration-200 active:scale-95"
         >
-          <SkipForward className="w-4 h-4" />
+          <IconSkip size={16} />
         </button>
       </div>
     </div>

@@ -1,6 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Coffee, Brain, ArrowRight, CheckCircle2 } from 'lucide-react';
+import {
+  IconNeuralFlow,
+  IconRestVessel,
+  IconSparkle,
+  IconArrowRight,
+} from './icons';
 import { SessionType } from '../types';
 
 interface SoftSessionTransitionProps {
@@ -49,9 +54,9 @@ export const SoftSessionTransition: React.FC<SoftSessionTransitionProps> = ({
           {/* Icon Badge */}
           <div className="w-16 h-16 rounded-2xl bg-stone-800 border border-stone-700/80 flex items-center justify-center mx-auto text-amber-400 shadow-inner">
             {isWork ? (
-              <Brain className="w-8 h-8 animate-bounce" />
+              <IconNeuralFlow size={32} className="animate-bounce" />
             ) : (
-              <Coffee className="w-8 h-8 text-emerald-400 animate-pulse" />
+              <IconRestVessel size={32} className="text-emerald-400 animate-pulse" />
             )}
           </div>
 
@@ -72,7 +77,7 @@ export const SoftSessionTransition: React.FC<SoftSessionTransitionProps> = ({
           {/* Breathing Guide Animation */}
           <div className="p-4 rounded-2xl bg-stone-950/60 border border-stone-800/80 space-y-2">
             <div className="flex items-center justify-center space-x-2 text-xs font-serif italic text-stone-300">
-              <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
+              <IconSparkle size={14} className="text-amber-400 animate-spin" />
               <span>Inhale deeply... exhale slowly</span>
             </div>
             <div className="w-full bg-stone-800 h-1.5 rounded-full overflow-hidden">
@@ -90,7 +95,7 @@ export const SoftSessionTransition: React.FC<SoftSessionTransitionProps> = ({
             className="w-full py-3.5 rounded-full bg-stone-100 text-stone-900 hover:bg-stone-200 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-md"
           >
             <span>{isWork ? 'Begin Focus Wave Now' : 'Start Recovery Break'}</span>
-            <ArrowRight className="w-4 h-4" />
+            <IconArrowRight size={16} />
           </button>
         </motion.div>
       </motion.div>

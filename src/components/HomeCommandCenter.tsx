@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { Play, Pause, RotateCcw, SkipForward, Volume2, VolumeX, Maximize2 } from 'lucide-react';
+import {
+  IconPlay,
+  IconPause,
+  IconReset,
+  IconSkip,
+  IconVolume,
+  IconVolumeMute,
+  IconZenPortal,
+} from './icons';
 import {
   SessionRecord,
   CategoryTag,
@@ -182,10 +190,10 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
         <button
           type="button"
           onClick={isRunning ? onPause : onStart}
-          className="pressable flex min-h-14 w-full max-w-xs items-center justify-center rounded-full bg-[color:var(--ink)] px-8 text-base font-medium text-[color:var(--paper)]"
+          className="pressable flex min-h-14 w-full max-w-xs items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] px-8 text-base font-medium text-[color:var(--paper)] shadow-sm hover:opacity-95"
         >
-          {isRunning ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4 fill-current" />}
-          {isRunning ? 'Pause' : `Begin ${Math.round(totalSeconds / 60)}m`}
+          {isRunning ? <IconPause size={16} /> : <IconPlay size={16} />}
+          <span>{isRunning ? 'Pause' : `Begin ${Math.round(totalSeconds / 60)}m`}</span>
         </button>
 
         <div className="flex items-center gap-1">
@@ -194,16 +202,16 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
             onClick={onReset}
             className="pressable inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Reset
+            <IconReset size={14} />
+            <span>Reset</span>
           </button>
           <button
             type="button"
             onClick={onSkip}
             className="pressable inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]"
           >
-            <SkipForward className="h-3.5 w-3.5" />
-            Skip
+            <IconSkip size={14} />
+            <span>Skip</span>
           </button>
           <button
             type="button"
@@ -211,16 +219,16 @@ export const HomeCommandCenter: React.FC<HomeCommandCenterProps> = ({
             className="pressable inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]"
             aria-pressed={activeAmbient !== 'none'}
           >
-            {activeAmbient !== 'none' ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            Sound
+            {activeAmbient !== 'none' ? <IconVolume size={14} /> : <IconVolumeMute size={14} />}
+            <span>Sound</span>
           </button>
           <button
             type="button"
             onClick={onToggleZen}
             className="pressable inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]"
           >
-            <Maximize2 className="h-3.5 w-3.5" />
-            Zen
+            <IconZenPortal size={14} />
+            <span>Zen</span>
           </button>
         </div>
       </div>

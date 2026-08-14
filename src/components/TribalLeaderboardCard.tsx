@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Users, Trophy, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { IconTribe, IconTrophy, IconAlert } from './icons';
 import { subscribeToTribes, TribeSummary } from '../services/leaderboardService';
 import { tribeDisplayMark } from '../utils/leagueMarks';
 
@@ -52,14 +52,14 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
 
       {!isLoading && error && (
         <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 flex gap-3 text-amber-900 dark:text-amber-200">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+          <IconAlert size={16} className="shrink-0 mt-0.5 text-amber-500" />
           <p className="text-xs leading-relaxed">{error}</p>
         </div>
       )}
 
       {!isLoading && !error && tribes.length === 0 && (
         <div className="py-12 text-center text-stone-500 dark:text-stone-400">
-          <Users className="w-10 h-10 mx-auto mb-3 text-stone-400 dark:text-stone-600 opacity-60" />
+          <IconTribe size={40} className="mx-auto mb-3 text-stone-400 dark:text-stone-600 opacity-60" />
           <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">No verified tribes present</p>
           <p className="text-xs mt-1 max-w-sm mx-auto text-stone-500 dark:text-stone-400">
             Standings populate automatically when active community rosters sync to Firebase. Ultradian never displays placeholder accounts.
@@ -84,7 +84,7 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
               >
                 <div className="flex items-center gap-3.5">
                   <span className="w-6 text-center font-bold font-mono text-sm text-stone-500">
-                    {index === 0 ? <Trophy className="w-5 h-5 mx-auto text-amber-500 drop-shadow-xs" /> : `#${index + 1}`}
+                    {index === 0 ? <IconTrophy size={18} className="mx-auto text-amber-500 drop-shadow-xs" /> : `#${index + 1}`}
                   </span>
                   <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold text-sm flex items-center justify-center border border-stone-200 dark:border-stone-700">
                     {tribeDisplayMark(tribe.icon, tribe.name)}

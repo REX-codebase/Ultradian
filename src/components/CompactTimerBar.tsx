@@ -1,18 +1,18 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import {
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  Maximize2,
-  Volume2,
-  VolumeX,
-  Flame,
-  Brain,
-  Coffee,
-  Sparkles,
-} from 'lucide-react';
+  IconPlay,
+  IconPause,
+  IconReset,
+  IconSkip,
+  IconZenPortal,
+  IconVolume,
+  IconVolumeMute,
+  IconFlame,
+  IconNeuralFlow,
+  IconRestVessel,
+  IconSparkle,
+} from './icons';
 import { SessionType, AmbientSoundType, CategoryTag } from '../types';
 
 interface CompactTimerBarProps {
@@ -101,11 +101,11 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
           </svg>
           <div className="absolute inset-0 flex items-center justify-center text-[10px]">
             {sessionType === 'work' ? (
-              <Brain className="w-3.5 h-3.5 text-stone-300" />
+              <IconNeuralFlow size={14} className="text-stone-300" />
             ) : sessionType === 'shortBreak' ? (
-              <Coffee className="w-3.5 h-3.5 text-amber-400" />
+              <IconRestVessel size={14} className="text-amber-400" />
             ) : (
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <IconSparkle size={14} className="text-emerald-400" />
             )}
           </div>
         </div>
@@ -115,7 +115,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
             {formatTime(secondsLeft)}
           </span>
           <span className="text-[9px] font-mono font-bold tracking-wider uppercase text-stone-400 flex items-center space-x-1 mt-1">
-            <Flame className="w-2.5 h-2.5 text-amber-500" />
+            <IconFlame size={11} className="text-amber-500" />
             <span>CYCLE {completedCyclesCount + 1}/{targetCycles}</span>
           </span>
         </div>
@@ -144,7 +144,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
           }`}
           title="Toggle Soundscape"
         >
-          {activeAmbient !== 'none' ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+          {activeAmbient !== 'none' ? <IconVolume size={14} /> : <IconVolumeMute size={14} />}
         </button>
 
         {isRunning ? (
@@ -152,7 +152,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
             onClick={onPause}
             className="px-3.5 py-2 rounded-xl bg-stone-100 text-stone-900 font-bold text-xs flex items-center space-x-1 hover:bg-stone-200"
           >
-            <Pause className="w-3.5 h-3.5 fill-current" />
+            <IconPause size={14} />
             <span className="hidden xs:inline">PAUSE</span>
           </button>
         ) : (
@@ -160,7 +160,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
             onClick={onStart}
             className="px-3.5 py-2 rounded-xl bg-stone-100 text-stone-900 font-bold text-xs flex items-center space-x-1 hover:bg-stone-200"
           >
-            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+            <IconPlay size={14} />
             <span className="hidden xs:inline">START</span>
           </button>
         )}
@@ -170,7 +170,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
           className="p-2 rounded-lg bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-700"
           title="Reset"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
+          <IconReset size={14} />
         </button>
 
         <button
@@ -178,7 +178,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
           className="p-2 rounded-lg bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-700"
           title="Skip"
         >
-          <SkipForward className="w-3.5 h-3.5" />
+          <IconSkip size={14} />
         </button>
 
         <button
@@ -186,7 +186,7 @@ export const CompactTimerBar: React.FC<CompactTimerBarProps> = ({
           className="p-2 rounded-lg bg-stone-800 text-stone-200 hover:bg-stone-700 border border-stone-700 ml-1"
           title="Expand Living Instrument"
         >
-          <Maximize2 className="w-3.5 h-3.5" />
+          <IconZenPortal size={14} />
         </button>
       </div>
     </motion.div>
