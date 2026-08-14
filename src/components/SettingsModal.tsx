@@ -117,10 +117,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const clickX = Math.max(0, Math.min(width, e.clientX - rect.left));
     const initialIndex = Math.max(0, Math.min(numTabs - 1, clickX / slotW - 0.5));
 
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {}
-
     dragSessionRef.current = {
       active: true,
       pointerId: e.pointerId,
@@ -149,7 +145,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const totalDist = Math.abs(e.clientX - session.startX);
 
     if (totalDist > 4) {
-      session.hasMoved = true;
+      if (!session.hasMoved) {
+        session.hasMoved = true;
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {}
+      }
     }
 
     const velocity = (dx / dt) * 16;
@@ -323,16 +324,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        {/* Direct Draggable Liquid Glass Tab Bar */}
+        {/* Liquid Glass Tab Bar */}
         <div
           ref={tabsNavRef}
           role="tablist"
           aria-label="Settings sections"
-          className="relative mb-5 flex gap-1 rounded-full bg-[color:var(--line)]/45 p-1 cursor-grab active:cursor-grabbing touch-none select-none border border-[color:var(--line)]/60"
-          onPointerDown={handleTabsPointerDown}
-          onPointerMove={handleTabsPointerMove}
-          onPointerUp={handleTabsPointerUp}
-          onPointerCancel={handleTabsPointerCancel}
+          className="relative mb-5 flex gap-1 rounded-full bg-[color:var(--line)]/45 p-1 select-none border border-[color:var(--line)]/60"
         >
           {/* Animated Liquid Glass Highlighter Pill */}
           <div className="absolute inset-1 pointer-events-none">
@@ -340,29 +337,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="liquid-glass-pill"
               initial={false}
               animate={{
-                left: `${(clampedPosition / numTabs) * 100}%`,
+                left: `${(activeIdx / numTabs) * 100}%`,
                 width: `${100 / numTabs}%`,
-                scaleX: isAnyDragging
-                  ? 1 + Math.min(Math.abs(currentVelocity) * 0.03 + (directDrag.isDragging ? 0.14 : 0), 0.4)
-                  : [1, 1.16, 0.94, 1.04, 1],
-                scaleY: isAnyDragging
-                  ? 1 - Math.min(Math.abs(currentVelocity) * 0.018 + (directDrag.isDragging ? 0.09 : 0), 0.24)
-                  : [1, 0.88, 1.06, 0.98, 1],
-                skewX: isAnyDragging ? Math.max(-14, Math.min(14, currentVelocity * -0.4)) : 0,
               }}
-              transition={
-                isAnyDragging
-                  ? { type: 'tween', ease: 'linear', duration: 0.04 }
-                  : {
-                      type: 'spring',
-                      stiffness: 380,
-                      damping: 22,
-                      mass: 0.7,
-                      scaleX: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-                      scaleY: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-                      skewX: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-                    }
-              }
+              transition={{
+                type: 'spring',
+                stiffness: 420,
+                damping: 28,
+                mass: 0.65,
+              }}
             >
               <div className="liquid-sheen" />
               <div className="liquid-droplet-glow" />
@@ -378,10 +361,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 role="tab"
                 aria-selected={selected}
                 data-settings-tab={tab}
-                onClick={() => handleTabChange(tab)}
+                onClick={() => {
+                  triggerHaptic();
+                  handleTabChange(tab);
+                }}
                 className={`pressable relative z-10 min-h-10 flex-1 rounded-full px-2 text-xs sm:text-sm font-medium transition-colors duration-200 pointer-events-auto ${
                   selected
-                    ? 'text-[color:var(--ink)]'
+                    ? 'text-[color:var(--ink)] font-semibold'
                     : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink-soft)]'
                 }`}
               >

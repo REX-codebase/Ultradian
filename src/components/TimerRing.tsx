@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React from 'react';
+import { motion } from 'motion/react';
 import {
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  AlertTriangle,
-  Brain,
-  Coffee,
-  Sparkles,
-  Flame,
-  Minimize2,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
+  IconPlay,
+  IconPause,
+  IconReset,
+  IconSkip,
+  IconNeuralFlow,
+  IconRestVessel,
+  IconSparkle,
+  IconFlame,
+  IconVolume,
+  IconVolumeMute,
+  IconZenPortal,
+} from './icons';
 import { SessionType, AmbientSoundType } from '../types';
 
 interface TimerRingProps {
@@ -72,28 +71,19 @@ export const TimerRing: React.FC<TimerRingProps> = ({
         return {
           title: 'Ultradian Wave Focus',
           subtitle: 'BRAC 90M Peak Cognitive Window',
-          badgeBg: 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-transparent',
-          strokeColor: 'stroke-stone-900 dark:stroke-stone-100',
-          glowBg: 'bg-amber-500/10 dark:bg-amber-400/10',
-          icon: <Brain className="w-3.5 h-3.5 mr-1.5" />,
+          icon: <IconNeuralFlow size={14} className="mr-1.5" />,
         };
       case 'shortBreak':
         return {
           title: 'Light Recovery Wave',
           subtitle: 'Synapse Renewal & Muscle De-tension',
-          badgeBg: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-800',
-          strokeColor: 'stroke-amber-600 dark:stroke-amber-400',
-          glowBg: 'bg-amber-500/15',
-          icon: <Coffee className="w-3.5 h-3.5 mr-1.5" />,
+          icon: <IconRestVessel size={14} className="mr-1.5" />,
         };
       case 'longBreak':
         return {
           title: 'Deep Biological Restoration',
           subtitle: 'Full Metabolic & Neural Refresh',
-          badgeBg: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800',
-          strokeColor: 'stroke-emerald-600 dark:stroke-emerald-400',
-          glowBg: 'bg-emerald-500/15',
-          icon: <Sparkles className="w-3.5 h-3.5 mr-1.5" />,
+          icon: <IconSparkle size={14} className="mr-1.5" />,
         };
     }
   };
@@ -119,42 +109,42 @@ export const TimerRing: React.FC<TimerRingProps> = ({
   });
 
   return (
-    <div className="relative flex flex-col items-center w-full max-w-xl mx-auto p-6 sm:p-10 rounded-3xl bg-white/90 dark:bg-stone-900/90 border border-stone-200/90 dark:border-stone-800/90 shadow-2xl backdrop-blur-xl transition-all duration-500 select-none overflow-hidden group">
+    <div className="liquid-glass-card relative flex flex-col items-center w-full max-w-xl mx-auto p-6 sm:p-10 shadow-2xl transition-all duration-500 select-none overflow-hidden group text-[color:var(--ink)]">
       {/* Living Pulsing Ambient Glow Aura */}
       {isRunning && (
-        <div
-          className={`absolute -inset-10 rounded-[40px] ${phaseTheme.glowBg} blur-3xl transition-opacity duration-1000 animate-pulse pointer-events-none opacity-80`}
-        />
+        <div className="chronometer-aura" />
       )}
 
       {/* Top Instrument Header */}
       <div className="w-full flex items-center justify-between mb-6 z-10">
-        <div className="flex items-center space-x-2">
-          <div className={`flex items-center px-3.5 py-1.5 rounded-full border text-[11px] font-mono font-bold tracking-widest uppercase shadow-xs transition-transform duration-300 hover:scale-105 ${phaseTheme.badgeBg}`}>
+        <div className="flex items-center gap-2">
+          <div className="liquid-glass-badge flex items-center px-3.5 py-1.5 rounded-full text-[11px] font-mono font-bold tracking-widest uppercase">
             {phaseTheme.icon}
             <span>{phaseTheme.title}</span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={onToggleAmbient}
-            className={`p-2.5 rounded-xl border text-xs transition-all duration-300 active:scale-95 ${
+            className={`p-2.5 rounded-2xl border text-xs transition-all duration-200 ${
               activeAmbient !== 'none'
-                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/40 shadow-xs glow-amber'
-                : 'bg-stone-100 dark:bg-stone-800/80 text-stone-500 dark:text-stone-400 border-stone-200/80 dark:border-stone-700/80 hover:text-stone-900 dark:hover:text-stone-100'
+                ? 'bg-[color:var(--ink)] text-[color:var(--paper)] border-[color:var(--ink)]'
+                : 'liquid-glass-badge text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]'
             }`}
             title="Toggle Soundscape"
           >
-            {activeAmbient !== 'none' ? <Volume2 className="w-4 h-4 text-amber-500 animate-pulse" /> : <VolumeX className="w-4 h-4" />}
+            {activeAmbient !== 'none' ? <IconVolume size={15} /> : <IconVolumeMute size={15} />}
           </button>
 
           <button
+            type="button"
             onClick={onToggleCompact}
-            className="p-2.5 rounded-xl bg-stone-100 dark:bg-stone-800/80 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200/80 dark:border-stone-700/80 text-xs transition-all duration-300 active:scale-95"
+            className="liquid-glass-badge p-2.5 rounded-2xl text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] transition-colors"
             title="Switch to Compact Timer Mode"
           >
-            <Minimize2 className="w-4 h-4" />
+            <IconZenPortal size={15} />
           </button>
         </div>
       </div>
@@ -162,32 +152,12 @@ export const TimerRing: React.FC<TimerRingProps> = ({
       {/* Living Instrument Watchmaker Chronometer Dial */}
       <div className="relative flex items-center justify-center my-3 z-10">
         <svg className="w-72 h-72 sm:w-84 sm:h-84 transform -rotate-90 filter drop-shadow-md" viewBox="0 0 340 340">
-          <defs>
-            <linearGradient id="workGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f59e0b" />
-              <stop offset="50%" stopColor="#d97706" />
-              <stop offset="100%" stopColor="#78350f" />
-            </linearGradient>
-            <linearGradient id="shortBreakGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#fbbf24" />
-              <stop offset="100%" stopColor="#b45309" />
-            </linearGradient>
-            <linearGradient id="longBreakGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#34d399" />
-              <stop offset="100%" stopColor="#047857" />
-            </linearGradient>
-            <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-
           {/* Subtle Outer Boundary Dotted ring */}
           <circle
             cx="170"
             cy="170"
             r={radius + 12}
-            className="stroke-stone-300/60 dark:stroke-stone-700/50"
+            className="stroke-[color:var(--line)]"
             strokeWidth="1"
             strokeDasharray="2 6"
             fill="transparent"
@@ -203,8 +173,8 @@ export const TimerRing: React.FC<TimerRingProps> = ({
               y2={tick.y2}
               className={
                 tick.isMajor
-                  ? 'stroke-stone-400 dark:stroke-stone-400'
-                  : 'stroke-stone-200 dark:stroke-stone-800'
+                  ? 'stroke-[color:var(--ink-mute)]'
+                  : 'stroke-[color:var(--line)]'
               }
               strokeWidth={tick.isMajor ? 1.8 : 0.9}
             />
@@ -215,7 +185,7 @@ export const TimerRing: React.FC<TimerRingProps> = ({
             cx="170"
             cy="170"
             r={radius}
-            className="stroke-stone-100 dark:stroke-stone-800/80"
+            className="stroke-[color:var(--line)]/50"
             strokeWidth="6"
             fill="transparent"
           />
@@ -230,14 +200,7 @@ export const TimerRing: React.FC<TimerRingProps> = ({
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             fill="transparent"
-            filter="url(#glowFilter)"
-            stroke={
-              sessionType === 'work'
-                ? 'url(#workGradient)'
-                : sessionType === 'shortBreak'
-                ? 'url(#shortBreakGradient)'
-                : 'url(#longBreakGradient)'
-            }
+            stroke="var(--ink)"
             className="transition-all duration-500 ease-out"
           />
         </svg>
@@ -248,56 +211,67 @@ export const TimerRing: React.FC<TimerRingProps> = ({
             key={secondsLeft}
             initial={{ opacity: 0.9, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-6xl sm:text-7xl font-serif tracking-tight text-stone-900 dark:text-stone-100 font-normal drop-shadow-xs"
+            className="clock-face text-6xl sm:text-7xl font-serif tracking-tight text-[color:var(--ink)] font-normal"
           >
             {formatTime(secondsLeft)}
           </motion.span>
 
           {/* Rhythm Status Pills */}
-          <div className="flex items-center space-x-2 mt-4 px-3.5 py-1.5 rounded-full bg-stone-100/90 dark:bg-stone-800/90 text-stone-700 dark:text-stone-300 text-[10px] font-mono font-bold tracking-widest uppercase border border-stone-200 dark:border-stone-700 shadow-xs backdrop-blur-sm">
-            <Flame className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+          <div className="liquid-glass-badge flex items-center gap-1.5 mt-4 px-3.5 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase text-[color:var(--ink-soft)]">
+            <IconFlame size={12} className="text-[color:var(--ink)]" />
             <span>CYCLE {completedCyclesCount + 1} / {targetCycles}</span>
           </div>
         </div>
       </div>
 
       {/* Tactile Control Deck */}
-      <div className="flex items-center space-x-5 mt-6 z-10">
-        <button
+      <div className="flex items-center gap-4 mt-6 z-10">
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.93 }}
           onClick={onReset}
-          className="p-3.5 rounded-2xl bg-stone-100 dark:bg-stone-800/80 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200/80 dark:border-stone-700/80 transition-all duration-200 active:scale-95 hover:shadow-md"
+          className="liquid-glass-badge p-3.5 rounded-2xl text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] transition-colors"
           title="Reset sequence"
         >
-          <RotateCcw className="w-4.5 h-4.5" />
-        </button>
+          <IconReset size={16} />
+        </motion.button>
 
         {isRunning ? (
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onPause}
-            className="flex items-center justify-center px-10 py-4 rounded-2xl bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition-all duration-200 active:scale-95 space-x-2.5 group/btn"
+            className="flex items-center justify-center px-9 py-3.5 rounded-full bg-[color:var(--ink)] text-[color:var(--paper)] font-medium text-xs tracking-wider uppercase shadow-md gap-2"
           >
-            <Pause className="w-4 h-4 fill-current transition-transform group-hover/btn:scale-110" />
-            <span>Pause Focus</span>
-          </button>
+            <IconPause size={15} />
+            <span>Pause Wave</span>
+          </motion.button>
         ) : (
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onStart}
-            className="flex items-center justify-center px-10 py-4 rounded-2xl bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition-all duration-200 active:scale-95 space-x-2.5 group/btn glow-amber"
+            className="flex items-center justify-center px-9 py-3.5 rounded-full bg-[color:var(--ink)] text-[color:var(--paper)] font-medium text-xs tracking-wider uppercase shadow-md gap-2"
           >
-            <Play className="w-4 h-4 fill-current ml-0.5 transition-transform group-hover/btn:scale-110" />
-            <span>Start Focus</span>
-          </button>
+            <IconPlay size={15} />
+            <span>Start Wave</span>
+          </motion.button>
         )}
 
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.93 }}
           onClick={onSkip}
-          className="p-3.5 rounded-2xl bg-stone-100 dark:bg-stone-800/80 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200/80 dark:border-stone-700/80 transition-all duration-200 active:scale-95 hover:shadow-md"
+          className="liquid-glass-badge p-3.5 rounded-2xl text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] transition-colors"
           title="Skip phase"
         >
-          <SkipForward className="w-4.5 h-4.5" />
-        </button>
+          <IconSkip size={16} />
+        </motion.button>
       </div>
     </div>
   );
 };
-

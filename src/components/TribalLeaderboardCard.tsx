@@ -9,8 +9,7 @@ interface TribalLeaderboardCardProps {
 }
 
 /**
- * Shows only real, server-verified tribe documents. There is intentionally no
- * local starter roster, selector, or fabricated aggregate fallback.
+ * Shows only real, server-verified tribe documents.
  */
 export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ userTribeId }) => {
   const [tribes, setTribes] = useState<TribeSummary[]>([]);
@@ -38,37 +37,48 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
   );
 
   return (
-    <section className="w-full">
-      <header className="mb-6">
-        <h2 className="font-serif text-xl text-stone-900 dark:text-stone-50">Tribes</h2>
-        <p className="mt-1 text-sm text-stone-500">
-          {currentTribe ? currentTribe.name : 'No tribe yet.'}
-        </p>
+    <section className="w-full space-y-4">
+      <header className="flex items-center justify-between">
+        <div>
+          <span className="liquid-glass-badge inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[color:var(--ink-soft)] mb-1">
+            <IconTribe size={12} className="text-[color:var(--ink)]" />
+            <span>Tribal Resonance</span>
+          </span>
+          <h2 className="font-serif text-2xl text-[color:var(--ink)] font-normal">Tribe Standings</h2>
+        </div>
+        {currentTribe && (
+          <span className="liquid-glass-badge rounded-full px-3 py-1 text-xs font-mono text-[color:var(--ink)]">
+            Tribe: {currentTribe.name}
+          </span>
+        )}
       </header>
 
       {isLoading && (
-        <p className="py-10 text-center text-sm text-stone-400">Loading tribes…</p>
+        <div className="liquid-glass-card py-12 text-center text-xs font-mono text-[color:var(--ink-mute)]">
+          <div className="ink-dot mx-auto mb-2" />
+          <p>Syncing verified tribe standings…</p>
+        </div>
       )}
 
       {!isLoading && error && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 flex gap-3 text-amber-900 dark:text-amber-200">
-          <IconAlert size={16} className="shrink-0 mt-0.5 text-amber-500" />
-          <p className="text-xs leading-relaxed">{error}</p>
+        <div className="liquid-glass-card p-4 flex gap-3 text-xs text-[color:var(--ink-soft)]">
+          <IconAlert size={16} className="shrink-0 mt-0.5 text-[color:var(--ink)]" />
+          <p className="leading-relaxed">{error}</p>
         </div>
       )}
 
       {!isLoading && !error && tribes.length === 0 && (
-        <div className="py-12 text-center text-stone-500 dark:text-stone-400">
-          <IconTribe size={40} className="mx-auto mb-3 text-stone-400 dark:text-stone-600 opacity-60" />
-          <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">No verified tribes present</p>
-          <p className="text-xs mt-1 max-w-sm mx-auto text-stone-500 dark:text-stone-400">
+        <div className="liquid-glass-card py-12 px-6 text-center text-[color:var(--ink-mute)]">
+          <IconTribe size={36} className="mx-auto mb-3 text-[color:var(--ink-mute)] opacity-50" />
+          <p className="text-sm font-medium text-[color:var(--ink)]">No verified tribes active</p>
+          <p className="text-xs mt-1.5 max-w-sm mx-auto text-[color:var(--ink-soft)] leading-relaxed">
             Standings populate automatically when active community rosters sync to Firebase. Ultradian never displays placeholder accounts.
           </p>
         </div>
       )}
 
       {!isLoading && !error && tribes.length > 0 && (
-        <div className="border border-stone-200/80 dark:border-stone-800/80 rounded-2xl overflow-hidden divide-y divide-stone-100 dark:divide-stone-800/60 shadow-xs">
+        <div className="liquid-glass-card overflow-hidden divide-y divide-[color:var(--line)]/60">
           {tribes.map((tribe, index) => {
             const isUserTribe = tribe.id === userTribeId;
             const weeklyHours = Math.round((tribe.weeklyMinutes / 60) * 10) / 10;
@@ -76,38 +86,45 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
               <motion.div
                 key={tribe.id}
                 layout
-                className={`flex items-center justify-between p-4.5 transition-all duration-200 ${
+                className={`flex items-center justify-between p-4 sm:p-5 transition-colors ${
                   isUserTribe
-                    ? 'bg-amber-500/10 dark:bg-amber-400/10 font-semibold border-l-4 border-amber-500'
-                    : 'bg-white/60 dark:bg-stone-900/60 hover:bg-stone-50/80 dark:hover:bg-stone-850/80'
+                    ? 'bg-[color:var(--ink)]/5 font-semibold'
+                    : 'hover:bg-[color:var(--line)]/20'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <span className="w-6 text-center font-bold font-mono text-sm text-stone-500">
-                    {index === 0 ? <IconTrophy size={18} className="mx-auto text-amber-500 drop-shadow-xs" /> : `#${index + 1}`}
+                  <span className="w-6 text-center font-mono font-bold text-sm text-[color:var(--ink-mute)]">
+                    {index === 0 ? (
+                      <IconTrophy size={18} className="mx-auto text-[color:var(--ink)]" />
+                    ) : (
+                      `#${index + 1}`
+                    )}
                   </span>
-                  <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold text-sm flex items-center justify-center border border-stone-200 dark:border-stone-700">
+                  
+                  <div className="w-10 h-10 rounded-2xl bg-[color:var(--paper-raised)] text-[color:var(--ink)] font-semibold text-sm flex items-center justify-center border border-[color:var(--line)] shadow-xs">
                     {tribeDisplayMark(tribe.icon, tribe.name)}
                   </div>
+
                   <div>
-                    <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
-                      {tribe.name}
+                    <span className="text-xs sm:text-sm font-semibold text-[color:var(--ink)] flex items-center gap-2">
+                      <span>{tribe.name}</span>
                       {isUserTribe && (
-                        <span className="px-2 py-0.2 text-[9px] font-mono font-bold tracking-widest uppercase bg-amber-500 text-stone-950 rounded-full">
+                        <span className="px-2 py-0.2 text-[9px] font-mono font-bold tracking-widest uppercase bg-[color:var(--ink)] text-[color:var(--paper)] rounded-full">
                           YOU
                         </span>
                       )}
                     </span>
-                    <span className="text-[10px] font-mono text-stone-500 dark:text-stone-400 block mt-0.5">
+                    <span className="text-[10px] font-mono text-[color:var(--ink-mute)] block mt-0.5">
                       {tribe.memberCount} {tribe.memberCount === 1 ? 'member' : 'members'} · Focus: {tribe.topCategory}
                     </span>
                   </div>
                 </div>
+
                 <div className="text-right">
-                  <span className="text-base font-serif font-medium text-stone-900 dark:text-stone-100 block">
-                    {weeklyHours.toFixed(1)} hrs
+                  <span className="clock-face text-base sm:text-lg font-serif font-medium text-[color:var(--ink)] block">
+                    {weeklyHours.toFixed(1)}h
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mt-0.5">
+                  <span className="text-[9px] font-mono font-semibold text-[color:var(--ink-mute)] uppercase tracking-wider block mt-0.5">
                     THIS WEEK
                   </span>
                 </div>

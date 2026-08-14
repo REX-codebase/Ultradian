@@ -19,5 +19,6 @@ functions/lib/
 *.local
 serviceAccount*.json
 *-adminsdk-*.json
-*-firebase-adminsdk-*.json
 secrets/
+test-results/
+playwright-report/

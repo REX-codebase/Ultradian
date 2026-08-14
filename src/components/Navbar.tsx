@@ -118,10 +118,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     const clickX = Math.max(0, Math.min(width, e.clientX - rect.left));
     const initialIndex = Math.max(0, Math.min(numTabs - 1, clickX / slotW - 0.5));
 
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {}
-
     dragSessionRef.current = {
       active: true,
       pointerId: e.pointerId,
@@ -151,7 +147,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     const totalDist = Math.abs(e.clientX - session.startX);
 
     if (totalDist > 4) {
-      session.hasMoved = true;
+      if (!session.hasMoved) {
+        session.hasMoved = true;
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {}
+      }
     }
 
     const velocity = (dx / dt) * 16;

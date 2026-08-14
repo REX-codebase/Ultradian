@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
-import { ShieldAlert, Zap, Trophy, Lock, CheckCircle2, Award, ChevronRight, Sparkles } from 'lucide-react';
-import confetti from 'canvas-confetti';
-import { motion, AnimatePresence } from 'motion/react';
-import { playMilestoneSound } from '../utils/audio';
+import React from 'react';
+import { motion } from 'motion/react';
+import { IconSparkle, IconTrophy } from './icons';
 
 interface ProgressiveOverloadBannerProps {
   staminaLevel: 1 | 2 | 3;
@@ -19,9 +17,8 @@ export const LEVEL_INFO = {
     workMins: 45,
     breakMins: 10,
     requiredSessions: 5,
-    description: '45 min work / 10 min break. Gentle onboarding to build baseline focus stamina.',
+    description: '45 min focus / 10 min recovery. Build foundational biological rhythm stamina.',
     icon: '🌱',
-    color: 'from-amber-500/10 via-orange-500/10 to-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
   },
   2: {
     title: 'Level 2: Adept',
@@ -29,9 +26,8 @@ export const LEVEL_INFO = {
     workMins: 60,
     breakMins: 15,
     requiredSessions: 5,
-    description: '60 min work / 15 min break. High cognitive throughput for intense task bursts.',
+    description: '60 min focus / 15 min recovery. Elevated cognitive throughput for deep sessions.',
     icon: '⚡',
-    color: 'from-cyan-500/10 via-blue-500/10 to-cyan-500/10 border-cyan-500/30 text-cyan-600 dark:text-cyan-400',
   },
   3: {
     title: 'Level 3: Ultradian Master',
@@ -39,9 +35,8 @@ export const LEVEL_INFO = {
     workMins: 90,
     breakMins: 20,
     requiredSessions: 5,
-    description: '90 min work / 20 min break. Full Kleitman BRAC bio-rhythm mastery.',
+    description: '90 min focus / 20 min recovery. Full Kleitman BRAC bio-harmonic cycle.',
     icon: '👑',
-    color: 'from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400',
   },
 };
 
@@ -67,85 +62,86 @@ export const ProgressiveOverloadBanner: React.FC<ProgressiveOverloadBannerProps>
     staminaLevel === 1 ? 'Level 2 (Adept)' : staminaLevel === 2 ? 'Level 3 (Ultradian Master)' : 'Max Level Reached!';
 
   return (
-    <div className="w-full p-5 sm:p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-sm text-stone-900 dark:text-stone-100 transition-colors duration-300">
+    <div className="liquid-glass-card w-full p-5 sm:p-6 text-[color:var(--ink)]">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 flex items-center justify-center font-bold text-lg shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-[color:var(--paper-raised)] text-[color:var(--ink)] border border-[color:var(--line)] flex items-center justify-center font-bold text-lg shadow-xs">
             <span>{currentLevelData.icon}</span>
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                Progressive Overload
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[color:var(--ink-mute)]">
+                PROGRESSIVE OVERLOAD
               </span>
-              <span className="text-xs font-bold text-stone-500 dark:text-stone-400">
+              <span className="liquid-glass-badge px-2 py-0.2 rounded-full text-[10px] font-mono text-[color:var(--ink-soft)]">
                 Level {staminaLevel} of 3
               </span>
             </div>
-            <h3 className="font-serif text-lg font-medium text-stone-950 dark:text-stone-50 mt-0.5 flex items-center gap-2">
+            <h3 className="font-serif text-lg font-normal text-[color:var(--ink)] mt-0.5">
               {currentLevelData.title}
             </h3>
           </div>
         </div>
 
         {/* Level Switcher Buttons */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="chip-rail pb-1">
           {[1, 2, 3].map((lvl) => {
             const isUnlocked = lvl <= staminaLevel;
             const levelObj = LEVEL_INFO[lvl as 1 | 2 | 3];
             return (
-              <button
+              <motion.button
                 key={lvl}
+                whileHover={isUnlocked ? { scale: 1.03 } : undefined}
+                whileTap={isUnlocked ? { scale: 0.95 } : undefined}
                 onClick={() => isUnlocked && onSelectLevelPreset(lvl as 1 | 2 | 3)}
                 disabled={!isUnlocked}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   lvl === staminaLevel
-                    ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border-stone-900 dark:border-stone-100 shadow-xs'
+                    ? 'bg-[color:var(--ink)] text-[color:var(--paper)] shadow-xs'
                     : isUnlocked
-                    ? 'bg-stone-50 dark:bg-stone-800/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800 hover:bg-stone-100'
-                    : 'bg-stone-100/50 dark:bg-stone-900/30 text-stone-400 dark:text-stone-600 border-stone-200/50 dark:border-stone-800/50 cursor-not-allowed'
+                    ? 'text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] hover:bg-[color:var(--line)]/40'
+                    : 'text-[color:var(--ink-mute)] opacity-40 cursor-not-allowed'
                 }`}
               >
                 <span>{levelObj.icon}</span>
                 <span>Lvl {lvl}</span>
-                {!isUnlocked && <Lock className="w-3 h-3 text-stone-400 ml-0.5" />}
-              </button>
+              </motion.button>
             );
           })}
         </div>
       </div>
 
       {/* Progress Bar & Endowed Progress Effect */}
-      <div className="p-4 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800/60 space-y-2.5">
+      <div className="p-4 rounded-2xl bg-[color:var(--paper)] border border-[color:var(--line)]/60 space-y-2.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-stone-700 dark:text-stone-300">
+          <span className="font-medium text-[color:var(--ink-soft)]">
             {staminaLevel === 3 ? (
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                Ultradian Master Unlocked! 90/20 Flow Peak
+              <span className="font-semibold text-[color:var(--ink)] flex items-center gap-1">
+                <IconSparkle size={14} className="text-[color:var(--ink)]" />
+                Ultradian Master Unlocked · 90/20 Peak Flow
               </span>
             ) : (
               <span>
-                <strong className="text-stone-900 dark:text-white">{sessionsInCurrentLevel}/{targetSessions} sessions</strong> completed to unlock <strong className="text-stone-900 dark:text-white">{nextLevelTitle}</strong>
+                <strong className="text-[color:var(--ink)] font-semibold">{sessionsInCurrentLevel}/{targetSessions} sessions</strong> completed toward <strong className="text-[color:var(--ink)]">{nextLevelTitle}</strong>
               </span>
             )}
           </span>
-          <span className="font-bold text-stone-400 dark:text-stone-500">
+          <span className="font-mono text-xs font-semibold text-[color:var(--ink)]">
             {progressPercent}%
           </span>
         </div>
 
         {/* Bar */}
-        <div className="w-full h-2.5 rounded-full bg-stone-200 dark:bg-stone-800 overflow-hidden p-0.5">
+        <div className="w-full h-2 rounded-full bg-[color:var(--line)] overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="h-full rounded-full bg-stone-900 dark:bg-stone-100"
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="h-full rounded-full bg-[color:var(--ink)]"
           />
         </div>
 
-        <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-relaxed">
+        <p className="text-[11px] text-[color:var(--ink-mute)] font-sans leading-relaxed">
           {currentLevelData.description}
         </p>
       </div>

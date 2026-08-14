@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
-import { Sparkles, Info, CheckCircle2, ChevronDown, ChevronUp, Cpu, ArrowRight, Zap, Target } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Recommendation, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
-import { UserSettings, CategoryTag } from '../types';
+import { CategoryTag } from '../types';
 import { SignInGate } from './SignInGate';
+import {
+  IconSparkle,
+  IconCheck,
+  IconChevronDown,
+  IconSettings,
+} from './icons';
 
 interface TransparentRecommendationCardProps {
   recommendation: Recommendation;
@@ -24,6 +30,14 @@ export const TransparentRecommendationCard: React.FC<TransparentRecommendationCa
   const [showFormula, setShowFormula] = useState(false);
   const [applied, setApplied] = useState(false);
 
+  const triggerHaptic = useCallback(() => {
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(8);
+      }
+    } catch {}
+  }, []);
+
   if (!isAuthorizedForAi) {
     return (
       <SignInGate
@@ -37,6 +51,7 @@ export const TransparentRecommendationCard: React.FC<TransparentRecommendationCa
   const categories: CategoryTag[] = ['Coding', 'Writing', 'Design', 'Research', 'Strategy', 'Study'];
 
   const handleApplyClick = () => {
+    triggerHaptic();
     onApply(
       recommendation.suggestedWorkMinutes,
       recommendation.suggestedBreakMinutes,
@@ -47,77 +62,80 @@ export const TransparentRecommendationCard: React.FC<TransparentRecommendationCa
   };
 
   return (
-    <div className="w-full p-5 sm:p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800/90 shadow-xs relative overflow-hidden transition-all">
-      {/* Accent top gradient line */}
-      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 via-emerald-500 to-indigo-500" />
-
+    <div className="liquid-glass-card w-full p-5 sm:p-7 relative overflow-hidden transition-all">
       {/* Header & Category Switcher */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-        <div className="flex items-center space-x-2.5">
-          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-            <Sparkles className="w-4 h-4" />
+        <div className="flex items-center gap-3">
+          <div className="liquid-glass-badge p-2 rounded-xl">
+            <IconSparkle size={18} className="text-[color:var(--ink)]" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
-                TRANSPARENT RECOMMENDATION ENGINE
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[color:var(--ink-mute)]">
+                TRANSPARENT ALGORITHM ENGINE
               </span>
-              <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 rounded-full">
+              <span className="liquid-glass-badge px-2 py-0.2 text-[9px] font-mono font-semibold uppercase tracking-wider rounded-full text-[color:var(--ink-soft)]">
                 {recommendation.sampleSize} logs
               </span>
             </div>
-            <h3 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+            <h3 className="font-serif text-xl font-normal text-[color:var(--ink)] mt-0.5">
               {recommendation.title}
             </h3>
           </div>
         </div>
 
         {/* Domain Tag Picker */}
-        <div className="flex items-center space-x-1 overflow-x-auto max-w-full pb-1 sm:pb-0">
+        <div className="chip-rail max-w-full pb-1 sm:pb-0">
           {categories.map((cat) => (
-            <button
+            <motion.button
               key={cat}
-              onClick={() => onCategoryChange(cat)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              type="button"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => {
+                triggerHaptic();
+                onCategoryChange(cat);
+              }}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium tracking-wide transition-all whitespace-nowrap ${
                 selectedCategory === cat
-                  ? 'bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 shadow-xs'
-                  : 'bg-stone-100 dark:bg-stone-800/60 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-800'
+                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)] shadow-xs'
+                  : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] hover:bg-[color:var(--line)]/40'
               }`}
             >
               {cat}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
 
       {/* Main Rationale Summary */}
-      <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed mb-4">
+      <p className="text-xs text-[color:var(--ink-soft)] leading-relaxed mb-5">
         {recommendation.summary}
       </p>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 p-3 rounded-xl bg-stone-50 dark:bg-stone-850 border border-stone-200/60 dark:border-stone-800 mb-4">
-        <div className="text-center">
-          <span className="block text-[9px] font-mono font-bold uppercase text-stone-400 dark:text-stone-500">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 p-3 rounded-2xl bg-[color:var(--paper)]/80 border border-[color:var(--line)]/60 mb-5">
+        <div className="text-center py-1">
+          <span className="block text-[9px] font-mono font-bold uppercase text-[color:var(--ink-mute)] tracking-wider">
             SUGGESTED FOCUS
           </span>
-          <span className="text-base sm:text-lg font-serif font-semibold text-stone-900 dark:text-stone-100">
+          <span className="clock-face text-lg sm:text-xl font-serif font-medium text-[color:var(--ink)]">
             {recommendation.suggestedWorkMinutes}m
           </span>
         </div>
-        <div className="text-center border-x border-stone-200/80 dark:border-stone-800">
-          <span className="block text-[9px] font-mono font-bold uppercase text-stone-400 dark:text-stone-500">
+        <div className="text-center py-1 border-x border-[color:var(--line)]/60">
+          <span className="block text-[9px] font-mono font-bold uppercase text-[color:var(--ink-mute)] tracking-wider">
             RECOVERY REST
           </span>
-          <span className="text-base sm:text-lg font-serif font-semibold text-stone-900 dark:text-stone-100">
+          <span className="clock-face text-lg sm:text-xl font-serif font-medium text-[color:var(--ink)]">
             {recommendation.suggestedBreakMinutes}m
           </span>
         </div>
-        <div className="text-center">
-          <span className="block text-[9px] font-mono font-bold uppercase text-stone-400 dark:text-stone-500">
+        <div className="text-center py-1">
+          <span className="block text-[9px] font-mono font-bold uppercase text-[color:var(--ink-mute)] tracking-wider">
             PEAK WINDOW
           </span>
-          <span className="text-xs sm:text-sm font-sans font-semibold text-amber-600 dark:text-amber-400 truncate block mt-0.5">
+          <span className="text-xs sm:text-sm font-sans font-medium text-[color:var(--ink)] truncate block mt-0.5">
             {recommendation.recommendedTimeOfDay}
           </span>
         </div>
@@ -126,59 +144,71 @@ export const TransparentRecommendationCard: React.FC<TransparentRecommendationCa
       {/* Action Buttons & Formula Inspector Toggle */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
         <button
-          onClick={() => setShowFormula(!showFormula)}
-          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200 transition-colors font-medium"
+          type="button"
+          onClick={() => {
+            triggerHaptic();
+            setShowFormula(!showFormula);
+          }}
+          className="flex items-center gap-1.5 text-xs text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] transition-colors font-medium cursor-pointer"
         >
-          <Cpu className="w-3.5 h-3.5" />
+          <IconSettings size={14} />
           <span>Why this recommendation?</span>
-          {showFormula ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <IconChevronDown size={14} className={`transition-transform duration-200 ${showFormula ? 'rotate-180' : ''}`} />
         </button>
 
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
           onClick={handleApplyClick}
-          className={`flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
+          className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all shadow-sm ${
             applied
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-stone-100 dark:text-stone-900 shadow-sm'
+              ? 'bg-[color:var(--ink)] text-[color:var(--paper)]'
+              : 'bg-[color:var(--ink)] text-[color:var(--paper)] hover:opacity-90'
           }`}
         >
           {applied ? (
             <>
-              <CheckCircle2 className="w-4 h-4 text-white" />
-              <span>Recommendation Applied!</span>
+              <IconCheck size={14} />
+              <span>Applied to Focus</span>
             </>
           ) : (
-            <>
-              <Zap className="w-4 h-4 text-amber-400" />
-              <span>Apply Recommendation ({recommendation.suggestedWorkMinutes}m)</span>
-            </>
+            <span>Apply Recommendation ({recommendation.suggestedWorkMinutes}m)</span>
           )}
-        </button>
+        </motion.button>
       </div>
 
       {/* Formula Transparency Card */}
-      {showFormula && (
-        <div className="mt-4 p-4 rounded-xl bg-stone-900 text-stone-100 border border-stone-800 text-xs space-y-3 animate-fade-in font-mono">
-          <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-            <span className="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" /> Model Rationale & Formula
-            </span>
-            <span className="text-[10px] text-stone-400">Sample: {recommendation.sampleSize} logs</span>
-          </div>
+      <AnimatePresence>
+        {showFormula && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-4 p-4 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs space-y-3 font-mono overflow-hidden"
+          >
+            <div className="flex items-center justify-between border-b border-[color:var(--line)]/60 pb-2">
+              <span className="font-bold uppercase tracking-wider text-[color:var(--ink)] flex items-center gap-1.5">
+                Model Rationale & Formula
+              </span>
+              <span className="text-[10px] text-[color:var(--ink-mute)]">Sample: {recommendation.sampleSize} logs</span>
+            </div>
 
-          <p className="text-stone-300 font-sans leading-relaxed text-[11px]">
-            {recommendation.rationale}
-          </p>
+            <p className="text-[color:var(--ink-soft)] font-sans leading-relaxed text-[11px]">
+              {recommendation.rationale}
+            </p>
 
-          <div className="p-2.5 rounded-lg bg-stone-950 border border-stone-800 text-[10px] text-amber-300/90 leading-normal">
-            <strong>Transparent Algorithm:</strong> {recommendation.formulaExplanation}
-          </div>
+            <div className="p-2.5 rounded-lg bg-[color:var(--paper-raised)] border border-[color:var(--line)] text-[10px] text-[color:var(--ink)] leading-normal">
+              <strong>Transparent Algorithm:</strong> {recommendation.formulaExplanation}
+            </div>
 
-          <div className="text-[10px] text-stone-400 font-sans italic border-t border-stone-800/80 pt-2">
-            ⚠️ <strong>Disclaimer:</strong> {NON_BIOLOGICAL_DISCLAIMER}
-          </div>
-        </div>
-      )}
+            <div className="text-[10px] text-[color:var(--ink-mute)] font-sans italic border-t border-[color:var(--line)]/60 pt-2">
+              {NON_BIOLOGICAL_DISCLAIMER}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

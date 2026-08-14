@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, SlidersHorizontal, Info, ShieldCheck, Award, Zap, CheckCircle2 } from 'lucide-react';
+import { Sheet } from './Sheet';
 import { calculateSQI, NON_BIOLOGICAL_DISCLAIMER } from '../utils/rhythmEngine';
+import { IconSettings, IconCheck } from './icons';
 
 interface SqiModelInspectorModalProps {
   onClose: () => void;
@@ -24,102 +25,100 @@ export const SqiModelInspectorModal: React.FC<SqiModelInspectorModalProps> = ({ 
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md animate-fade-in select-none">
-      <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-2xl text-stone-900 dark:text-stone-100 relative overflow-hidden space-y-6">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900">
-            <SlidersHorizontal className="w-5 h-5" />
+    <Sheet open onClose={onClose} size="md" title="SQI Transparency Inspector">
+      <div className="space-y-6 px-5 pb-7 pt-2 sm:px-7 text-[color:var(--ink)]">
+        <div className="flex items-center gap-3">
+          <div className="liquid-glass-badge p-2 rounded-xl">
+            <IconSettings size={18} className="text-[color:var(--ink)]" />
           </div>
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[color:var(--ink-mute)]">
               MODEL TRANSPARENCY INSPECTOR
             </span>
-            <h3 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-100">
+            <h3 className="font-serif text-xl font-normal text-[color:var(--ink)]">
               Session Quality Index (SQI)
             </h3>
           </div>
         </div>
 
         {/* Live Simulator Score Header */}
-        <div className="p-4 rounded-2xl bg-stone-900 text-stone-100 border border-stone-800 text-center space-y-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">
+        <div className="liquid-glass-card p-5 text-center space-y-1.5">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[color:var(--ink-mute)]">
             SQI SIMULATION RESULT
           </span>
-          <div className="text-4xl font-serif font-light text-white">
-            {sqi.score} <span className="text-sm font-sans font-normal text-stone-400">/ 100</span>
+          <div className="clock-face text-5xl font-serif text-[color:var(--ink)]">
+            {sqi.score} <span className="text-sm font-sans text-[color:var(--ink-mute)]">/ 100</span>
           </div>
-          <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-serif italic">
+          <span className="liquid-glass-badge inline-block px-3 py-0.5 rounded-full text-xs font-serif italic text-[color:var(--ink-soft)]">
             Tier: {sqi.tier}
           </span>
         </div>
 
         {/* Breakdown Factors List */}
         <div className="space-y-2 text-xs">
-          <div className="flex justify-between items-center p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-800">
-            <span className="font-semibold text-stone-700 dark:text-stone-300">1. Focus Rating Weight (40%):</span>
-            <span className="font-mono font-bold text-amber-600 dark:text-amber-400">{sqi.breakdown.focusComponent} / 40 pts</span>
+          <div className="flex justify-between items-center p-3 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)]">
+            <span className="font-medium text-[color:var(--ink-soft)]">1. Focus Rating Weight (40%):</span>
+            <span className="font-mono font-semibold text-[color:var(--ink)]">{sqi.breakdown.focusComponent} / 40 pts</span>
           </div>
 
-          <div className="flex justify-between items-center p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-800">
-            <span className="font-semibold text-stone-700 dark:text-stone-300">2. Completion Ratio (25%):</span>
-            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{sqi.breakdown.completionComponent} / 25 pts</span>
+          <div className="flex justify-between items-center p-3 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)]">
+            <span className="font-medium text-[color:var(--ink-soft)]">2. Completion Ratio (25%):</span>
+            <span className="font-mono font-semibold text-[color:var(--ink)]">{sqi.breakdown.completionComponent} / 25 pts</span>
           </div>
 
-          <div className="flex justify-between items-center p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-800">
-            <span className="font-semibold text-stone-700 dark:text-stone-300">3. Interruption Shield (20%):</span>
-            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{sqi.breakdown.distractionComponent} / 20 pts</span>
+          <div className="flex justify-between items-center p-3 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)]">
+            <span className="font-medium text-[color:var(--ink-soft)]">3. Interruption Shield (20%):</span>
+            <span className="font-mono font-semibold text-[color:var(--ink)]">{sqi.breakdown.distractionComponent} / 20 pts</span>
           </div>
 
-          <div className="flex justify-between items-center p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-800">
-            <span className="font-semibold text-stone-700 dark:text-stone-300">4. Energy Retention (15%):</span>
-            <span className="font-mono font-bold text-amber-500">{sqi.breakdown.energyRetentionComponent} / 15 pts</span>
+          <div className="flex justify-between items-center p-3 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)]">
+            <span className="font-medium text-[color:var(--ink-soft)]">4. Energy Retention (15%):</span>
+            <span className="font-mono font-semibold text-[color:var(--ink)]">{sqi.breakdown.energyRetentionComponent} / 15 pts</span>
           </div>
         </div>
 
-        {/* Interactive Controls to Test Formula */}
-        <div className="space-y-3 pt-2 border-t border-stone-200 dark:border-stone-800 text-xs">
-          <h4 className="font-serif font-medium text-stone-900 dark:text-stone-100">Test Simulator Controls</h4>
+        {/* Interactive Simulator Controls */}
+        <div className="space-y-3 pt-2 border-t border-[color:var(--line)] text-xs">
+          <h4 className="font-serif text-sm font-medium text-[color:var(--ink)]">Test Simulator Controls</h4>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] font-mono text-stone-500 mb-1">Focus Rating (1-5): {testFocus}</label>
+              <label htmlFor="sim-focus-rating" className="block text-[10px] font-mono text-[color:var(--ink-mute)] mb-1.5">
+                Focus Rating (1-5): {testFocus}★
+              </label>
               <input
+                id="sim-focus-rating"
                 type="range"
                 min="1"
                 max="5"
                 value={testFocus}
                 onChange={(e) => setTestFocus(parseInt(e.target.value))}
-                className="w-full accent-amber-500"
+                className="liquid-slider"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-mono text-stone-500 mb-1">Distractions: {testDistractions}</label>
+              <label htmlFor="sim-distractions-count" className="block text-[10px] font-mono text-[color:var(--ink-mute)] mb-1.5">
+                Distractions: {testDistractions}
+              </label>
               <input
+                id="sim-distractions-count"
                 type="range"
                 min="0"
                 max="5"
                 value={testDistractions}
                 onChange={(e) => setTestDistractions(parseInt(e.target.value))}
-                className="w-full accent-amber-500"
+                className="liquid-slider"
               />
             </div>
           </div>
         </div>
 
-        {/* Non-biological Disclaimer */}
-        <div className="p-3 rounded-xl bg-stone-100 dark:bg-stone-800/50 text-[10px] text-stone-500 dark:text-stone-400 leading-normal flex items-start space-x-2">
-          <ShieldCheck className="w-4 h-4 text-stone-400 shrink-0 mt-0.5" />
-          <span>{NON_BIOLOGICAL_DISCLAIMER}</span>
-        </div>
+        {/* Disclaimer */}
+        <p className="text-[10px] text-[color:var(--ink-mute)] leading-relaxed italic border-t border-[color:var(--line)] pt-3">
+          {NON_BIOLOGICAL_DISCLAIMER}
+        </p>
       </div>
-    </div>
+    </Sheet>
   );
 };
