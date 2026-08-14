@@ -6,19 +6,22 @@ import config from '../../firebase-applet-config.json';
 import { initAppCheck } from './appCheck';
 
 // 1. Initialize Firebase Auth, Firestore, and Functions using config from env vars / applet config
+const rawConfig = (config || {}) as Record<string, any>;
+const env = (import.meta as any).env || {};
+
 const firebaseConfig = {
-  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || config.apiKey,
-  authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || config.authDomain,
-  projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || config.projectId,
-  storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || config.storageBucket,
-  messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || config.messagingSenderId,
-  appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || config.appId,
+  apiKey: env.VITE_FIREBASE_API_KEY || rawConfig.apiKey || 'AIzaSy-demo-key-for-offline-build',
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || rawConfig.authDomain || 'ultradian-demo.firebaseapp.com',
+  projectId: env.VITE_FIREBASE_PROJECT_ID || rawConfig.projectId || 'ultradian-demo',
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || rawConfig.storageBucket || 'ultradian-demo.firebasestorage.app',
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || rawConfig.messagingSenderId || '000000000000',
+  appId: env.VITE_FIREBASE_APP_ID || rawConfig.appId || '1:000000000000:web:demo0000000000',
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-const dbId = (config as any).firestoreDatabaseId && (config as any).firestoreDatabaseId !== '(default)'
-  ? (config as any).firestoreDatabaseId
+const dbId = rawConfig.firestoreDatabaseId && rawConfig.firestoreDatabaseId !== '(default)'
+  ? rawConfig.firestoreDatabaseId
   : undefined;
 
 // Export initialized Firebase SDK services

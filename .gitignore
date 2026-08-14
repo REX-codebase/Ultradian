@@ -14,11 +14,20 @@ functions/lib/
 .grok/
 .agents/
 .firebase/
+assets/.aistudio/
+
+# Internal project config & blueprint manifests (keep local)
+firebase-applet-config.json
+firebase-blueprint.json
+metadata.json
+.firebaserc
+bun.lock
 
 # Secrets and machine-local credentials
 *.local
 serviceAccount*.json
 *-adminsdk-*.json
+*-firebase-adminsdk-*.json
 secrets/
 test-results/
 playwright-report/

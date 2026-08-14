@@ -1,0 +1,54 @@
+name: CI Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gates:
+    name: Lint, Typecheck, Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Typecheck & Lint
+        run: npm run lint
+
+      - name: Build Production Bundles
+        run: npm run build
+
+      - name: Run Component & Unit Tests
+        run: npx vitest run
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright End-to-End Tests
+        run: npx playwright test
+
+      - name: Upload Playwright Report on Failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
