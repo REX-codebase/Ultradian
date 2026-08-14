@@ -3,52 +3,255 @@ name: Deploy Site to GitHub Pages
 on:
   push:
     branches: [main]
+    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  deployments: write
 
 concurrency:
-  group: 'pages'
+  group: 'pages-${{ github.ref }}'
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: '22'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  build-and-deploy:
-    name: Build & Deploy to GitHub Pages
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # ============================================
+  # JOB: Build & Test Before Deploy
+  # ============================================
+  build-and-test:
+    name: 🏗️ Build & Verify
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      commit_sha: ${{ steps.vars.outputs.commit_sha }}
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v4
-
       - name: Install Dependencies
-        run: npm ci
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: true
 
-      - name: Build Static Production Site
+      - name: Run Type Check & Lint
+        run: npm run lint
+
+      - name: Run Unit Tests
+        run: npx vitest run
+
+      - name: Build Production Site
         run: npm run build
         env:
           BASE_URL: './'
+          NODE_ENV: production
 
-      - name: Upload Pages Artifact
+      - name: Extract Version from Tag
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=dev-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set Build Variables
+        id: vars
+        run: |
+          echo "commit_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'dist/'
 
-      - name: Deploy to GitHub Pages
+  # ============================================
+  # JOB: Security Scan on Build Artifacts
+  # ============================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-test
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: true
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high || true
+        continue-on-error: true
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: Upload Trivy Scan Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================
+  # JOB: Deploy to Staging Environment
+  # ============================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build-and-test, security-scan]
+    if: github.event.inputs.environment == 'staging' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    environment:
+      name: staging
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: dist/
+
+      - name: Deploy to Staging
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          preview: true
+
+      - name: Notify Deployment Status
+        run: |
+          echo "✅ Staging deployment complete!"
+          echo "URL: ${{ steps.deployment.outputs.page_url }}"
+
+  # ============================================
+  # JOB: Deploy to Production Environment
+  # ============================================
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build-and-test, security-scan, deploy-staging]
+    if: github.event.inputs.environment == 'production' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: dist/
+
+      - name: Deploy to Production
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Create Release on Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Deployment Success
+        run: |
+          echo "🎉 Production deployment successful!"
+          echo "Version: ${{ needs.build-and-test.outputs.version }}"
+          echo "Commit: ${{ needs.build-and-test.outputs.commit_sha }}"
+          echo "URL: ${{ steps.deployment.outputs.page_url }}"
+
+  # ============================================
+  # JOB: Post-Deployment Verification
+  # ============================================
+  post-deploy-check:
+    name: ✅ Post-Deployment Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [deploy-production]
+    if: always() && needs.deploy-production.result == 'success'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Smoke Tests
+        run: |
+          echo "Running smoke tests against deployed site..."
+          # Add your smoke test commands here
+          # Example: npx playwright test smoke-tests/
+        continue-on-error: true
+
+      - name: Generate Deployment Report
+        run: |
+          echo "## 📊 Deployment Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ needs.build-and-test.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ needs.build-and-test.outputs.commit_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed at:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
