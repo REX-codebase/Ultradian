@@ -54,7 +54,7 @@
     },
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User profile state including progressive overload stamina level, session counts, and tribe affiliation.",
+      "description": "User profile state including progressive overload stamina level, session counts, tribe affiliation, and focus ritual onboarding calibration.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
@@ -64,7 +64,12 @@
         "current_level": { "type": "number" },
         "session_count": { "type": "number" },
         "tribe_id": { "type": "string" },
-        "lastLoginAt": { "type": "number" }
+        "lastLoginAt": { "type": "number" },
+        "archetype": { "type": "string", "enum": ["Builder", "Creator", "Scientist", "Strategist"] },
+        "profession": { "type": "string" },
+        "peakHour": { "type": "number" },
+        "focusRitualName": { "type": "string" },
+        "hasCompletedOnboarding": { "type": "boolean" }
       },
       "required": ["uid"]
     },

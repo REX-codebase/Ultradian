@@ -5,21 +5,15 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
     environment: 'jsdom',
-    pool: 'threads',
-    maxWorkers: 1,
-    fileParallelism: false,
+    globals: true,
     setupFiles: './src/test/setup.ts',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'src/test/', '**/*.config.*'],
-    },
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
+    include: ['src/**/*.test.{ts,tsx}', 'functions/**/*.test.{ts,tsx}'],
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, '.'),
     },
   },
 });
