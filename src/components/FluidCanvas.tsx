@@ -31,16 +31,48 @@ export const FluidCanvas: React.FC = () => {
     const maxParticles = 120;
     const mouse = { x: 0, y: 0, px: 0, py: 0, active: false, vx: 0, vy: 0 };
 
+    // Initial background fluid grid nodes
+    interface GridNode {
+      x: number;
+      y: number;
+      ox: number;
+      oy: number;
+      vx: number;
+      vy: number;
+    }
+
+    const gridNodes: GridNode[] = [];
+    const spacing = 50;
+
+    const initGrid = () => {
+      gridNodes.length = 0;
+      if (width <= 0 || height <= 0) return;
+      for (let x = spacing; x < width; x += spacing) {
+        for (let y = spacing; y < height; y += spacing) {
+          gridNodes.push({
+            x,
+            y,
+            ox: x,
+            oy: y,
+            vx: 0,
+            vy: 0,
+          });
+        }
+      }
+    };
+
     const resize = () => {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
+      if (width <= 0 || height <= 0) return;
+      canvas.width = width * (window.devicePixelRatio || 1);
+      canvas.height = height * (window.devicePixelRatio || 1);
       if (ctx) {
-        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
       }
+      initGrid();
     };
 
     const resizeObserver = new ResizeObserver(() => {
@@ -57,21 +89,18 @@ export const FluidCanvas: React.FC = () => {
       const rect = canvas.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
-      
+
       if (!mouse.active) {
         mouse.px = mouse.x;
         mouse.py = mouse.y;
         mouse.active = true;
       }
 
-      // Calculate mouse velocity
       mouse.vx = mouse.x - mouse.px;
       mouse.vy = mouse.y - mouse.py;
-
       mouse.px = mouse.x;
       mouse.py = mouse.y;
 
-      // Spawn particles on cursor movement
       const speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
       if (speed > 1) {
         const count = Math.min(Math.ceil(speed / 3), 6);
@@ -79,13 +108,11 @@ export const FluidCanvas: React.FC = () => {
           if (particles.length < maxParticles) {
             const angle = Math.random() * Math.PI * 2;
             const force = Math.random() * 0.8 + 0.2;
-            
-            // Soft warm neutral palette matching Ultradian theme
             const tones = [
-              'rgba(168, 162, 158, 0.15)', // stone-400
-              'rgba(120, 113, 108, 0.12)', // stone-500
-              'rgba(231, 229, 228, 0.08)', // stone-200
-              'rgba(245, 245, 244, 0.06)', // stone-100
+              'rgba(168, 162, 158, 0.15)',
+              'rgba(120, 113, 108, 0.12)',
+              'rgba(231, 229, 228, 0.08)',
+              'rgba(245, 245, 244, 0.06)',
             ];
             const color = tones[Math.floor(Math.random() * tones.length)];
 
@@ -115,21 +142,18 @@ export const FluidCanvas: React.FC = () => {
       const touch = e.touches[0];
       mouse.x = touch.clientX - rect.left;
       mouse.y = touch.clientY - rect.top;
-      
+
       if (!mouse.active) {
         mouse.px = mouse.x;
         mouse.py = mouse.y;
         mouse.active = true;
       }
 
-      // Calculate touch velocity
       mouse.vx = mouse.x - mouse.px;
       mouse.vy = mouse.y - mouse.py;
-
       mouse.px = mouse.x;
       mouse.py = mouse.y;
 
-      // Spawn particles on touch movement
       const speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
       if (speed > 1) {
         const count = Math.min(Math.ceil(speed / 3), 6);
@@ -137,12 +161,11 @@ export const FluidCanvas: React.FC = () => {
           if (particles.length < maxParticles) {
             const angle = Math.random() * Math.PI * 2;
             const force = Math.random() * 0.8 + 0.2;
-            
             const tones = [
-              'rgba(168, 162, 158, 0.15)', // stone-400
-              'rgba(120, 113, 108, 0.12)', // stone-500
-              'rgba(231, 229, 228, 0.08)', // stone-200
-              'rgba(245, 245, 244, 0.06)', // stone-100
+              'rgba(168, 162, 158, 0.15)',
+              'rgba(120, 113, 108, 0.12)',
+              'rgba(231, 229, 228, 0.08)',
+              'rgba(245, 245, 244, 0.06)',
             ];
             const color = tones[Math.floor(Math.random() * tones.length)];
 
@@ -183,37 +206,6 @@ export const FluidCanvas: React.FC = () => {
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-
-    // Initial background fluid grid nodes
-    interface GridNode {
-      x: number;
-      y: number;
-      ox: number;
-      oy: number;
-      vx: number;
-      vy: number;
-    }
-
-    const gridNodes: GridNode[] = [];
-    const spacing = 50;
-
-    const initGrid = () => {
-      gridNodes.length = 0;
-      for (let x = spacing; x < width; x += spacing) {
-        for (let y = spacing; y < height; y += spacing) {
-          gridNodes.push({
-            x,
-            y,
-            ox: x,
-            oy: y,
-            vx: 0,
-            vy: 0,
-          });
-        }
-      }
-    };
-
-    initGrid();
 
     // Loop
     const draw = () => {

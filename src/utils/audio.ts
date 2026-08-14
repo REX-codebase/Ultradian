@@ -8,7 +8,9 @@ function getAudioContext(): AudioContext {
     audioCtx = new AudioCtx();
   }
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    audioCtx.resume().catch(() => {
+      // AudioContext resumption suspended by browser autoplay policy
+    });
   }
   return audioCtx;
 }

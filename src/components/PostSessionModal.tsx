@@ -103,7 +103,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
         notes: userNote,
       });
       onClose();
-    } fonting: {
+    } finally {
       setAnalyzing(false);
     }
   };

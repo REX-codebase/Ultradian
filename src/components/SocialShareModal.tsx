@@ -47,11 +47,27 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
   const shareText = `Ultradian — ${userStats.weeklyHours}h this week, ${userStats.completedCycles} waves, rank #${globalRank}.`;
 
-  const handleCopyText = () => {
-    navigator.clipboard.writeText(shareText);
-    setCopied(true);
-    playMilestoneSound();
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopyText = async () => {
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      playMilestoneSound();
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      console.warn('Clipboard write failed:', err);
+    }
   };
 
   const handleTabChange = (tier: LeagueTier) => {

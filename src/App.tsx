@@ -62,6 +62,7 @@ import {
 } from './services/leaderboardService';
 import { isSampleSession } from './utils/sampleRhythm';
 import { applyCloudRitualHydration, extractRitualCloudFields } from './utils/ritualOnboarding';
+import { resolveTabFromSwipe } from './utils/swipeGesture';
 import { User as FirebaseUser } from 'firebase/auth';
 
 import {
@@ -253,16 +254,26 @@ export default function App() {
 
   // Fetch true Global Rank
   useEffect(() => {
+    let isMounted = true;
     if (fbUser) {
       const totalWeeklyMinutes = sessionRecords
         .filter((r) => !isSampleSession(r) && r.type === 'work')
         .filter((r) => Date.now() - r.timestamp <= 7 * 24 * 60 * 60 * 1000)
         .reduce((sum, r) => sum + Math.round(r.actualSecondsCompleted / 60), 0);
 
-      fetchGlobalRank(fbUser.uid, totalWeeklyMinutes).then((rank) => {
-        setGlobalRank(rank);
-      });
+      fetchGlobalRank(fbUser.uid, totalWeeklyMinutes)
+        .then((rank) => {
+          if (isMounted && rank != null) {
+            setGlobalRank(rank);
+          }
+        })
+        .catch((err) => {
+          console.warn('Could not retrieve global rank:', err);
+        });
     }
+    return () => {
+      isMounted = false;
+    };
   }, [fbUser, sessionRecords]);
 
   // Real rank-up audio effect
@@ -293,6 +304,13 @@ export default function App() {
     analytics: false,
     friends: false,
   });
+  const [dragProgress, setDragProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const handleDragProgress = useCallback((progress: number, dragging: boolean) => {
+    setDragProgress(progress);
+    setIsDragging(dragging);
+  }, []);
 
   const handleChangeTab = useCallback((tab: 'timer' | 'analytics' | 'friends') => {
     const from = tabOrder.indexOf(prevTabRef.current as (typeof tabOrder)[number]);
@@ -302,6 +320,16 @@ export default function App() {
     setVisitedTabs((current) => ({ ...current, [tab]: true }));
     setActiveTab(tab);
   }, [tabOrder]);
+
+  const handleSwipeTab = useCallback(
+    (swipeDirection: 'left' | 'right') => {
+      const nextTab = resolveTabFromSwipe(activeTab, tabOrder, swipeDirection);
+      if (nextTab) {
+        handleChangeTab(nextTab);
+      }
+    },
+    [activeTab, tabOrder, handleChangeTab]
+  );
 
   // Apply dark mode class to root HTML element
   useEffect(() => {
@@ -807,6 +835,8 @@ export default function App() {
         isAmbientActive={settings.ambientType !== 'none'}
         completedCyclesToday={completedCyclesToday}
         fbUser={fbUser}
+        dragProgress={dragProgress}
+        isDragging={isDragging}
       />
 
       {cloudSyncError && (
@@ -830,7 +860,13 @@ export default function App() {
       <main className="app-main mx-auto max-w-3xl px-4 pb-36 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
         <PwaInstallPrompt />
 
-        <TabStage active={activeTab} direction={tabDirection}>
+        <TabStage
+          active={activeTab}
+          direction={tabDirection}
+          tabOrder={tabOrder}
+          onSwipe={handleSwipeTab}
+          onDragProgress={handleDragProgress}
+        >
           <div hidden={activeTab !== 'timer'}>
             <div className="space-y-10">
               <HomeCommandCenter

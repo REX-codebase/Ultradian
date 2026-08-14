@@ -56,11 +56,27 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
     }
   };
 
-  const handleCopyText = () => {
-    navigator.clipboard.writeText(shareText);
-    setCopiedText(true);
-    playMilestoneSound();
-    setTimeout(() => setCopiedText(false), 2500);
+  const handleCopyText = async () => {
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedText(true);
+      playMilestoneSound();
+      setTimeout(() => setCopiedText(false), 2500);
+    } catch (err) {
+      console.warn('Clipboard copy failed:', err);
+    }
   };
 
   return (

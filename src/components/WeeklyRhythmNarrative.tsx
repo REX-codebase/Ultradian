@@ -74,6 +74,7 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
   const r = report || generateWeeklyRhythmReportFallback(records);
 
   const handleAccept = () => {
+    if (!r?.experiment) return;
     onAcceptExperiment(
       r.experiment.targetWorkMinutes,
       r.experiment.targetBreakMinutes,
@@ -87,33 +88,35 @@ export const WeeklyRhythmNarrative: React.FC<WeeklyRhythmNarrativeProps> = ({
     <article className="space-y-5">
       <header>
         <p className="text-sm text-[color:var(--ink-mute)]">
-          {r.avgDailyFocusHours || '1.8'} hrs average
+          {r?.avgDailyFocusHours || '1.8'} hrs average
         </p>
         <h3 className="mt-1 font-serif text-xl text-[color:var(--ink)]">This week’s note</h3>
       </header>
 
       <div className="max-w-prose space-y-3 text-base leading-relaxed text-[color:var(--ink-soft)]">
-        <p>{r.summaryParagraph}</p>
-        <p>{r.energyPatternText}</p>
+        <p>{r?.summaryParagraph}</p>
+        <p>{r?.energyPatternText}</p>
       </div>
 
-      <div className="space-y-3 border-t border-[color:var(--line)] pt-5">
-        <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--ink-mute)]">Try next</p>
-        <h4 className="font-serif text-lg text-[color:var(--ink)]">{r.experiment.title}</h4>
-        <p className="max-w-prose text-sm leading-relaxed text-[color:var(--ink-soft)]">
-          {r.experiment.hypothesis}
-        </p>
-        <p className="text-sm text-[color:var(--ink-mute)]">
-          {r.experiment.targetWorkMinutes} / {r.experiment.targetBreakMinutes} min · {r.experiment.expectedOutcome}
-        </p>
-        <button
-          type="button"
-          onClick={handleAccept}
-          className="pressable min-h-11 text-sm text-[color:var(--ink)] underline-offset-4 hover:underline"
-        >
-          {accepted ? 'Applied' : 'Use these lengths'}
-        </button>
-      </div>
+      {r?.experiment && (
+        <div className="space-y-3 border-t border-[color:var(--line)] pt-5">
+          <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--ink-mute)]">Try next</p>
+          <h4 className="font-serif text-lg text-[color:var(--ink)]">{r.experiment.title}</h4>
+          <p className="max-w-prose text-sm leading-relaxed text-[color:var(--ink-soft)]">
+            {r.experiment.hypothesis}
+          </p>
+          <p className="text-sm text-[color:var(--ink-mute)]">
+            {r.experiment.targetWorkMinutes} / {r.experiment.targetBreakMinutes} min · {r.experiment.expectedOutcome}
+          </p>
+          <button
+            type="button"
+            onClick={handleAccept}
+            className="pressable min-h-11 text-sm text-[color:var(--ink)] underline-offset-4 hover:underline"
+          >
+            {accepted ? 'Applied' : 'Use these lengths'}
+          </button>
+        </div>
+      )}
 
       <p className="text-xs leading-relaxed text-[color:var(--ink-mute)]">{NON_BIOLOGICAL_DISCLAIMER}</p>
     </article>
