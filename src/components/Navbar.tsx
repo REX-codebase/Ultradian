@@ -1,4 +1,5 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { Moon, Sun, Settings, Clock, BarChart3, Share2 } from 'lucide-react';
 import { UserSettings } from '../types';
@@ -22,6 +23,8 @@ interface NavbarProps {
   fbUser?: any | null;
   dragProgress?: number;
   isDragging?: boolean;
+  isOrb?: boolean;
+  onCloseSheet?: () => void;
 }
 
 const TABS: Array<{ id: 'timer' | 'analytics' | 'friends'; label: string; icon: typeof Clock; leagueOnly?: boolean }> = [
@@ -40,10 +43,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   fbUser,
   dragProgress = 0,
   isDragging = false,
+  isOrb = false,
+  onCloseSheet,
 }) => {
   const tabs = TABS.filter((tab) => !tab.leagueOnly || settings.enableCompetitiveLeagues);
   const activeIdx = Math.max(0, tabs.findIndex((t) => t.id === activeTab));
   const numTabs = Math.max(1, tabs.length);
+
+  const [mounted, setMounted] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 800));
+
+  useEffect(() => {
+    setMounted(true);
+    const handleResize = () => {
+      setViewportHeight(window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const bottomNavRef = useRef<HTMLElement | null>(null);
   const desktopNavRef = useRef<HTMLElement | null>(null);
@@ -79,6 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const handleNavPointerDown = (e: React.PointerEvent<HTMLElement>, navEl: HTMLElement | null) => {
+    if (isOrb) return;
     if (!navEl) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
 
@@ -113,6 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleNavPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (isOrb) return;
     const session = dragSessionRef.current;
     if (!session || !session.active || session.pointerId !== e.pointerId) return;
 
@@ -145,6 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleNavPointerUp = (e: React.PointerEvent<HTMLElement>) => {
+    if (isOrb) return;
     const session = dragSessionRef.current;
     if (!session || session.pointerId !== e.pointerId) return;
 
@@ -173,6 +193,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleNavPointerCancel = (e: React.PointerEvent<HTMLElement>) => {
+    if (isOrb) return;
     const session = dragSessionRef.current;
     if (!session || session.pointerId !== e.pointerId) return;
 
@@ -197,6 +218,171 @@ export const Navbar: React.FC<NavbarProps> = ({
       : activeIdx;
 
   const currentVelocity = directDrag.isDragging ? directDrag.velocity : (dragProgress * 15);
+
+  const mobileNavElement = (
+    <motion.nav
+      ref={bottomNavRef}
+      className={`bottom-nav md:hidden select-none ${
+        isOrb ? 'cursor-pointer pointer-events-auto' : 'cursor-grab active:cursor-grabbing'
+      }`}
+      aria-label={isOrb ? 'Close modal and restore navigation' : 'Primary'}
+      title={isOrb ? 'Tap to return to navigation' : undefined}
+      onClick={
+        isOrb
+          ? () => {
+              triggerHaptic();
+              onCloseSheet?.();
+            }
+          : undefined
+      }
+      onKeyDown={
+        isOrb
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                triggerHaptic();
+                onCloseSheet?.();
+              }
+            }
+          : undefined
+      }
+      onPointerDown={(e) => handleNavPointerDown(e, bottomNavRef.current)}
+      onPointerMove={handleNavPointerMove}
+      onPointerUp={handleNavPointerUp}
+      onPointerCancel={handleNavPointerCancel}
+      initial={false}
+      animate={{
+        x: '-50%',
+        y: isOrb ? -(viewportHeight - 74) : 0,
+        width: isOrb ? 46 : 'min(calc(100vw - 2rem), 26rem)',
+        height: isOrb ? 46 : 66,
+        borderRadius: 999,
+        padding: isOrb ? '0px' : '0.35rem',
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 360,
+        damping: 27,
+        mass: 0.75,
+      }}
+      whileTap={isOrb ? { scale: 0.88 } : undefined}
+    >
+      {/* Animated Liquid Glass Highlighter Track (Capsule mode) */}
+      <motion.div
+        className="absolute inset-x-1.5 inset-y-1.5 pointer-events-none"
+        animate={{
+          opacity: isOrb ? 0 : 1,
+          scale: isOrb ? 0.4 : 1,
+        }}
+        transition={{ duration: 0.22 }}
+      >
+        <motion.div
+          className="liquid-glass-pill"
+          initial={false}
+          animate={{
+            left: `${(clampedPosition / numTabs) * 100}%`,
+            width: `${100 / numTabs}%`,
+            scaleX: isAnyDragging
+              ? 1 + Math.min(Math.abs(currentVelocity) * 0.035 + (directDrag.isDragging ? 0.16 : 0), 0.45)
+              : [1, 1.2, 0.93, 1.05, 1],
+            scaleY: isAnyDragging
+              ? 1 - Math.min(Math.abs(currentVelocity) * 0.02 + (directDrag.isDragging ? 0.1 : 0), 0.26)
+              : [1, 0.86, 1.07, 0.97, 1],
+            skewX: isAnyDragging ? Math.max(-15, Math.min(15, currentVelocity * -0.45)) : 0,
+          }}
+          transition={
+            isAnyDragging
+              ? { type: 'tween', ease: 'linear', duration: 0.04 }
+              : {
+                  type: 'spring',
+                  stiffness: 350,
+                  damping: 20,
+                  mass: 0.75,
+                  scaleX: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
+                  scaleY: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
+                  skewX: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+                }
+          }
+        >
+          <div className="liquid-sheen" />
+          <div className="liquid-droplet-glow" />
+        </motion.div>
+      </motion.div>
+
+      {/* Tab Buttons (Capsule mode) */}
+      <motion.div
+        className="relative z-10 flex w-full h-full items-center justify-between pointer-events-auto"
+        animate={{
+          opacity: isOrb ? 0 : 1,
+          scale: isOrb ? 0.65 : 1,
+          pointerEvents: isOrb ? 'none' : 'auto',
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              tabIndex={isOrb ? -1 : 0}
+              onClick={() => {
+                if (!isOrb) onChangeTab(tab.id);
+              }}
+              className={`pressable relative z-10 flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] tracking-wide transition-colors duration-200 ${
+                active
+                  ? 'text-[color:var(--ink)] font-medium'
+                  : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink-soft)]'
+              }`}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon
+                className="h-5 w-5 transition-transform duration-200"
+                strokeWidth={active ? 2.15 : 1.6}
+              />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </motion.div>
+
+      {/* Liquid Glass Sphere Orb / Dot (Modal / Condensed mode) */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        animate={{
+          opacity: isOrb ? 1 : 0,
+          scale: isOrb ? 1 : 0.3,
+        }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {/* Curvature Specular Sheen for the Sphere */}
+        <div className="liquid-sheen !left-1 !right-1 !top-0.5 !h-4" />
+        <div className="liquid-droplet-glow" />
+
+        {/* Concentric glowing liquid core & tactile dot */}
+        <div className="relative flex items-center justify-center w-7 h-7">
+          <div className="absolute inset-0 rounded-full bg-[color:var(--glow)] opacity-90 blur-[2.5px] animate-pulse" />
+          <motion.div
+            className="relative w-3.5 h-3.5 rounded-full bg-[color:var(--ink)] shadow-[0_1.5px_4px_rgba(0,0,0,0.3)] dark:shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+            animate={
+              isOrb
+                ? {
+                    scale: [1, 1.12, 0.96, 1.04, 1],
+                  }
+                : { scale: 1 }
+            }
+            transition={{
+              duration: 2.8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <div className="absolute top-1.5 left-2 w-1 h-1 rounded-full bg-white/90" />
+        </div>
+      </motion.div>
+    </motion.nav>
+  );
 
   return (
     <>
@@ -308,75 +494,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      {/* Floating Island Bottom Nav with Responsive Direct-Draggable Liquid Glass Pill */}
-      <nav
-        ref={bottomNavRef}
-        className="bottom-nav md:hidden relative cursor-grab active:cursor-grabbing touch-none select-none"
-        aria-label="Primary"
-        onPointerDown={(e) => handleNavPointerDown(e, bottomNavRef.current)}
-        onPointerMove={handleNavPointerMove}
-        onPointerUp={handleNavPointerUp}
-        onPointerCancel={handleNavPointerCancel}
-      >
-        {/* Animated Liquid Glass Highlighter Track */}
-        <div className="absolute inset-x-1.5 inset-y-1.5 pointer-events-none">
-          <motion.div
-            className="liquid-glass-pill"
-            initial={false}
-            animate={{
-              left: `${(clampedPosition / numTabs) * 100}%`,
-              width: `${100 / numTabs}%`,
-              scaleX: isAnyDragging
-                ? 1 + Math.min(Math.abs(currentVelocity) * 0.035 + (directDrag.isDragging ? 0.16 : 0), 0.45)
-                : [1, 1.2, 0.93, 1.05, 1],
-              scaleY: isAnyDragging
-                ? 1 - Math.min(Math.abs(currentVelocity) * 0.02 + (directDrag.isDragging ? 0.1 : 0), 0.26)
-                : [1, 0.86, 1.07, 0.97, 1],
-              skewX: isAnyDragging ? Math.max(-15, Math.min(15, currentVelocity * -0.45)) : 0,
-            }}
-            transition={
-              isAnyDragging
-                ? { type: 'tween', ease: 'linear', duration: 0.04 }
-                : {
-                    type: 'spring',
-                    stiffness: 350,
-                    damping: 20,
-                    mass: 0.75,
-                    scaleX: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
-                    scaleY: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
-                    skewX: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-                  }
-            }
-          >
-            <div className="liquid-sheen" />
-            <div className="liquid-droplet-glow" />
-          </motion.div>
-        </div>
-
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const active = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onChangeTab(tab.id)}
-              className={`pressable relative z-10 flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] tracking-wide transition-colors duration-200 pointer-events-auto ${
-                active
-                  ? 'text-[color:var(--ink)] font-medium'
-                  : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink-soft)]'
-              }`}
-              aria-current={active ? 'page' : undefined}
-            >
-              <Icon
-                className="h-5 w-5 transition-transform duration-200"
-                strokeWidth={active ? 2.15 : 1.6}
-              />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {/* Floating Island Bottom Nav Portaled to Root Body for Uncompromised Z-Indexing */}
+      {mounted && typeof document !== 'undefined'
+        ? createPortal(mobileNavElement, document.body)
+        : mobileNavElement}
     </>
   );
 };

@@ -797,6 +797,26 @@ export default function App() {
     return { weeklyHours, completedCycles, focusScore, topCategory: topCat };
   })();
 
+  const handleCloseActiveModal = useCallback(() => {
+    if (isSettingsOpen) setIsSettingsOpen(false);
+    else if (isOnboardingOpen) setIsOnboardingOpen(false);
+    else if (isAuthModalOpen) setIsAuthModalOpen(false);
+    else if (isShareOpen) setIsShareOpen(false);
+    else if (showFlexModal) setShowFlexModal(false);
+    else if (unlockedLevelModal) setUnlockedLevelModal(null);
+    else if (completedSessionData) setCompletedSessionData(null);
+    else if (softTransition) setSoftTransition(null);
+  }, [
+    isSettingsOpen,
+    isOnboardingOpen,
+    isAuthModalOpen,
+    isShareOpen,
+    showFlexModal,
+    unlockedLevelModal,
+    completedSessionData,
+    softTransition,
+  ]);
+
   if (isAuthLoading) {
     return <BootScreen />;
   }
@@ -837,6 +857,8 @@ export default function App() {
         fbUser={fbUser}
         dragProgress={dragProgress}
         isDragging={isDragging}
+        isOrb={sheetOpen}
+        onCloseSheet={handleCloseActiveModal}
       />
 
       {cloudSyncError && (
