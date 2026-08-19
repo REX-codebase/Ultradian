@@ -46,11 +46,20 @@ Ultradian eliminates kitchen-timer clutter in favor of an **authentic Apple Swif
 ## 🎬 Visual Showcase & Walkthrough
 
 <p align="center">
-  <a href="assets/readme/ultradian.mp4">
-    <img src="assets/readme/ultradian.gif" alt="Ultradian Focus Engine Demonstration" width="100%" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+  <video src="https://github.com/REX-codebase/Ultradian/raw/main/assets/readme/ultradian.mp4" controls="controls" width="100%" poster="assets/readme/ultradian-poster.png" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+    <a href="https://github.com/REX-codebase/Ultradian/raw/main/assets/readme/ultradian.mp4">
+      <img src="assets/readme/ultradian.gif" alt="Ultradian Focus Engine Demonstration" width="100%" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.4);" />
+    </a>
+  </video>
+</p>
+
+<p align="center">
+  <a href="https://github.com/REX-codebase/Ultradian/raw/main/assets/readme/ultradian.mp4">
+    <strong>▶ Watch Full High-Definition Video Walkthrough (<code>assets/readme/ultradian.mp4</code>)</strong>
   </a>
 </p>
-<p align="center"><em>Live walkthrough: Name your goal, select a cognitive domain, audition harmonic audio, and enter a 90-minute immersion wave.</em></p>
+
+<p align="center"><em>End-to-end walkthrough: Selecting a cognitive domain, auditioning harmonic Alpha binaural beats, running a 90m BRAC wave with the living chronometer dial, computing SQI scores, reading weekly rhythm cadence waveforms, and tracking tribal standings.</em></p>
 
 <br />
 

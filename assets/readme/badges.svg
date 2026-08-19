@@ -1,30 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="794" height="32" viewBox="0 0 794 32" role="img" aria-label="Ultradian stack">
-  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12">
-    <rect width="88" height="32" rx="16" fill="#1c1917"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="970" height="32" viewBox="0 0 970 32" role="img" aria-label="Ultradian stack">
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="12" font-weight="500">
+    <rect width="88" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
     <text x="44" y="21" text-anchor="middle" fill="#f5f2ec">React 19</text>
 
-    <rect x="96" width="104" height="32" rx="16" fill="#1c1917"/>
+    <rect x="96" width="104" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
     <text x="148" y="21" text-anchor="middle" fill="#f5f2ec">TypeScript</text>
 
-    <rect x="208" width="104" height="32" rx="16" fill="#1c1917"/>
+    <rect x="208" width="104" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
     <text x="260" y="21" text-anchor="middle" fill="#f5f2ec">Tailwind 4</text>
 
-    <rect x="320" width="74" height="32" rx="16" fill="#1c1917"/>
-    <text x="357" y="21" text-anchor="middle" fill="#f5f2ec">Vite 6</text>
+    <rect x="320" width="80" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="360" y="21" text-anchor="middle" fill="#f5f2ec">Motion</text>
 
-    <rect x="402" width="92" height="32" rx="16" fill="#1c1917"/>
-    <text x="448" y="21" text-anchor="middle" fill="#f5f2ec">Firebase</text>
+    <rect x="408" width="76" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="446" y="21" text-anchor="middle" fill="#f5f2ec">Vite 6</text>
 
-    <rect x="502" width="76" height="32" rx="16" fill="#1c1917"/>
-    <text x="540" y="21" text-anchor="middle" fill="#f5f2ec">Vitest</text>
+    <rect x="492" width="92" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="538" y="21" text-anchor="middle" fill="#f5f2ec">Firebase</text>
 
-    <rect x="586" width="62" height="32" rx="16" fill="#1c1917"/>
-    <text x="617" y="21" text-anchor="middle" fill="#f5f2ec">PWA</text>
+    <rect x="592" width="96" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="640" y="21" text-anchor="middle" fill="#f5f2ec">Gemini AI</text>
 
-    <rect x="656" width="80" height="32" rx="16" fill="#1c1917"/>
-    <text x="696" y="21" text-anchor="middle" fill="#f5f2ec">Express</text>
+    <rect x="696" width="76" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="734" y="21" text-anchor="middle" fill="#f5f2ec">Vitest</text>
 
-    <rect x="744" width="50" height="32" rx="16" fill="#1c1917"/>
-    <text x="769" y="21" text-anchor="middle" fill="#f5f2ec">MIT</text>
+    <rect x="780" width="64" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="812" y="21" text-anchor="middle" fill="#f5f2ec">PWA</text>
+
+    <rect x="852" width="56" height="32" rx="16" fill="#1c1917" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="880" y="21" text-anchor="middle" fill="#f5f2ec">MIT</text>
   </g>
 </svg>

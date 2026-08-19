@@ -3,16 +3,17 @@ import { mkdtemp, rm, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import puppeteer from 'puppeteer-core';
+import { chromium } from '@playwright/test';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const htmlPath = path.join(root, 'assets', 'readme', 'ultradian-view.html');
 const outMp4 = path.join(root, 'assets', 'readme', 'ultradian.mp4');
+const outGif = path.join(root, 'assets', 'readme', 'ultradian.gif');
 const outWebp = path.join(root, 'assets', 'readme', 'ultradian.webp');
 const outPoster = path.join(root, 'assets', 'readme', 'ultradian-poster.png');
 
-const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME_PATH = 'C:\\Users\\hp1\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe';
 const FPS = 30;
 const DURATION = 10;
 const FRAMES = FPS * DURATION;
@@ -23,71 +24,110 @@ function run(cmd, args) {
     child.on('error', reject);
     child.on('exit', (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`${cmd} exited ${code}`));
+      else reject(new Error(`${cmd} exited with code ${code}`));
     });
   });
 }
 
-const frameDir = await mkdtemp(path.join(tmpdir(), 'ultradian-frames-'));
-await mkdir(frameDir, { recursive: true });
+async function main() {
+  console.log('Creating temp frame directory...');
+  const frameDir = await mkdtemp(path.join(tmpdir(), 'ultradian-frames-'));
+  await mkdir(frameDir, { recursive: true });
 
-const browser = await puppeteer.launch({
-  executablePath: CHROME,
-  headless: true,
-  args: ['--hide-scrollbars', '--font-render-hinting=none', '--disable-lcd-text'],
-});
+  console.log('Launching browser for frame rendering...');
+  const browser = await chromium.launch({
+    executablePath: CHROME_PATH,
+    headless: true,
+    args: ['--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--disable-dev-shm-usage'],
+  });
 
-try {
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 2 });
-  await page.goto(pathToFileURL(htmlPath).href + '?still=1', { waitUntil: 'networkidle0' });
-  await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(() => document.documentElement.dataset.fonts === 'ready');
-
-  for (let i = 0; i < FRAMES; i++) {
-    const t = i / FPS;
-    await page.evaluate((time) => window.renderAt(time), t);
-    await page.screenshot({
-      path: path.join(frameDir, `f${String(i).padStart(4, '0')}.png`),
-      type: 'png',
-      omitBackground: false,
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 720 },
+      deviceScaleFactor: 2,
     });
-    if (i === 186) {
-      await page.screenshot({ path: outPoster, type: 'png' });
+    const page = await context.newPage();
+    const url = pathToFileURL(htmlPath).href + '?still=1';
+    console.log(`Navigating to ${url}...`);
+    await page.goto(url, { waitUntil: 'load' });
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(1000);
+
+    console.log(`Capturing ${FRAMES} frames @ ${FPS} FPS...`);
+    for (let i = 0; i < FRAMES; i++) {
+      const t = i / FPS;
+      await page.evaluate((time) => window.renderAt(time), t);
+      const framePath = path.join(frameDir, `f${String(i).padStart(4, '0')}.png`);
+      await page.screenshot({
+        path: framePath,
+        type: 'png',
+        omitBackground: false,
+      });
+
+      if (i === 60) {
+        await page.screenshot({ path: outPoster, type: 'png' });
+      }
+
+      if (i % 30 === 0) {
+        console.log(`  Frame ${i}/${FRAMES} (${Math.round((i / FRAMES) * 100)}%)`);
+      }
     }
-    if (i % 30 === 0) process.stdout.write(`frame ${i}/${FRAMES}\n`);
+  } finally {
+    await browser.close();
   }
-} finally {
-  await browser.close();
+
+  const input = path.join(frameDir, 'f%04d.png');
+
+  console.log('Encoding MP4 (H.264 High Profile)...');
+  await run('ffmpeg', [
+    '-y',
+    '-framerate', String(FPS),
+    '-i', input,
+    '-vf', 'scale=1280:720:flags=lanczos',
+    '-c:v', 'libx264',
+    '-pix_fmt', 'yuv420p',
+    '-crf', '18',
+    '-preset', 'fast',
+    '-movflags', '+faststart',
+    outMp4,
+  ]);
+
+  console.log('Encoding Animated GIF (PaletteGen)...');
+  const palette = path.join(frameDir, 'palette.png');
+  await run('ffmpeg', [
+    '-y',
+    '-i', input,
+    '-vf', 'scale=1280:720:flags=lanczos,palettegen=stats_mode=diff',
+    palette,
+  ]);
+  await run('ffmpeg', [
+    '-y',
+    '-framerate', String(FPS),
+    '-i', input,
+    '-i', palette,
+    '-lavfi', 'scale=1280:720:flags=lanczos [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=3',
+    outGif,
+  ]);
+
+  console.log('Encoding Animated WebP...');
+  await run('ffmpeg', [
+    '-y',
+    '-framerate', String(FPS),
+    '-i', input,
+    '-vf', 'scale=1280:720:flags=lanczos',
+    '-c:v', 'libwebp',
+    '-lossless', '0',
+    '-compression_level', '4',
+    '-q:v', '75',
+    '-loop', '0',
+    outWebp,
+  ]);
+
+  await rm(frameDir, { recursive: true, force: true });
+  console.log(`\n🎉 SUCCESSFULLY GENERATED:\n  ✓ ${outMp4}\n  ✓ ${outGif}\n  ✓ ${outWebp}\n  ✓ ${outPoster}`);
 }
 
-const input = path.join(frameDir, 'f%04d.png');
-
-await run('ffmpeg', [
-  '-y',
-  '-framerate', String(FPS),
-  '-i', input,
-  '-vf', 'scale=1280:720:flags=lanczos',
-  '-c:v', 'libx264',
-  '-pix_fmt', 'yuv420p',
-  '-crf', '18',
-  '-preset', 'slow',
-  '-movflags', '+faststart',
-  outMp4,
-]);
-
-await run('ffmpeg', [
-  '-y',
-  '-framerate', String(FPS),
-  '-i', input,
-  '-vf', 'scale=1280:720:flags=lanczos',
-  '-c:v', 'libwebp',
-  '-lossless', '0',
-  '-compression_level', '6',
-  '-q:v', '72',
-  '-loop', '0',
-  outWebp,
-]);
-
-await rm(frameDir, { recursive: true, force: true });
-process.stdout.write(`wrote\n  ${outMp4}\n  ${outWebp}\n  ${outPoster}\n`);
+main().catch((err) => {
+  console.error('Fatal rendering error:', err);
+  process.exit(1);
+});
