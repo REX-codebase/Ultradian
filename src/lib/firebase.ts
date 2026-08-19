@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
-import config from '../../firebase-applet-config.json';
+import config from '../../firebase-applet-config.example.json';
 import { initAppCheck } from './appCheck';
 
 // 1. Initialize Firebase Auth, Firestore, and Functions using config from env vars / applet config

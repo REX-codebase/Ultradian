@@ -1,6 +1,6 @@
 import { FirebaseApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck } from 'firebase/app-check';
-import config from '../../firebase-applet-config.json';
+import config from '../../firebase-applet-config.example.json';
 
 let appCheckInstance: AppCheck | null = null;
 

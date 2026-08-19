@@ -46,7 +46,7 @@ test.describe('Ultradian Core Navigation & Features E2E', () => {
       .or(page.locator('.bottom-nav button:has-text("Rhythm")')).first();
     await rhythmTab.click();
     await page.waitForTimeout(500);
-    await expect(page.locator('text=No waves yet').or(page.locator('text=Hours')).or(page.locator('text=History')).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=No rhythm waves yet').or(page.locator('text=Hours')).or(page.locator('text=History')).first()).toBeVisible({ timeout: 10000 });
 
     // 3. Click League tab
     const leagueTab = page.locator('nav[aria-label="Desktop primary navigation"] button:has-text("League")')
