@@ -86,7 +86,7 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
   const completedSubtasksCount = subtasks.filter((st) => st.completed).length;
 
   return (
-    <div className="liquid-glass-card w-full max-w-2xl mx-auto p-5 shadow-xs transition-all text-[color:var(--ink)]">
+    <div className="swift-glass-card w-full max-w-2xl mx-auto p-5 shadow-xs transition-all text-[color:var(--ink)]">
       {/* Top Status Header */}
       <div className="flex items-center justify-between mb-3 text-xs">
         <div className="flex items-center gap-2">
@@ -113,8 +113,15 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
       {/* Main Task Title Display / Inline Editor */}
       <div className="mb-4">
         {isEditing ? (
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-2"
+          >
             <input
+              id="persistent-focal-task-input"
+              name="persistentFocalTask"
+              aria-label="What is your singular focal objective?"
               type="text"
               value={tempTask}
               onChange={(e) => setTempTask(e.target.value)}
@@ -123,16 +130,20 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
               className="flex-1 px-3.5 py-2 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-sm font-medium text-[color:var(--ink)] focus:outline-none"
               autoFocus
             />
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
               onClick={handleSaveTask}
-              className="px-3.5 py-2 rounded-xl bg-[color:var(--ink)] text-[color:var(--paper)] font-bold text-xs"
+              className="px-3.5 py-2 rounded-xl bg-[color:var(--ink)] text-[color:var(--paper)] font-bold text-xs cursor-pointer shadow-xs"
             >
               <IconCheck size={14} />
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         ) : (
-          <div
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             className="group flex items-start justify-between gap-3 p-2.5 rounded-xl hover:bg-[color:var(--line)]/30 transition-colors cursor-pointer"
             onClick={() => {
               triggerHaptic();
@@ -152,7 +163,7 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
@@ -164,13 +175,13 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
             <motion.button
               key={cat}
               type="button"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.94 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
               onClick={() => {
                 triggerHaptic();
                 onCategoryChange(cat);
               }}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wide transition-all ${
+              className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wide transition-all cursor-pointer ${
                 category === cat
                   ? 'bg-[color:var(--ink)] text-[color:var(--paper)] shadow-xs'
                   : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] hover:bg-[color:var(--line)]/40'
@@ -183,30 +194,34 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
 
         {/* Action button to log distraction or toggle subtasks */}
         <div className="flex items-center gap-2">
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.93 }}
             onClick={() => {
               triggerHaptic();
               setShowSubtasks(!showSubtasks);
             }}
-            className="liquid-glass-badge px-3 py-1 rounded-full text-[11px] font-medium flex items-center gap-1.5 hover:text-[color:var(--ink)] transition-colors cursor-pointer"
+            className="liquid-glass-badge px-3 py-1 rounded-full text-[11px] font-medium flex items-center gap-1.5 hover:text-[color:var(--ink)] transition-colors cursor-pointer shadow-xs"
           >
             <IconSparkle size={12} />
             <span>Checklist ({completedSubtasksCount}/{subtasks.length})</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.93 }}
             onClick={() => {
               triggerHaptic();
               onAddDistraction();
             }}
-            className="liquid-glass-badge px-3 py-1 rounded-full text-[11px] font-medium text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="liquid-glass-badge px-3 py-1 rounded-full text-[11px] font-medium text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Log an unexpected distraction slip"
           >
             <IconAlert size={12} />
             <span>Slips ({distractionsCount})</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -217,37 +232,44 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
             className="mt-3 pt-3 border-t border-[color:var(--line)]/60 space-y-2 overflow-hidden"
           >
             <form onSubmit={handleAddSubtask} className="flex items-center gap-2">
               <input
+                id="persistent-subtask-input"
+                name="newSubtaskText"
+                aria-label="Add sub-task or checkpoint"
                 type="text"
                 value={newSubtaskText}
                 onChange={(e) => setNewSubtaskText(e.target.value)}
                 placeholder="Add sub-task or checkpoint..."
                 className="flex-1 px-3 py-1.5 rounded-xl bg-[color:var(--paper)] text-xs text-[color:var(--ink)] border border-[color:var(--line)] focus:outline-none"
               />
-              <button
+              <motion.button
                 type="submit"
-                className="p-1.5 rounded-xl bg-[color:var(--ink)] text-[color:var(--paper)]"
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.92 }}
+                className="p-1.5 rounded-xl bg-[color:var(--ink)] text-[color:var(--paper)] cursor-pointer"
               >
                 <IconCheck size={14} />
-              </button>
+              </motion.button>
             </form>
 
             {subtasks.length > 0 && (
               <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                 {subtasks.map((st) => (
-                  <div
+                  <motion.div
                     key={st.id}
+                    layout
                     className="flex items-center justify-between p-2 rounded-xl bg-[color:var(--paper)]/80 text-xs text-[color:var(--ink-soft)]"
                   >
                     <button
                       type="button"
                       onClick={() => toggleSubtask(st.id)}
-                      className="flex items-center gap-2 text-left flex-1"
+                      className="flex items-center gap-2 text-left flex-1 cursor-pointer"
                     >
-                      <span className={`h-3.5 w-3.5 rounded-full border flex items-center justify-center ${st.completed ? 'bg-[color:var(--ink)] border-[color:var(--ink)] text-[color:var(--paper)]' : 'border-[color:var(--line)]'}`}>
+                      <span className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${st.completed ? 'bg-[color:var(--ink)] border-[color:var(--ink)] text-[color:var(--paper)]' : 'border-[color:var(--line)]'}`}>
                         {st.completed && <IconCheck size={10} />}
                       </span>
                       <span className={st.completed ? 'line-through text-[color:var(--ink-mute)]' : ''}>
@@ -258,11 +280,11 @@ export const PersistentTaskDisplay: React.FC<PersistentTaskDisplayProps> = ({
                     <button
                       type="button"
                       onClick={() => removeSubtask(st.id)}
-                      className="text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] p-0.5"
+                      className="text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] p-0.5 cursor-pointer"
                     >
                       <IconClose size={12} />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}

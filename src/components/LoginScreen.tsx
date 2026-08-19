@@ -199,13 +199,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
 
       <form onSubmit={handleSubmit} className="space-y-3">
         {isSignUp && (
-          <label className="block">
+          <label htmlFor="login-display-name" className="block">
             <span className="mb-1.5 block text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">
               Display name
             </span>
             <span className="relative block">
               <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
               <input
+                id="login-display-name"
+                name="displayName"
+                aria-label="Display name"
                 type="text"
                 required
                 placeholder="How you appear on the league"
@@ -217,11 +220,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
           </label>
         )}
 
-        <label className="block">
+        <label htmlFor="login-email" className="block">
           <span className="mb-1.5 block text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">Email</span>
           <span className="relative block">
             <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
             <input
+              id="login-email"
+              name="email"
+              aria-label="Email"
               type="email"
               required
               placeholder="name@domain.com"
@@ -233,11 +239,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthSuccess, onClose
           </span>
         </label>
 
-        <label className="block">
+        <label htmlFor="login-password" className="block">
           <span className="mb-1.5 block text-xs uppercase tracking-wider text-[color:var(--ink-mute)]">Password</span>
           <span className="relative block">
             <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
             <input
+              id="login-password"
+              name="password"
+              aria-label="Password"
               type="password"
               required
               placeholder={isSignUp ? 'At least 6 characters' : '••••••••'}

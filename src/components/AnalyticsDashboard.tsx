@@ -93,10 +93,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         {stats.map((stat, idx) => (
           <motion.div
             key={stat.label}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: idx * 0.05 }}
-            className="editorial-stat-card flex flex-col justify-between"
+            initial={{ opacity: 0, y: 14, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileHover={{ scale: 1.03, y: -2 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 25, delay: idx * 0.05 }}
+            className="editorial-stat-card flex flex-col justify-between cursor-default"
           >
             <p className="text-[11px] font-mono font-medium uppercase tracking-wider text-[color:var(--ink-mute)]">
               {stat.label}
@@ -110,7 +111,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </div>
 
       {/* 2. Weekly Rhythmic Frequency Chart */}
-      <div className="liquid-glass-card p-5 sm:p-7">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 28, delay: 0.15 }}
+        className="swift-glass-card p-5 sm:p-7 shadow-sm"
+      >
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-serif text-xl text-[color:var(--ink)] font-normal">Weekly Rhythm Cadence</h2>
@@ -154,10 +160,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             </AreaChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </motion.div>
 
       {/* 3. Recent Waves Ledger */}
-      <div className="liquid-glass-card p-5 sm:p-7">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 28, delay: 0.25 }}
+        className="swift-glass-card p-5 sm:p-7 shadow-sm"
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-serif text-xl text-[color:var(--ink)] font-normal">Recent Waves Ledger</h2>
           <span className="text-xs text-[color:var(--ink-mute)] font-mono">
@@ -197,7 +208,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             </li>
           ))}
         </ul>
-      </div>
+      </motion.div>
 
       {/* 4. Notes & Evolutionary Experiments Section Toggle */}
       <div className="text-center pt-2">

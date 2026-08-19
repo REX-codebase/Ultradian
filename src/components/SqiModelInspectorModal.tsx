@@ -88,6 +88,8 @@ export const SqiModelInspectorModal: React.FC<SqiModelInspectorModalProps> = ({ 
               </label>
               <input
                 id="sim-focus-rating"
+                name="simFocusRating"
+                aria-label="Focus Rating from 1 to 5"
                 type="range"
                 min="1"
                 max="5"
@@ -103,6 +105,8 @@ export const SqiModelInspectorModal: React.FC<SqiModelInspectorModalProps> = ({ 
               </label>
               <input
                 id="sim-distractions-count"
+                name="simDistractionsCount"
+                aria-label="Distractions count"
                 type="range"
                 min="0"
                 max="5"

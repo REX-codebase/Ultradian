@@ -109,7 +109,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
       {/* Top Header Bar */}
       <div className="relative z-10 w-full max-w-5xl flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-stone-900 to-stone-800 text-amber-400 flex items-center justify-center border border-stone-800 shadow-md">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-stone-900 to-stone-800 text-amber-400 flex items-center justify-center border border-stone-800 shadow-md">
             <IconNeuralFlow size={20} />
           </div>
           <div>
@@ -124,9 +124,12 @@ export const ZenMode: React.FC<ZenModeProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center space-x-2">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             onClick={() => setShowBreathing(!showBreathing)}
-            className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 active:scale-95 ${
+            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-full border text-xs font-medium transition-all duration-200 cursor-pointer shadow-xs ${
               showBreathing
                 ? 'bg-stone-100 text-stone-900 border-transparent shadow-md'
                 : 'bg-stone-900/80 text-stone-400 border-stone-800 hover:text-stone-100 hover:bg-stone-800'
@@ -134,11 +137,14 @@ export const ZenMode: React.FC<ZenModeProps> = ({
           >
             <IconWind size={14} />
             <span className="hidden sm:inline">Breathing Guide</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             onClick={() => onSelectAmbient(activeAmbient === 'alpha_binaural' ? 'none' : 'alpha_binaural')}
-            className={`p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-95 ${
+            className={`p-2.5 rounded-full border transition-all duration-200 cursor-pointer shadow-xs ${
               activeAmbient !== 'none'
                 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs glow-amber'
                 : 'bg-stone-900/80 text-stone-400 border-stone-800 hover:text-stone-100 hover:bg-stone-800'
@@ -146,15 +152,18 @@ export const ZenMode: React.FC<ZenModeProps> = ({
             title="Toggle Soundscape"
           >
             {activeAmbient !== 'none' ? <IconVolume size={16} className="text-amber-400 animate-pulse" /> : <IconVolumeMute size={16} />}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             onClick={onExit}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-stone-200 border border-stone-800 text-xs font-semibold transition-all duration-200 active:scale-95"
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-full bg-stone-900/90 hover:bg-stone-800 text-stone-200 border border-stone-800 text-xs font-medium transition-all duration-200 cursor-pointer shadow-xs"
           >
             <IconMinimize size={14} />
             <span className="hidden sm:inline">Exit Zen</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -169,12 +178,14 @@ export const ZenMode: React.FC<ZenModeProps> = ({
             </span>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             onClick={onAddDistraction}
-            className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-[10px] font-mono font-bold uppercase shrink-0 transition-all active:scale-95"
+            className="px-3 py-1 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-[10px] font-mono font-bold uppercase shrink-0 transition-all cursor-pointer shadow-xs"
           >
             + Distraction ({distractionsCount})
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -185,9 +196,10 @@ export const ZenMode: React.FC<ZenModeProps> = ({
           {showBreathing && (
             <motion.div
               key={breathIdx}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: 10, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
               className="absolute -top-28 flex flex-col items-center"
             >
               <div className="w-12 h-12 rounded-full border border-amber-500/40 flex items-center justify-center bg-stone-900/90 mb-2 animate-pulse glow-amber">
@@ -253,7 +265,7 @@ export const ZenMode: React.FC<ZenModeProps> = ({
             <span className="text-6xl sm:text-7xl font-serif text-white font-light tracking-tight drop-shadow-md">
               {formatTime(secondsLeft)}
             </span>
-            <span className="text-[9px] font-mono uppercase tracking-widest text-amber-500/90 font-bold mt-3 px-3 py-1 rounded-full bg-stone-900/90 border border-stone-800">
+            <span className="text-[9px] font-mono uppercase tracking-widest text-amber-500/90 font-bold mt-3 px-3.5 py-1 rounded-full bg-stone-900/90 border border-stone-800 shadow-xs">
               {sessionType === 'work' ? 'ULTRADIAN FOCUS WAVE' : 'RECOVERY BREAK'}
             </span>
           </div>
@@ -262,37 +274,49 @@ export const ZenMode: React.FC<ZenModeProps> = ({
 
       {/* Tactile Bottom Action Bar */}
       <div className="relative z-10 w-full max-w-xs flex items-center justify-between">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
           onClick={onReset}
-          className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-all duration-200 active:scale-95"
+          className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-all duration-200 cursor-pointer shadow-xs"
         >
           <IconReset size={16} />
-        </button>
+        </motion.button>
 
         {isRunning ? (
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             onClick={onPause}
-            className="flex items-center space-x-2 px-8 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl transition-all duration-200 active:scale-95"
+            className="flex items-center space-x-2 px-8 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl transition-all duration-200 cursor-pointer"
           >
             <IconPause size={16} />
             <span>Pause</span>
-          </button>
+          </motion.button>
         ) : (
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             onClick={onStart}
-            className="flex items-center space-x-2 px-8 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl transition-all duration-200 active:scale-95 glow-amber"
+            className="flex items-center space-x-2 px-8 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-xs tracking-wider uppercase shadow-xl transition-all duration-200 cursor-pointer glow-amber"
           >
             <IconPlay size={16} />
             <span>Resume</span>
-          </button>
+          </motion.button>
         )}
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
           onClick={onSkip}
-          className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-all duration-200 active:scale-95"
+          className="p-3.5 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-all duration-200 cursor-pointer shadow-xs"
         >
           <IconSkip size={16} />
-        </button>
+        </motion.button>
       </div>
     </div>
   );

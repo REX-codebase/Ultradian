@@ -441,6 +441,9 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
                   <div className="relative">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[color:var(--ink-mute)]" />
                     <input
+                      id="onboarding-craft-search"
+                      name="craftSearch"
+                      aria-label="Search your field or role"
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -544,7 +547,13 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
                     <span>Late Night (23:00)</span>
                   </div>
 
+                  <label htmlFor="onboarding-peak-hour-range" className="sr-only">
+                    Circadian Peak Hour Range
+                  </label>
                   <input
+                    id="onboarding-peak-hour-range"
+                    name="peakHourRange"
+                    aria-label="Circadian Peak Hour"
                     type="range"
                     min="0"
                     max="23"
@@ -640,7 +649,7 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
                     {/* Ritual Title Generator */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-[11px] uppercase tracking-wider text-[color:var(--ink-mute)]">
+                        <label htmlFor="onboarding-ritual-passport-name" className="text-[11px] uppercase tracking-wider text-[color:var(--ink-mute)]">
                           Signature Ritual Title
                         </label>
                         <button
@@ -654,6 +663,9 @@ export const RitualOnboardingModal: React.FC<RitualOnboardingModalProps> = ({
                       </div>
 
                       <input
+                        id="onboarding-ritual-passport-name"
+                        name="ritualPassportName"
+                        aria-label="Signature Ritual Title"
                         type="text"
                         value={ritualName}
                         onChange={(e) => setRitualName(e.target.value)}

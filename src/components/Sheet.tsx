@@ -43,15 +43,22 @@ export const Sheet: React.FC<SheetProps> = ({
   useEffect(() => {
     if (!open) return;
     openedAtRef.current = Date.now();
-    const previous = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    const appShell = document.querySelector('.app-shell');
+    if (appShell) {
+      appShell.classList.add('is-recessed');
+    }
     return () => {
-      document.body.style.overflow = previous;
+      document.body.style.overflow = previousOverflow;
+      if (appShell) {
+        appShell.classList.remove('is-recessed');
+      }
     };
   }, [open]);
 
   const requestClose = () => {
-    if (Date.now() - openedAtRef.current < 320) return;
+    if (Date.now() - openedAtRef.current < 280) return;
     onClose();
   };
 
@@ -86,21 +93,23 @@ export const Sheet: React.FC<SheetProps> = ({
               role="dialog"
               aria-modal="true"
               aria-labelledby={labelledBy || titleId}
-              className={`pointer-events-auto sheet-panel w-full ${SIZE[size]} max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-[1.75rem] md:rounded-[1.5rem] pb-[max(1rem,env(safe-area-inset-bottom))] ${className}`}
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+              className={`pointer-events-auto sheet-panel w-full ${SIZE[size]} max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-[2rem] md:rounded-[1.75rem] pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl ${className}`}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.98 }}
               transition={{
-                duration: reduceMotion ? 0.01 : 0.42,
-                ease: [0.05, 0.7, 0.1, 1],
+                type: 'spring',
+                stiffness: 380,
+                damping: 30,
+                mass: 0.75,
               }}
               drag={isCompact && !reduceMotion ? 'y' : false}
               dragListener={false}
               dragControls={dragControls}
               dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={{ top: 0.04, bottom: 0.18 }}
+              dragElastic={{ top: 0.04, bottom: 0.22 }}
               onDragEnd={(_, info) => {
-                if (info.offset.y > 88 || info.velocity.y > 720) requestClose();
+                if (info.offset.y > 80 || info.velocity.y > 600) requestClose();
               }}
             >
               <div

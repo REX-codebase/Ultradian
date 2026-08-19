@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Star, CheckCircle2 } from 'lucide-react';
 import { SessionRecord, CategoryTag } from '../types';
 import { playMilestoneSound } from '../utils/audio';
@@ -37,6 +38,14 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
   const [energyLevelAfter, setEnergyLevelAfter] = useState<number>(4);
   const [manualMode, setManualMode] = useState<boolean>(false);
 
+  const triggerHaptic = useCallback(() => {
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(8);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     playMilestoneSound();
   }, []);
@@ -52,7 +61,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
       case 4:
         return 'Deep Flow State';
       case 5:
-        return 'Peak';
+        return 'Peak Clarity';
       default:
         return 'High Quality';
     }
@@ -60,6 +69,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
 
   const handleAiAnalysis = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    triggerHaptic();
     if (!userNote.trim()) {
       onSave({
         focusRating,
@@ -110,6 +120,7 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
 
   const handleManualSave = (e: React.FormEvent) => {
     e.preventDefault();
+    triggerHaptic();
     onSave({
       focusRating,
       energyLevelAfter,
@@ -122,24 +133,30 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
     <Sheet open onClose={onClose} labelledBy="session-complete-title">
       <div className="px-6 pb-8 pt-3 text-[color:var(--ink)]">
         <div className="mb-6 text-center">
-          <p className="text-xs tracking-[0.2em] uppercase text-[color:var(--ink-mute)]">Wave complete</p>
-          <h2 id="session-complete-title" className="mt-3 font-serif text-3xl tracking-tight">
+          <p className="text-xs tracking-[0.2em] uppercase font-mono text-[color:var(--ink-mute)]">Wave complete</p>
+          <motion.h2
+            id="session-complete-title"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+            className="mt-3 font-serif text-3xl sm:text-4xl tracking-tight text-[color:var(--ink)]"
+          >
             {completedSession.durationMinutes} minutes
-          </h2>
+          </motion.h2>
           <p className="mt-2 text-sm text-[color:var(--ink-soft)]">
             {completedSession.taskName || completedSession.category}
           </p>
         </div>
 
         {/* Session Accomplishment Summary Card */}
-        <div className="mb-6 space-y-2 border-y border-[color:var(--line)] py-4 text-sm">
+        <div className="mb-6 swift-grouped-list p-4 text-sm shadow-xs space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[color:var(--ink-mute)]">Slips</span>
-            <span>{completedSession.distractionsCount}</span>
+            <span className="font-mono font-semibold text-[color:var(--ink)]">{completedSession.distractionsCount}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[color:var(--ink-mute)]">SQI</span>
-            <span className="clock-face">
+            <span className="text-[color:var(--ink-mute)]">SQI Score</span>
+            <span className="font-mono font-semibold text-[color:var(--ink)]">
               {calculateSQI({
                 durationMinutes: completedSession.durationMinutes,
                 actualSecondsCompleted: completedSession.actualSecondsCompleted,
@@ -154,110 +171,135 @@ export const PostSessionModal: React.FC<PostSessionModalProps> = ({
 
         {/* AI Result Confirmation Toast */}
         {aiResult ? (
-          <div className="space-y-3 py-2 text-center">
-            <CheckCircle2 className="mx-auto h-5 w-5 text-[color:var(--ink)]" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="space-y-3 py-2 text-center"
+          >
+            <CheckCircle2 className="mx-auto h-6 w-6 text-[color:var(--ink)]" />
             <p className="font-serif text-xl">Saved</p>
             <p className="text-sm text-[color:var(--ink-soft)]">
               {aiResult.category} · {aiResult.focusScore}/5 · energy {aiResult.energyLevelAfter}/5
             </p>
-          </div>
+          </motion.div>
         ) : !manualMode ? (
           /* Single Text Box AI Reflection Form */
           <form onSubmit={handleAiAnalysis} className="space-y-5">
             {/* Focus Quality Star Picker */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400">
+                <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-[color:var(--ink-mute)]">
                   Focus Quality Rating
                 </label>
-                <span className="text-sm text-[color:var(--ink-mute)]">
+                <span className="text-xs font-medium text-[color:var(--ink-soft)]">
                   {getFocusLabel(focusRating)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-center space-x-2 p-3 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border border-stone-200 dark:border-stone-800">
+              <div className="flex items-center justify-center space-x-3 p-3.5 bg-[color:var(--line)]/30 rounded-2xl border border-[color:var(--line)]/60 shadow-xs">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <button
+                  <motion.button
                     type="button"
                     key={star}
-                    onClick={() => setFocusRating(star)}
-                    className="p-1 transition-transform hover:scale-125 active:scale-95"
+                    whileHover={{ scale: 1.25, y: -2 }}
+                    whileTap={{ scale: 0.88 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    onClick={() => {
+                      triggerHaptic();
+                      setFocusRating(star);
+                    }}
+                    className="p-1 cursor-pointer"
                   >
                     <Star
-                      className={`h-7 w-7 ${
+                      className={`h-7 w-7 transition-colors duration-150 ${
                         star <= focusRating
                           ? 'fill-[color:var(--ink)] text-[color:var(--ink)]'
                           : 'text-[color:var(--line)]'
                       }`}
                     />
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
 
             {/* Note Input */}
             <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400 mb-2">
+              <label htmlFor="post-session-reflection-note" className="block text-[10px] font-mono font-bold tracking-wider uppercase text-[color:var(--ink-mute)] mb-2">
                 Reflection Note (Optional)
               </label>
               <textarea
+                id="post-session-reflection-note"
+                name="reflectionNote"
+                aria-label="Reflection Note (Optional)"
                 rows={2}
                 value={userNote}
                 onChange={(e) => setUserNote(e.target.value)}
                 placeholder="e.g. 'Finished the core UI layout smoothly, zero distractions.'"
-                className="w-full rounded-xl border border-[color:var(--line)] bg-transparent px-4 py-3 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--ink-mute)] focus:outline-none"
+                className="w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--paper)] px-4 py-3 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--ink-mute)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
               />
             </div>
 
             <div className="flex gap-2">
-              <button
+              <motion.button
                 type="submit"
                 disabled={analyzing}
-                className="pressable flex min-h-12 flex-1 items-center justify-center rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                className="swift-pill-cta flex min-h-12 flex-1 items-center justify-center text-sm font-medium cursor-pointer shadow-md"
               >
                 {analyzing ? <span className="ink-bar w-20" /> : <span>Save and rest</span>}
-              </button>
+              </motion.button>
             </div>
           </form>
         ) : (
           /* Manual Fallback Form */
           <form onSubmit={handleManualSave} className="space-y-4">
             <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400 mb-1.5">
+              <label className="block text-[10px] font-mono font-bold tracking-wider uppercase text-[color:var(--ink-mute)] mb-1.5">
                 Mental Energy Level After
               </label>
               <div className="flex items-center justify-between gap-1.5">
                 {[1, 2, 3, 4, 5].map((lvl) => (
-                  <button
+                  <motion.button
                     type="button"
                     key={lvl}
-                    onClick={() => setEnergyLevelAfter(lvl)}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={() => {
+                      triggerHaptic();
+                      setEnergyLevelAfter(lvl);
+                    }}
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       energyLevelAfter === lvl
-                        ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
-                        : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700'
+                        ? 'bg-[color:var(--ink)] text-[color:var(--paper)] shadow-xs'
+                        : 'bg-[color:var(--paper)] text-[color:var(--ink-soft)] border border-[color:var(--line)]'
                     }`}
                   >
                     {lvl}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-2 pt-2">
-              <button
+              <motion.button
                 type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => setManualMode(false)}
-                className="px-4 py-3 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold"
+                className="px-4 py-3 rounded-full border border-[color:var(--line)] text-xs font-medium cursor-pointer"
               >
                 Back
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="submit"
-                className="flex-1 py-3.5 rounded-full bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs font-bold uppercase tracking-wider"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                className="swift-pill-cta flex-1 py-3 rounded-full text-xs font-medium cursor-pointer"
               >
                 Save Session
-              </button>
+              </motion.button>
             </div>
           </form>
         )}

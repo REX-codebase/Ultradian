@@ -16,7 +16,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
   onOpenCustomSettings,
 }) => {
   return (
-    <div className="liquid-glass-card w-full max-w-lg mx-auto mt-6 p-5 sm:p-6 text-[color:var(--ink)]">
+    <div className="swift-glass-card w-full max-w-lg mx-auto mt-6 p-5 sm:p-6 text-[color:var(--ink)]">
       <div className="flex items-center justify-between mb-4">
         <div>
           <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[color:var(--ink-mute)]">
@@ -26,14 +26,17 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
             Preset Cadences
           </h3>
         </div>
-        <button
+        <motion.button
           type="button"
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
           onClick={onOpenCustomSettings}
-          className="liquid-glass-badge rounded-full px-3 py-1 text-xs font-medium text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="liquid-glass-badge rounded-full px-3 py-1 text-xs font-medium text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           <IconSettings size={13} />
           <span>Customise</span>
-        </button>
+        </motion.button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -42,13 +45,14 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
           return (
             <motion.button
               key={preset.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.025, y: -1.5 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 25 }}
               onClick={() => onSelectPreset(preset)}
-              className={`relative flex flex-col p-4 rounded-2xl border text-left transition-all ${
+              className={`relative flex flex-col p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)] border-[color:var(--ink)] shadow-sm'
-                  : 'bg-[color:var(--paper)] text-[color:var(--ink-soft)] border-[color:var(--line)] hover:border-[color:var(--ink-mute)]'
+                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)] border-[color:var(--ink)] shadow-md'
+                  : 'bg-[color:var(--paper)]/80 text-[color:var(--ink-soft)] border-[color:var(--line)] hover:border-[color:var(--ink-mute)]'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
@@ -56,9 +60,14 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
                   {preset.name}
                 </span>
                 {isSelected && (
-                  <span className="rounded-full bg-[color:var(--paper)] text-[color:var(--ink)] p-0.5">
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    className="rounded-full bg-[color:var(--paper)] text-[color:var(--ink)] p-0.5"
+                  >
                     <IconCheck size={12} strokeWidth={3} />
-                  </span>
+                  </motion.span>
                 )}
               </div>
 

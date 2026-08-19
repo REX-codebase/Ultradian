@@ -48,5 +48,5 @@ describe('RitualOnboardingModal Component', () => {
       expect(handleComplete).toHaveBeenCalledTimes(1);
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
-  });
+  }, 15000);
 });

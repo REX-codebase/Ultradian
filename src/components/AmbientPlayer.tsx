@@ -90,6 +90,8 @@ export const AmbientPlayer: React.FC<AmbientPlayerProps> = ({
               </label>
               <input
                 id="ambient-volume-slider"
+                name="ambientVolume"
+                aria-label="Soundscape volume"
                 type="range"
                 min="0"
                 max="1"

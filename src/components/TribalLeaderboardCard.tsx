@@ -78,7 +78,7 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
       )}
 
       {!isLoading && !error && tribes.length > 0 && (
-        <div className="liquid-glass-card overflow-hidden divide-y divide-[color:var(--line)]/60">
+        <div className="swift-glass-card overflow-hidden divide-y divide-[color:var(--line)]/60 shadow-sm">
           {tribes.map((tribe, index) => {
             const isUserTribe = tribe.id === userTribeId;
             const weeklyHours = Math.round((tribe.weeklyMinutes / 60) * 10) / 10;
@@ -86,6 +86,7 @@ export const TribalLeaderboardCard: React.FC<TribalLeaderboardCardProps> = ({ us
               <motion.div
                 key={tribe.id}
                 layout
+                transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                 className={`flex items-center justify-between p-4 sm:p-5 transition-colors ${
                   isUserTribe
                     ? 'bg-[color:var(--ink)]/5 font-semibold'

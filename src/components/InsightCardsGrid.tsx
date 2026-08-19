@@ -83,7 +83,7 @@ export const InsightCardsGrid: React.FC<InsightCardsGridProps> = ({
       {/* Header & Filter Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="liquid-glass-badge p-1.5 rounded-xl">
+          <span className="liquid-glass-badge p-1.5 rounded-2xl shadow-xs">
             <IconSparkle size={16} className="text-[color:var(--ink)]" />
           </span>
           <h3 className="font-serif text-lg font-normal text-[color:var(--ink)]">
@@ -91,26 +91,36 @@ export const InsightCardsGrid: React.FC<InsightCardsGridProps> = ({
           </h3>
         </div>
 
-        <div className="chip-rail max-w-full pb-1 sm:pb-0">
-          {domainOptions.map((domain) => (
-            <motion.button
-              key={domain}
-              type="button"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.94 }}
-              onClick={() => {
-                triggerHaptic();
-                setSelectedDomain(domain);
-              }}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium tracking-wide transition-all whitespace-nowrap ${
-                selectedDomain === domain
-                  ? 'bg-[color:var(--ink)] text-[color:var(--paper)] shadow-xs'
-                  : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink)] hover:bg-[color:var(--line)]/40'
-              }`}
-            >
-              {domain}
-            </motion.button>
-          ))}
+        <div className="swift-segmented-track max-w-full overflow-x-auto scrollbar-none">
+          {domainOptions.map((domain) => {
+            const active = selectedDomain === domain;
+            return (
+              <motion.button
+                key={domain}
+                type="button"
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                onClick={() => {
+                  triggerHaptic();
+                  setSelectedDomain(domain);
+                }}
+                className={`relative z-10 px-3 py-1 rounded-full text-[11px] font-medium tracking-wide transition-colors whitespace-nowrap cursor-pointer ${
+                  active
+                    ? 'text-[color:var(--paper)] font-semibold'
+                    : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink)]'
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="activeDomainPill"
+                    className="absolute inset-0 z-[-1] rounded-full bg-[color:var(--ink)] shadow-xs"
+                    transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                  />
+                )}
+                <span>{domain}</span>
+              </motion.button>
+            );
+          })}
         </div>
       </div>
 
@@ -119,14 +129,16 @@ export const InsightCardsGrid: React.FC<InsightCardsGridProps> = ({
         {filteredCards.map((card) => {
           const isApplied = appliedCardIds[card.id];
           return (
-            <div
+            <motion.div
               key={card.id}
-              className="liquid-glass-card p-5 flex flex-col justify-between space-y-3"
+              whileHover={{ scale: 1.02, y: -2 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className="swift-glass-card p-5 flex flex-col justify-between space-y-3 shadow-xs"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-[color:var(--line)]/50">
+                    <div className="p-1.5 rounded-xl bg-[color:var(--line)]/50">
                       {getCardIcon(card.type)}
                     </div>
                     <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[color:var(--ink-mute)]">
@@ -156,14 +168,11 @@ export const InsightCardsGrid: React.FC<InsightCardsGridProps> = ({
                 {card.actionLabel && (
                   <motion.button
                     type="button"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={{ type: 'spring', stiffness: 480, damping: 25 }}
                     onClick={() => handleActionClick(card)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide transition-all flex items-center gap-1.5 ${
-                      isApplied
-                        ? 'bg-[color:var(--ink)] text-[color:var(--paper)]'
-                        : 'bg-[color:var(--ink)] text-[color:var(--paper)] hover:opacity-90 shadow-xs'
-                    }`}
+                    className="swift-pill-cta px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     {isApplied ? (
                       <>
@@ -179,12 +188,12 @@ export const InsightCardsGrid: React.FC<InsightCardsGridProps> = ({
                   </motion.button>
                 )}
               </div>
-            </div>
+            </motion.div>
           );
         })}
 
         {filteredCards.length === 0 && (
-          <div className="col-span-full p-8 text-center liquid-glass-card text-xs text-[color:var(--ink-mute)] font-serif italic">
+          <div className="col-span-full p-8 text-center swift-glass-card text-xs text-[color:var(--ink-mute)] font-serif italic">
             No pattern insights for '{selectedDomain}' domain yet. Complete a focus wave in this category to generate insights.
           </div>
         )}

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import html2canvas from 'html2canvas';
 import { Download, Share2, Sparkles, Check, X, Shield, Trophy, Zap, Copy } from 'lucide-react';
 import { SessionRecord, UserSettings } from '../types';
@@ -167,23 +168,29 @@ export const FlexCardModal: React.FC<FlexCardModalProps> = ({
 
         {/* Action Buttons */}
         <div className="w-full flex flex-col sm:flex-row gap-3 mt-6">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.025 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             onClick={handleDownloadImage}
             disabled={downloading}
-            className="pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]"
+            className="swift-pill-cta flex min-h-12 flex-1 items-center justify-center gap-2 text-sm font-medium cursor-pointer shadow-md"
           >
             <Download className="h-4 w-4" />
-            <span>{downloading ? 'Saving' : 'Download'}</span>
-          </button>
+            <span>{downloading ? 'Saving image...' : 'Download Card'}</span>
+          </motion.button>
 
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.025 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             onClick={handleCopyText}
-            className="pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-[color:var(--line)] text-[color:var(--ink)]"
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--paper)]/80 text-[color:var(--ink)] hover:bg-[color:var(--line)]/40 transition-colors text-sm font-medium cursor-pointer shadow-xs"
           >
             {copiedText ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            <span>{copiedText ? 'Copied' : 'Copy'}</span>
-          </button>
+            <span>{copiedText ? 'Copied' : 'Copy Summary'}</span>
+          </motion.button>
         </div>
       </div>
     </Sheet>

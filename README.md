@@ -1,216 +1,313 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/readme/banner-dark.svg">
-    <img src="assets/readme/banner-light.svg" alt="Ultradian — a focus engine for biological time" width="100%">
+    <img src="assets/readme/banner-light.svg" alt="Ultradian — A Focus Engine for Biological Time" width="100%">
   </picture>
 </p>
 
 <p align="center">
-  <img src="assets/readme/chips.svg" alt="Focus, Rhythm, League" />
+  <img src="assets/readme/chips.svg" alt="Focus · Rhythm · League" />
 </p>
 
 <p align="center">
-  <img src="assets/readme/marks.svg" alt="90-minute BRAC, four archetypes, 120 professions, SQI, verified hours" />
+  <img src="assets/readme/marks.svg" alt="90-Minute BRAC · 4 Archetypes · 120 Professions · Session Quality Index · Verified Hours" />
 </p>
 
 <p align="center">
-  <img src="assets/readme/badges.svg" alt="React 19, TypeScript, Tailwind 4, Vite 6, Firebase, Vitest, PWA, Express, MIT" />
+  <img src="assets/readme/badges.svg" alt="React 19 · TypeScript · Tailwind CSS 4 · Vite 6 · Motion · Firebase · Vitest · PWA · Gemini AI · MIT" />
 </p>
 
 <p align="center">
-  <a href="assets/readme/ultradian.mp4">
-    <img src="assets/readme/ultradian.gif" alt="A 10-second view of Ultradian Focus: name the work, choose Coding, begin a 90-minute wave." width="100%">
-  </a>
+  <a href="#-the-biological-thesis">The Science</a> •
+  <a href="#-visual-showcase">Showcase</a> •
+  <a href="#-three-rooms">Three Rooms</a> •
+  <a href="#-cognitive-archetypes">Archetypes</a> •
+  <a href="#-session-quality-index-sqi">SQI Formula</a> •
+  <a href="#-system-architecture">Architecture</a> •
+  <a href="#-quickstart">Quickstart</a>
 </p>
-
-<p align="center"><em>A view of Focus.</em></p>
 
 <br />
 
-**Ultradian** is a focus engine for people who work in waves.
+---
 
-Attention is not a straight line. It rises and falls in roughly ninety-minute cycles — Kleitman's Basic Rest-Activity Cycle. Ultradian treats that cycle as the unit of work: a named task, a timed wave, an honest rest, and a record of how the session actually felt.
+## 🌊 Overview
 
-No kitchen-timer chrome. Paper, ink, and a clock large enough to think beside.
+**Ultradian** is a high-performance focus engine engineered around the natural rhythms of human biology.
+
+Conventional productivity software treats human attention like an electrical machine: constant, linear, and indefinitely sustainable across 8-hour blocks. In reality, human cognitive capacity fluctuates in cyclical waves of roughly 90 to 120 minutes — a biological phenomenon discovered by sleep researcher Nathaniel Kleitman known as the **Basic Rest-Activity Cycle (BRAC)**.
+
+Ultradian eliminates kitchen-timer clutter in favor of an **authentic Apple SwiftUI / iOS 18 fluid spring aesthetic**, liquid glassmorphic materials, procedural Web Audio soundscapes, and an institutional Session Quality Index (SQI) ledger.
+
+<br />
+
+---
+
+## 🎬 Visual Showcase & Walkthrough
 
 <p align="center">
-  <a href="#the-cycle">The cycle</a> ·
-  <a href="#three-rooms">Three rooms</a> ·
-  <a href="#archetypes">Archetypes</a> ·
-  <a href="#start">Start</a> ·
-  <a href="#stack">Stack</a>
+  <a href="assets/readme/ultradian.mp4">
+    <img src="assets/readme/ultradian.gif" alt="Ultradian Focus Engine Demonstration" width="100%" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+  </a>
 </p>
+<p align="center"><em>Live walkthrough: Name your goal, select a cognitive domain, audition harmonic audio, and enter a 90-minute immersion wave.</em></p>
+
+<br />
+
+### Interface Design
+
+| Focus Stage (The Living Instrument) | Rhythm Intelligence (The Ledger) |
+| :---: | :---: |
+| <img src="assets/readme/focus-stage-showcase.jpg" alt="Ultradian Focus Stage" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);" /> | <img src="assets/readme/rhythm-analytics-showcase.jpg" alt="Ultradian Rhythm Intelligence Dashboard" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);" /> |
+| *Precision chronometer, Dynamic Island CTA, and segmented domain track.* | *Apple Health-style squircle metrics, 7-day cadence waveform, and AI hypothesis card.* |
+
+<br />
+
+| iOS 18 Inset Grouped Settings Sheet | Zen Shield Mode |
+| :---: | :---: |
+| <img src="assets/readme/settings-sheet-showcase.jpg" alt="Ultradian Settings Sheet Modal" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);" /> | <img src="assets/readme/ultradian-poster.png" alt="Ultradian Zen Shield Mode" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);" /> |
+| *Native spring toggle switches, grouped soundscapes, and fluid segmented tab slider.* | *Distraction-free watchmaker dial with guided box breathing overlays.* |
+
+<br />
 
 ---
 
-## The cycle
+## 🧬 The Biological Thesis
 
-Kleitman described a Basic Rest-Activity Cycle of about 90 minutes. Ultradian builds the day from that length, then lets you grow into it.
+```
+Cognitive Energy
+      ▲
+  100%│        ╭─────────────╮ (Peak Flow Zenith)
+      │       ╱               ╲
+   50%│      ╱                 ╲                    ╭─────────────╮
+      │     ╱                   ╲                  ╱               ╲
+    0%│────╯                     ╰────────────────╯                 ╰────► Time (Minutes)
+      0                         90               110               200
+      ◄─────── Active Focus Wave ───────►◄── Recovery ──►◄── Wave 2 ───►
+```
 
-| Preset | Focus | Rest | Recovery |
-| --- | ---: | ---: | ---: |
-| Level 1 · Apprentice | 45 | 10 | 20 |
-| Level 2 · Adept | 60 | 15 | 25 |
-| Level 3 · Ultradian Master | 90 | 20 | 30 |
-| Flow State Peak | 110 | 25 | 35 |
+1. **The 90-Minute Basic Rest-Activity Cycle (BRAC)**: Brain wave frequencies (beta, alpha, and theta oscillations) transition through cycles of alertness and fatigue. Forcing focus past biological saturation results in diminished returns and burnout.
+2. **Progressive Cognitive Overload**: Stamina is cultivated over time. Ultradian unlocks longer immersion waves sequentially:
 
-Stamina unlocks in order. You do not start at ninety minutes because a setting exists. You earn the longer wave.
+| Level | Tier Name | Focus Duration | Active Rest | Deep Recovery |
+| :--- | :--- | :---: | :---: | :---: |
+| **Level 1** | Apprentice | **45 min** | 10 min | 20 min |
+| **Level 2** | Adept | **60 min** | 15 min | 25 min |
+| **Level 3** | Ultradian Master | **90 min** | 20 min | 30 min |
+| **Level 4** | Flow State Peak | **110 min** | 25 min | 35 min |
 
-A session is more than a countdown. You name the work, tag it (`Coding`, `Writing`, `Design`, `Research`, `Strategy`, `Study`, `General`), and after the wave you can rate focus, energy before and after, and interruptions. That record is the ledger Rhythm reads.
-
----
-
-## Three rooms
-
-The product is three surfaces. One pulse.
-
-### Focus — the clock
-
-The home view is a command center, not a dashboard. The task sits in Instrument Serif. Categories are stone pills. The phase is a whisper of tracked caps — `FOCUS · LIVE` — above a clock face large enough to fill the room. Progress is a two-pixel line.
-
-Around it:
-
-- Soft transitions between work and rest, so the phase change is felt, not alarming
-- Zen mode that puts the clock alone on paper
-- Desktop notifications, tab-title countdown, and phase tones (Tibetan bowl, chime, marimba, synth rise, bell)
-- Procedural soundscapes through the Web Audio API — nothing streamed, nothing licensed: Quiet, Alpha, Theta, Brown, Rain, Pink, White, Space
-- A compact timer bar when you leave the room but keep the wave
-
-### Rhythm — the ledger
-
-Rhythm is where sessions become a week you can read.
-
-- **Session Quality Index (SQI)** — 0–100 from four self-reported parts: focus (40), completion (25), interruption shield (20), energy retention (15)
-- Tiers: *Deep Synchrony*, *Solid Build*, *Restorative Flow*, *Fragmented Focus*
-- Weekly narrative of when the work actually landed
-- Recovery prompts when the ledger says you skipped rest
-- Progressive-overload banners as stamina levels open
-
-SQI is not a biometric. It is derived from the ratings and timestamps you give. No heart rate, no webcam, no implied physiology.
-
-### League — the tribe
-
-Competitive standings exist, but only on verified work.
-
-- Tiers: Wood → Bronze → Silver → Gold → Platinum → Diamond → Ultradian Master
-- Ghost rivals calculated from people actually in the week
-- Sample and demo sessions are filtered out of public rank
-- Cloud sync for signed-in profiles; local ledger if you stay private
+<br />
 
 ---
 
-## Archetypes
+## 🏛️ The Three Rooms
 
-Onboarding asks who you are at work. The answer sets default wave length, rest, category, and soundscape — and can name a ritual from your peak hour.
+Ultradian is structured into three dedicated surfaces designed around singular cognitive intents:
 
-| | Builder | Creator | Scientist | Strategist |
-| --- | --- | --- | --- | --- |
-| People | Engineers, makers, craftsmen | Writers, designers, artists | Researchers, analysts, scholars | Founders, operators, leads |
-| Default wave | 60 / 15 | 45 / 10 | 90 / 20 | 50 / 10 |
-| Soundscape | Brown | Rain | Alpha | Space |
-| Motto | Build with precision. | Shape the raw idea. | Question the assumption. | Chart the horizon. |
+```
+                                  ┌────────────────────────┐
+                                  │    ULTRADIAN ENGINE    │
+                                  └───────────┬────────────┘
+                                              │
+                    ┌─────────────────────────┼─────────────────────────┐
+                    │                         │                         │
+                    ▼                         ▼                         ▼
+        ┌───────────────────────┐ ┌───────────────────────┐ ┌───────────────────────┐
+        │       1. FOCUS        │ │       2. RHYTHM       │ │       3. LEAGUE       │
+        │    The Instrument     │ │      The Ledger       │ │       The Tribe       │
+        ├───────────────────────┤ ├───────────────────────┤ ├───────────────────────┤
+        │ • Chronometer Dial    │ │ • 4-Vector SQI Score  │ │ • Verified Standings  │
+        │ • Dynamic Island CTA  │ │ • Cadence Waveforms   │ │ • Ghost Rival Pacing  │
+        │ • Web Audio Synthesis │ │ • Gemini Reflection   │ │ • Anti-Cheat Filters  │
+        │ • Zen Shield Mode     │ │ • Adaptive Hypotheses │ │ • Cloud Roster Sync   │
+        └───────────────────────┘ └───────────────────────┘ └───────────────────────┘
+```
 
-A hundred and twenty professions sit under those four. The ritual name is yours. The clock does not care what you call it.
+### 1. Focus — The Living Instrument
+* **Minimalist Chrono Dial**: Watchmaker-calibrated dial with custom serif typography and continuous progress tracking.
+* **Dynamic Island Pill CTA**: Liquid sheen glass button with physics-based Play/Pause icon morphing.
+* **Segmented Domain Selector**: Continuous sliding track (`Coding`, `Writing`, `Design`, `Research`, `Strategy`, `Study`, `General`).
+* **Procedural Web Audio Engine**: Zero external audio dependencies. Generates continuous mathematical noise waves directly in browser:
+  * 🧠 **Alpha Binaural Beats (10Hz)**: Optimal for analytical reasoning and coding flow.
+  * 🌊 **Theta Waves (6Hz)**: Deep creativity, divergent synthesis, and writing.
+  * 🌧️ **Forest Rain & Pink Noise**: Attenuated high-frequency masks for noise reduction.
+  * 🌌 **Deep Space & Brown Noise**: Low-frequency rumble for sustained immersion.
+* **Zen Shield Mode**: Fullscreen blackout focus shield with interactive 4-4-4-2 box breathing guide.
+
+### 2. Rhythm — The Biological Ledger
+* **Session Quality Index (SQI)**: Multi-axis 0–100 quality scoring derived immediately upon wave completion.
+* **Weekly Cadence Waveforms**: Area chart visualising minutes completed across rolling 7-day cycles.
+* **Gemini 2.0 AI Synthesis**: Server-side LLM reflection evaluating self-reported focus notes, patterns, and fatigue signs.
+* **Hypothesis Experiment Engine**: Recommends personalized schedule tweaks (e.g. *"Shift afternoon wave by +15m to match peak clarity"*).
+
+### 3. League — The Verified Tribe
+* **Competitive Divisions**: 7 rank tiers (*Wood → Bronze → Silver → Gold → Platinum → Diamond → Ultradian Master*).
+* **Ghost Rival Pacing**: Dynamic benchmark tracking the exact minutes needed to overtake the immediate rival ahead.
+* **Integrity Guard**: Sample, synthetic, and unverified mock sessions are strictly stripped from global rankings.
+
+<br />
 
 ---
 
-## Start
+## 🧭 Cognitive Archetypes
 
-Node 22+ and npm. The dev server is Express wrapping Vite, on port **3000**.
+During onboarding, users calibrate their profile to establish tailored baseline wave durations, harmonic soundscapes, and circadian rhythm anchors:
 
+| Archetype | Focus Profile | Default Wave | Default Soundscape | Circadian Zenith | Motto |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| 🛠️ **Builder** | Engineers, Architects, Craftsmen | **60m / 15m** | Deep Brown Noise | Morning Zenith (09:00) | *"Build with precision."* |
+| 🎨 **Creator** | Writers, Designers, Artists | **45m / 10m** | Harmonic Rain | Dawn Awakening (06:00) | *"Shape the raw idea."* |
+| 🔬 **Scientist** | Researchers, Analysts, Scholars | **90m / 20m** | Alpha Binaural | Solar Zenith (13:00) | *"Question the assumption."* |
+| ♟️ **Strategist** | Founders, Executives, Planners | **50m / 10m** | Deep Space | Evening Clarity (18:00) | *"Chart the horizon."* |
+
+> Ultradian contains **120+ specialized profession mappings** spanning software architecture, quantitative finance, neurobiology, design systems, and creative direction.
+
+<br />
+
+---
+
+## 📊 Session Quality Index (SQI)
+
+Rather than naive countdown tracking, Ultradian computes an objective quality score after every wave:
+
+$$\text{SQI} = w_f \cdot S_{\text{focus}} + w_c \cdot S_{\text{completion}} + w_s \cdot S_{\text{shield}} + w_e \cdot S_{\text{energy}}$$
+
+$$\text{SQI} = (0.40 \times \text{Rating}_{1\text{--}5}) + (0.25 \times \text{Completion}\%) + (0.20 \times \text{DistractionPenalty}) + (0.15 \times \Delta\text{Energy})$$
+
+| SQI Score | Tier Classification | Physiological Meaning |
+| :---: | :--- | :--- |
+| **90 – 100** | 🌟 **Deep Synchrony** | Optimal neural flow state; zero cognitive friction. |
+| **75 – 89** | ⚡ **Solid Build** | High productivity with minor environmental friction. |
+| **60 – 74** | 🌿 **Restorative Flow** | Steady progress; signals approaching rest necessity. |
+| **< 60** | ⚠️ **Fragmented Focus** | High interruptions; rest wave recommended immediately. |
+
+<br />
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TB
+    subgraph Browser Client [Frontend Client · React 19 & Tailwind 4]
+        A[HomeCommandCenter] --> B[Chronometer Engine]
+        A --> C[Segmented Category Pill Bar]
+        A --> D[Dynamic Island Master CTA]
+        E[Web Audio API Engine] --> F[Procedural Binaural / Noise Synth]
+        G[AnalyticsDashboard] --> H[Recharts Waveforms & SQI Ledger]
+        I[SettingsModal & Sheet] --> J[Recessed Background & iOS Toggles]
+    end
+
+    subgraph Server Middleware [Express Backend · Port 3000]
+        K[Vite Dev Middleware]
+        L[POST /api/gemini/analyze-session]
+        M[POST /api/gemini/weekly-rhythm]
+    end
+
+    subgraph Cloud Infrastructure [Firebase & Google GenAI]
+        N[Firebase Auth]
+        O[Firestore Database]
+        P[Cloud Functions]
+        Q[Google Gemini 2.0 Flash]
+        R[Firebase App Check]
+    end
+
+    Browser Client <--> Server Middleware
+    Browser Client <--> Cloud Infrastructure
+    Server Middleware <--> Q
+```
+
+### Key Engineering Principles
+- **SwiftUI Spring Physics**: All transitions utilize physical damping, stiffness, and mass parameters (`motion/react`).
+- **Zero-Dependency Soundscapes**: Procedural pink, brown, and binaural audio generated in real-time via `AudioContext` buffer nodes.
+- **Code-Splitting & Lazy Loading**: Modals, analytics dashboards, and flex card generators are loaded asynchronously through `React.lazy` and `Suspense`.
+- **Offline First**: Full functionality is maintained offline using cached local ledgers and persistent IndexedDB storage.
+
+<br />
+
+---
+
+## 🚀 Quickstart
+
+### Prerequisites
+* **Node.js** 22.0+ 
+* **npm** 10.0+
+
+### 1. Clone & Install
 ```bash
+git clone https://github.com/REX-codebase/Ultradian.git
+cd Ultradian
 npm install
+```
+
+### 2. Environment Configuration
+```bash
+# macOS / Linux
 cp .env.example .env
-npm run dev
-```
 
-On Windows PowerShell:
-
-```powershell
-npm install
+# Windows PowerShell
 Copy-Item .env.example .env
+```
+
+| Variable | Required | Description |
+| :--- | :---: | :--- |
+| `GEMINI_API_KEY` | Optional | Unlocks Gemini 2.0 Flash session reflection & weekly rhythm narratives. |
+| `APP_URL` | Optional | Custom base URL for social flex card sharing and OAuth callbacks. |
+| `VITE_FIREBASE_*` | Optional | Custom Firebase production configuration overrides. |
+
+### 3. Launch Development Server
+```bash
 npm run dev
 ```
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### Environment
-
-| Variable | Role |
-| --- | --- |
-| `GEMINI_API_KEY` | Optional. Unlocks post-session reflection and weekly narrative. Without it, those views fall back to rule-based copy. |
-| `APP_URL` | Public origin for callbacks and self-links. |
-
-Firebase client config lives in `firebase-applet-config.json` and can be overridden with `VITE_FIREBASE_*` variables. Auth supports email, Google, and an anonymous path. Insight surfaces unlock after sign-in.
+<br />
 
 ---
 
-## Scripts
-
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Express + Vite on port 3000 |
-| `npm run build` | Vite client build and bundled server |
-| `npm start` | Run the production server |
-| `npm run lint` | Typecheck (`tsc --noEmit`) |
-| `npm test` | Vitest, once |
-| `npm run test:watch` | Vitest, watch |
-| `npm run test:coverage` | Coverage report |
-| `npm run analyze` | Bundle composition |
-| `npm run analyze:treemap` | Treemap of the bundle |
-
----
-
-## Architecture
-
-```
-browser                    express :3000                 firebase
-────────                   ──────────────                ────────
-Focus / Rhythm / League    Vite middleware (dev)         Auth
-Zen, soundscapes, PWA      POST /api/gemini/*            Firestore (named db)
-local ledger               rule-based fallbacks          Functions
-                                                         App Check
-```
-
-Heavy rooms (`AnalyticsDashboard`, settings, post-session, share, onboarding) load through `React.lazy` and `Suspense`, behind an `ErrorBoundary`. The profession catalog is split from the module that consumes it so the first paint does not evaluate a hundred records it does not need.
-
-Cloud Functions handle session writes, weekly league matchmaking, and optional insight generation. Insights never block the session: if the model is dark, the ledger still stands.
-
----
-
-## Test the parts that can lie
+## 🛠️ Scripts & Tooling
 
 ```bash
+# Development server (Express + Vite on :3000)
+npm run dev
+
+# Compile production bundle & server
+npm run build
+
+# Start production server
+npm start
+
+# Run full Vitest suite with thread pool
 npm test
+
+# Run Playwright end-to-end test suite
+npm run test:e2e
+
+# Run TypeScript static typecheck
+npm run lint
+
+# Bundle size composition visualizer
+npm run analyze
 ```
 
-The suite is pointed at the places where a pretty UI can hide a wrong answer:
-
-- `src/utils/__tests__/ritualOnboarding.test.ts` — ritual payload, cloud persist, hydrate
-- `src/utils/__tests__/leagueMarks.test.ts` — clean league and tribe marks
-- `src/utils/__tests__/settingsTabs.test.ts` — settings draft survives tab switches
-- `src/utils/__tests__/sampleRhythm.test.ts` — sample-session detection so leagues stay clean
-- `src/utils/__tests__/sessionAnalytics.test.ts` — the numbers Rhythm reports
-- `functions/src/__tests__/ai.test.ts` — insight path with and without a key
+<br />
 
 ---
 
-## Stack
+## 🔒 Privacy & Non-Biological Commitment
 
-React 19 · TypeScript · Tailwind CSS 4 · Vite 6 · Motion · Lucide · Recharts
+* **Zero Invasive Tracking**: Ultradian **never** accesses cameras, microphones, biometric wearables, or gaze-tracking hardware.
+* **Self-Reported Integrity**: All metrics, SQI scores, and rhythm trends are calculated solely from user-reported ratings and timer timestamps.
+* **Local Ledger Option**: Complete focus tracking functions privately offline without requiring account creation or cloud sync.
 
-Express · dotenv · `@google/genai` (optional)
-
-Firebase Auth, Firestore, Functions, App Check
-
-Vitest · React Testing Library · vite-plugin-pwa
-
-The surface is paper `#f7f4ef` and ink `#1c1917` in light, `#141210` and `#f5f2ec` in dark. Headings are Instrument Serif. The body is Inter. The clock is tabular, serif, and large.
+<br />
 
 ---
 
-## License
+## 📄 License
 
-MIT.
+Distributed under the **MIT License**. See [`LICENSE`](file:///c:/Users/hp1/Ultradian/LICENSE) for details.
 
-Insights and scores come from the ratings and timestamps you enter. Ultradian does not measure a body and does not claim to.
+<p align="center">
+  <sub>Engineered for deep work, biological synchrony, and cognitive longevity.</sub>
+</p>

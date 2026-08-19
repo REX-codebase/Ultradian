@@ -329,7 +329,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           ref={tabsNavRef}
           role="tablist"
           aria-label="Settings sections"
-          className="relative mb-5 flex gap-1 rounded-full bg-[color:var(--line)]/45 p-1 select-none border border-[color:var(--line)]/60"
+          className="relative mb-5 flex gap-1 rounded-full bg-[color:var(--line)]/45 p-1 select-none border border-[color:var(--line)]/60 shadow-xs"
         >
           {/* Animated Liquid Glass Highlighter Pill */}
           <div className="absolute inset-1 pointer-events-none">
@@ -365,7 +365,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   triggerHaptic();
                   handleTabChange(tab);
                 }}
-                className={`pressable relative z-10 min-h-10 flex-1 rounded-full px-2 text-xs sm:text-sm font-medium transition-colors duration-200 pointer-events-auto ${
+                className={`pressable relative z-10 min-h-10 flex-1 rounded-full px-2 text-xs sm:text-sm font-medium transition-colors duration-200 pointer-events-auto cursor-pointer ${
                   selected
                     ? 'text-[color:var(--ink)] font-semibold'
                     : 'text-[color:var(--ink-mute)] hover:text-[color:var(--ink-soft)]'
@@ -399,21 +399,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {workspace.tab === 'profile' && (
                   <div className="space-y-4" data-settings-panel="profile">
                     {fbUser && (
-                      <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800/60 flex items-center gap-3.5">
+                      <div className="p-3.5 rounded-2xl swift-grouped-list flex items-center gap-3.5 shadow-xs">
                         <img
                           src={fbUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.uid}`}
                           alt={fbUser.displayName || 'User Profile'}
                           referrerPolicy="no-referrer"
-                          className="w-11 h-11 rounded-full object-cover border border-stone-200 dark:border-stone-800"
+                          className="w-11 h-11 rounded-full object-cover border border-[color:var(--line)]"
                         />
                         <div className="flex-1 min-w-0">
-                          <span className="text-[9px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block">
+                          <span className="text-[9px] font-bold text-[color:var(--ink-mute)] uppercase tracking-wider block">
                             Signed in
                           </span>
-                          <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate">
+                          <h4 className="text-sm font-bold text-[color:var(--ink)] truncate">
                             {fbUser.displayName || 'Anonymous'}
                           </h4>
-                          <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                          <p className="text-[10px] text-[color:var(--ink-soft)] truncate">
                             {fbUser.email || 'guest-session@ultradian.app'}
                           </p>
                         </div>
@@ -421,44 +421,50 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     )}
 
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                      <label htmlFor="settings-username" className="block text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink-mute)]">
                         Leaderboard Display Name
                       </label>
                       <input
+                        id="settings-username"
+                        name="username"
+                        aria-label="Leaderboard Display Name"
                         type="text"
                         value={form.username || ''}
                         onChange={(e) => patchForm({ username: e.target.value })}
                         placeholder="e.g. Ultradian Master"
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:border-stone-400"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
                       />
-                      <p className="text-[10px] text-stone-400 dark:text-stone-500 leading-normal">
+                      <p className="text-[10px] text-[color:var(--ink-mute)] leading-normal">
                         Published with your verified weekly hours.
                       </p>
                     </div>
 
                     {(form.focusRitualName || form.profession) && (
-                      <div className="rounded-xl border border-stone-200/70 dark:border-stone-800 px-3.5 py-3 text-xs text-stone-600 dark:text-stone-400">
-                        <p className="font-serif text-sm text-stone-900 dark:text-stone-100">
+                      <div className="rounded-2xl swift-grouped-list p-4 text-xs text-[color:var(--ink-soft)]">
+                        <p className="font-serif text-sm text-[color:var(--ink)] font-medium">
                           {form.focusRitualName || 'Unnamed ritual'}
                         </p>
-                        <p className="mt-1">
+                        <p className="mt-1 text-[11px] text-[color:var(--ink-mute)]">
                           {[form.profession, form.archetype].filter(Boolean).join(' · ')}
                         </p>
                       </div>
                     )}
 
                     {onOpenRitualOnboarding && (
-                      <button
+                      <motion.button
                         type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                         onClick={() => {
                           onClose();
                           onOpenRitualOnboarding();
                         }}
-                        className="pressable flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--line)] text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink)]"
+                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--line)] text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] hover:bg-[color:var(--line)]/30 transition-colors cursor-pointer"
                       >
                         <UserRound className="w-3.5 h-3.5" />
                         <span>Revisit ritual</span>
-                      </button>
+                      </motion.button>
                     )}
                   </div>
                 )}
@@ -466,78 +472,93 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* RHYTHM TAB */}
                 {workspace.tab === 'rhythm' && (
                   <div className="space-y-4" data-settings-panel="rhythm">
-                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center">
-                      <Clock className="w-3.5 h-3.5 mr-1.5 text-stone-400" />
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink-mute)] flex items-center">
+                      <Clock className="w-3.5 h-3.5 mr-1.5 text-[color:var(--ink-mute)]" />
                       Rhythm Interval Widths (Minutes)
                     </h3>
 
                     <div className="grid grid-cols-3 gap-2.5">
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-400 dark:text-stone-500 mb-1 tracking-wider uppercase">
+                        <label htmlFor="settings-work-minutes" className="block text-[10px] font-bold text-[color:var(--ink-mute)] mb-1 tracking-wider uppercase">
                           Work Wave
                         </label>
                         <input
+                          id="settings-work-minutes"
+                          name="workMinutes"
+                          aria-label="Work Wave duration in minutes"
                           type="number"
                           min="1"
                           max="180"
                           value={form.workMinutes}
                           onChange={(e) => patchForm({ workMinutes: parseInt(e.target.value) || 90 })}
-                          className="w-full px-3 py-2 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:border-stone-400"
+                          className="w-full px-3 py-2 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-400 dark:text-stone-500 mb-1 tracking-wider uppercase">
+                        <label htmlFor="settings-short-break-minutes" className="block text-[10px] font-bold text-[color:var(--ink-mute)] mb-1 tracking-wider uppercase">
                           Short Rest
                         </label>
                         <input
+                          id="settings-short-break-minutes"
+                          name="shortBreakMinutes"
+                          aria-label="Short Rest duration in minutes"
                           type="number"
                           min="1"
                           max="60"
                           value={form.shortBreakMinutes}
                           onChange={(e) => patchForm({ shortBreakMinutes: parseInt(e.target.value) || 20 })}
-                          className="w-full px-3 py-2 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:border-stone-400"
+                          className="w-full px-3 py-2 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-400 dark:text-stone-500 mb-1 tracking-wider uppercase">
+                        <label htmlFor="settings-long-break-minutes" className="block text-[10px] font-bold text-[color:var(--ink-mute)] mb-1 tracking-wider uppercase">
                           Long Rest
                         </label>
                         <input
+                          id="settings-long-break-minutes"
+                          name="longBreakMinutes"
+                          aria-label="Long Rest duration in minutes"
                           type="number"
                           min="1"
                           max="90"
                           value={form.longBreakMinutes}
                           onChange={(e) => patchForm({ longBreakMinutes: parseInt(e.target.value) || 30 })}
-                          className="w-full px-3 py-2 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:border-stone-400"
+                          className="w-full px-3 py-2 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 pt-1">
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-400 dark:text-stone-500 mb-1.5 tracking-wider uppercase">
+                        <label htmlFor="settings-daily-goal-cycles" className="block text-[10px] font-bold text-[color:var(--ink-mute)] mb-1.5 tracking-wider uppercase">
                           Daily Wave Goal (Cycles)
                         </label>
                         <input
+                          id="settings-daily-goal-cycles"
+                          name="dailyGoalCycles"
+                          aria-label="Daily Wave Goal in cycles"
                           type="number"
                           min="1"
                           max="10"
                           value={form.dailyGoalCycles}
                           onChange={(e) => patchForm({ dailyGoalCycles: parseInt(e.target.value) || 3 })}
-                          className="w-full px-3 py-2 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:border-stone-400"
+                          className="w-full px-3 py-2 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-400 dark:text-stone-500 mb-1.5 tracking-wider uppercase">
+                        <label htmlFor="settings-cycles-before-long-break" className="block text-[10px] font-bold text-[color:var(--ink-mute)] mb-1.5 tracking-wider uppercase">
                           Waves Before Long Rest
                         </label>
                         <input
+                          id="settings-cycles-before-long-break"
+                          name="cyclesBeforeLongBreak"
+                          aria-label="Waves Before Long Rest"
                           type="number"
                           min="1"
                           max="6"
                           value={form.cyclesBeforeLongBreak}
                           onChange={(e) => patchForm({ cyclesBeforeLongBreak: parseInt(e.target.value) || 2 })}
-                          className="w-full px-3 py-2 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-xs font-semibold text-stone-800 dark:text-stone-200 focus:outline-none focus:border-stone-400"
+                          className="w-full px-3 py-2 rounded-xl bg-[color:var(--paper)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--ink)] shadow-xs"
                         />
                       </div>
                     </div>
@@ -547,54 +568,60 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* AUDIO TAB */}
                 {workspace.tab === 'audio' && (
                   <div className="space-y-4" data-settings-panel="audio">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center">
-                        <Volume2 className="w-3.5 h-3.5 mr-1.5 text-stone-400" />
-                        Audio Alert Notification
-                      </h3>
+                    <div className="flex items-center justify-between p-3 rounded-2xl swift-grouped-list shadow-xs">
+                      <label htmlFor="settings-sound-volume" className="text-xs font-semibold text-[color:var(--ink)] flex items-center cursor-pointer">
+                        <Volume2 className="w-3.5 h-3.5 mr-2 text-[color:var(--ink-mute)]" />
+                        Alert Volume
+                      </label>
                       <input
+                        id="settings-sound-volume"
+                        name="soundVolume"
+                        aria-label="Audio alert volume"
                         type="range"
                         min="0"
                         max="1"
-                        step="0.1"
+                        step="0.05"
                         value={form.soundVolume}
                         onChange={(e) => patchForm({ soundVolume: parseFloat(e.target.value) })}
-                        className="w-20 accent-stone-900 dark:accent-stone-100 h-1 bg-stone-100 dark:bg-stone-800 rounded-lg cursor-pointer"
+                        className="liquid-slider w-28"
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="swift-grouped-list divide-y divide-[color:var(--line)]/50 shadow-xs">
                       {SOUND_OPTIONS.map((snd) => {
                         const isSelected = form.soundEffect === snd.id;
                         return (
                           <div
                             key={snd.id}
-                            className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
-                              isSelected
-                                ? 'bg-stone-100 dark:bg-stone-800 border-stone-900 dark:border-stone-100 ring-1 ring-stone-900 dark:ring-stone-100 shadow-xs'
-                                : 'bg-stone-50/50 dark:bg-stone-900/45 border-stone-200/60 dark:border-stone-800/60'
+                            className={`flex items-center justify-between p-3.5 transition-colors duration-150 ${
+                              isSelected ? 'bg-[color:var(--line)]/30' : 'hover:bg-[color:var(--line)]/15'
                             }`}
                           >
                             <button
                               type="button"
-                              onClick={() => patchForm({ soundEffect: snd.id })}
-                              className="flex-1 text-left"
+                              onClick={() => {
+                                triggerHaptic();
+                                patchForm({ soundEffect: snd.id });
+                              }}
+                              className="flex-1 text-left cursor-pointer"
                             >
-                              <span className="font-serif text-sm font-medium text-stone-900 dark:text-stone-100 block">
+                              <span className="font-serif text-sm font-medium text-[color:var(--ink)] block">
                                 {snd.label}
                               </span>
-                              <span className="text-[10px] text-stone-400 dark:text-stone-500 block mt-0.5">
+                              <span className="text-[10px] text-[color:var(--ink-mute)] block mt-0.5">
                                 {snd.desc}
                               </span>
                             </button>
-                            <button
+                            <motion.button
                               type="button"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => handleTestSound(snd.id)}
-                              className="p-1.5 rounded-md bg-stone-200/50 dark:bg-stone-800 hover:bg-stone-200 text-stone-700 dark:text-stone-300 transition-colors ml-2"
-                              title="Preview alarm"
+                              className="p-2 rounded-full bg-[color:var(--line)]/60 hover:bg-[color:var(--line)] text-[color:var(--ink)] transition-colors ml-2 cursor-pointer shadow-xs"
+                              title="Preview sound"
                             >
-                              <Play className="w-3.5 h-3.5 fill-current" />
-                            </button>
+                              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                            </motion.button>
                           </div>
                         );
                       })}
@@ -605,50 +632,92 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* ACCOUNT TAB */}
                 {workspace.tab === 'account' && (
                   <div className="space-y-4" data-settings-panel="account">
-                    <div className="space-y-2.5 text-xs">
-                      <label className="flex items-center justify-between cursor-pointer min-h-10 p-1">
-                        <span className="font-semibold text-stone-600 dark:text-stone-400">
+                    {/* iOS Inset Grouped Toggle List */}
+                    <div className="swift-grouped-list shadow-xs">
+                      <div className="swift-list-row">
+                        <span className="font-medium text-xs text-[color:var(--ink)]">
                           Competitive leagues
                         </span>
-                        <input
-                          type="checkbox"
-                          checked={form.enableCompetitiveLeagues ?? true}
-                          onChange={(e) => patchForm({ enableCompetitiveLeagues: e.target.checked })}
-                          className="w-4 h-4 accent-stone-900 dark:accent-stone-100 rounded cursor-pointer"
-                        />
-                      </label>
-                      <label className="flex items-center justify-between cursor-pointer min-h-10 p-1">
-                        <span className="font-semibold text-stone-600 dark:text-stone-400">
+                        <div
+                          role="switch"
+                          aria-checked={form.enableCompetitiveLeagues ?? true}
+                          tabIndex={0}
+                          onClick={() => {
+                            triggerHaptic();
+                            patchForm({ enableCompetitiveLeagues: !(form.enableCompetitiveLeagues ?? true) });
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              triggerHaptic();
+                              patchForm({ enableCompetitiveLeagues: !(form.enableCompetitiveLeagues ?? true) });
+                            }
+                          }}
+                          className={`swift-toggle ${(form.enableCompetitiveLeagues ?? true) ? 'is-active' : ''}`}
+                        >
+                          <span className="swift-toggle-thumb" />
+                        </div>
+                      </div>
+
+                      <div className="swift-list-row">
+                        <span className="font-medium text-xs text-[color:var(--ink)]">
                           Start break when work ends
                         </span>
-                        <input
-                          type="checkbox"
-                          checked={form.autoStartBreaks}
-                          onChange={(e) => patchForm({ autoStartBreaks: e.target.checked })}
-                          className="w-4 h-4 accent-stone-900 dark:accent-stone-100 rounded cursor-pointer"
-                        />
-                      </label>
-                      <label className="flex items-center justify-between cursor-pointer min-h-10 p-1">
-                        <span className="font-semibold text-stone-600 dark:text-stone-400">
+                        <div
+                          role="switch"
+                          aria-checked={form.autoStartBreaks}
+                          tabIndex={0}
+                          onClick={() => {
+                            triggerHaptic();
+                            patchForm({ autoStartBreaks: !form.autoStartBreaks });
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              triggerHaptic();
+                              patchForm({ autoStartBreaks: !form.autoStartBreaks });
+                            }
+                          }}
+                          className={`swift-toggle ${form.autoStartBreaks ? 'is-active' : ''}`}
+                        >
+                          <span className="swift-toggle-thumb" />
+                        </div>
+                      </div>
+
+                      <div className="swift-list-row">
+                        <span className="font-medium text-xs text-[color:var(--ink)]">
                           Start work when break ends
                         </span>
-                        <input
-                          type="checkbox"
-                          checked={form.autoStartWork}
-                          onChange={(e) => patchForm({ autoStartWork: e.target.checked })}
-                          className="w-4 h-4 accent-stone-900 dark:accent-stone-100 rounded cursor-pointer"
-                        />
-                      </label>
+                        <div
+                          role="switch"
+                          aria-checked={form.autoStartWork}
+                          tabIndex={0}
+                          onClick={() => {
+                            triggerHaptic();
+                            patchForm({ autoStartWork: !form.autoStartWork });
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              triggerHaptic();
+                              patchForm({ autoStartWork: !form.autoStartWork });
+                            }
+                          }}
+                          className={`swift-toggle ${form.autoStartWork ? 'is-active' : ''}`}
+                        >
+                          <span className="swift-toggle-thumb" />
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="pt-3 border-t border-stone-100 dark:border-stone-800 space-y-2.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-stone-500 dark:text-stone-400">Cloud Sync Status</span>
+                    <div className="pt-2 space-y-2.5">
+                      <div className="flex items-center justify-between text-xs px-1">
+                        <span className="font-semibold text-[color:var(--ink-mute)]">Cloud Sync Status</span>
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
                             isAuthenticated
-                              ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300 border border-green-200/50 dark:border-green-900/30'
-                              : 'bg-stone-100 dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-200/60 dark:border-stone-800/60'
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                              : 'bg-[color:var(--line)]/50 text-[color:var(--ink-mute)] border border-[color:var(--line)]'
                           }`}
                         >
                           {isAuthenticated ? 'Active Profile' : 'Local Guest Sandbox'}
@@ -656,23 +725,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
 
                       {isAuthenticated ? (
-                        <button
+                        <motion.button
                           type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.96 }}
+                          transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                           onClick={() => {
+                            triggerHaptic();
                             if (onLogout) {
                               onLogout();
                               onClose();
                             }
                           }}
-                          className="w-full min-h-11 py-2.5 px-4 rounded-xl border border-red-200 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-950/15 text-red-600 dark:text-red-400 font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2"
+                          className="w-full min-h-11 py-2.5 px-4 rounded-full border border-red-300/60 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                         >
                           <LogOut className="w-3.5 h-3.5" />
                           <span>Disconnect Cloud Session</span>
-                        </button>
+                        </motion.button>
                       ) : (
-                        <button
+                        <motion.button
                           type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.96 }}
+                          transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                           onClick={() => {
+                            triggerHaptic();
                             onClose();
                             if (onOpenAuth) {
                               onOpenAuth();
@@ -680,11 +757,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               onLogout();
                             }
                           }}
-                          className="w-full min-h-11 py-2.5 px-4 rounded-xl border border-stone-300 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-900 text-stone-700 dark:text-stone-300 font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2"
+                          className="w-full min-h-11 py-2.5 px-4 rounded-full border border-[color:var(--line)] hover:bg-[color:var(--line)]/40 text-[color:var(--ink)] font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                         >
                           <Cloud className="w-3.5 h-3.5" />
                           <span>Sign In / Create Account</span>
-                        </button>
+                        </motion.button>
                       )}
                     </div>
                   </div>
@@ -693,12 +770,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </AnimatePresence>
           </div>
 
-          <button
+          <motion.button
             type="submit"
-            className="pressable mt-3 min-h-11 w-full rounded-full bg-[color:var(--ink)] text-[color:var(--paper)] text-sm font-medium shadow-sm hover:opacity-95"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+            className="swift-pill-cta mt-4 min-h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer shadow-md"
           >
             Save Changes
-          </button>
+          </motion.button>
         </form>
       </div>
     </Sheet>
